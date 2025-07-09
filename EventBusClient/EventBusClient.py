@@ -13,13 +13,13 @@
 #  limitations under the License.
 #################################################################################
 #
-# File: RabbitMqMessagebus.py
+# File: EventBusClient.py
 #
 # This module .......
 #
 # History:
 #
-# 2025-05:
+# 2025-07:
 #    - TODO
 #
 #################################################################################
@@ -27,22 +27,22 @@
 import os
 import sys
 
-from RabbitMqMessagebus.version import VERSION, VERSION_DATE
+from EventBusClient.version import VERSION, VERSION_DATE
 
-class CRabbitMqMessagebus():
+class CEventBusClient():
     """
 TODO
     """
 
     def getVersion(self) -> str:
         """
-Returns the version of Eventbus as string.
+Returns the version of EventBusClient as string.
         """
         return VERSION
     
     def getVersionDate(self) -> str:
         """
-Returns the version date of Eventbus as string.
+Returns the version date of EventBusClient as string.
         """
         return VERSION_DATE
 

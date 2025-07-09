@@ -29,7 +29,7 @@
 #
 # --------------------------------------------------------------------------------------------------------------
 #
-# 05.07.2022
+# 09.07.2025
 #
 # --------------------------------------------------------------------------------------------------------------
 
@@ -39,8 +39,8 @@ import pypandoc
 
 from PythonExtensionsCollection.String.CString import CString
 
-from RabbitMqMessagebus.version import VERSION
-from RabbitMqMessagebus.version import VERSION_DATE
+from EventBusClient.version import VERSION
+from EventBusClient.version import VERSION_DATE
 
 col.init(autoreset=True)
 COLBR = col.Style.BRIGHT + col.Fore.RED

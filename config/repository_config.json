@@ -1,9 +1,9 @@
 {
    "REPOSITORYNAME" : "python-rabbitmq-messagebus",
-   "PACKAGENAME" : "RabbitMqMessagebus",
-   "AUTHOR" : "TODO",
-   "AUTHOREMAIL" : "TODO",
-   "DESCRIPTION" : "TODO",
+   "PACKAGENAME" : "EventBusClient",
+   "AUTHOR" : "Nguyen Huynh Tri Cuong",
+   "AUTHOREMAIL" : "Cuong.NguyenHuynhTri@vn.bosch.com",
+   "DESCRIPTION" : "An IPC message-bus based on RabbitMQ message broker",
    "LONGDESCRIPTIONCONTENTTYPE" : "text/markdown",
    "URL" : "https://github.com/test-fullautomation/python-rabbitmq-messagebus",
    "PROGRAMMINGLANGUAGE" : "Programming Language :: Python :: 3",
