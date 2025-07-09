@@ -59,7 +59,7 @@ The log file of the test execution can be found here (default)
 
 .. code::
 
-   testlogfiles/MSGBUS_SelfTest.log
+   testlogfiles/RMQ_SelfTest.log
 
 It is possible to redirect the output with
 
@@ -136,15 +136,15 @@ feature; ``SUBSECTION`` is used to indicate a ``GOODCASE`` or a ``BADCASE`` test
 
 ``TESTID``, ``SECTION`` and ``SUBSECTION`` are used together to define the names of test cases.
 
-Example: The test case name of a ``GOODCASE`` test of the feature A with ``TESTID`` ``MSGBUS_0201`` is:
+Example: The test case name of a ``GOODCASE`` test of the feature A with ``TESTID`` ``RMQ_0201`` is:
 
 .. code::
 
-   MSGBUS_0201-(FEATURE_A)-[GOODCASE]
+   RMQ_0201-(FEATURE_A)-[GOODCASE]
 
 With:
 
-* ``MSGBUS_0201`` is the ``TESTID``
+* ``RMQ_0201`` is the ``TESTID``
 * ``FEATURE_A`` is the ``SECTION`` (*to ease the readability the* ``SECTION`` *is encapsulated in round brackets*)
 * ``GOODCASE`` is the ``SUBSECTION`` (*to ease the readability the* ``SUBSECTION`` *is encapsulated in edged brackets*)
 
@@ -201,7 +201,7 @@ Call of a single test case in command line:
 
 .. code::
 
-   component_test.py --testid="MSGBUS_0201"
+   component_test.py --testid="RMQ_0201"
 
 Corresponding ``pytest`` file containing the call of this test:
 
@@ -219,8 +219,8 @@ The test code itself:
 
 .. code::
 
-   def test_MSGBUS_0201(self, Description):
-      nReturn = CExecute.Execute("MSGBUS_0201")
+   def test_RMQ_0201(self, Description):
+      nReturn = CExecute.Execute("RMQ_0201")
       assert nReturn == 0
 
 The ``pytest`` XML log file can be found here:
@@ -252,10 +252,10 @@ test case overview lists in the following formats:
 
 .. code::
 
-   MSGBUS_TestUsecases.csv
-   MSGBUS_TestUsecases.html
-   MSGBUS_TestUsecases.rst
-   MSGBUS_TestUsecases.txt
+   RMQ_TestUsecases.csv
+   RMQ_TestUsecases.html
+   RMQ_TestUsecases.rst
+   RMQ_TestUsecases.txt
 
 TOC_
 

@@ -113,19 +113,19 @@ class CGenCode():
       print(COLBY + f"Writing overview lists to '{REFERENCEPATH}'")
       print()
 
-      PYTESTLISTFILE_RST = f"{REFERENCEPATH}/MSGBUS_TestUsecases.rst"
+      PYTESTLISTFILE_RST = f"{REFERENCEPATH}/RMQ_TestUsecases.rst"
       oPyTestListFile_RST = CFile(PYTESTLISTFILE_RST)
       print(f"* '{PYTESTLISTFILE_RST}'")
 
-      PYTESTLISTFILE_TXT = f"{REFERENCEPATH}/MSGBUS_TestUsecases.txt"
+      PYTESTLISTFILE_TXT = f"{REFERENCEPATH}/RMQ_TestUsecases.txt"
       oPyTestListFile_TXT = CFile(PYTESTLISTFILE_TXT)
       print(f"* '{PYTESTLISTFILE_TXT}'")
 
-      PYTESTLISTFILE_CSV = f"{REFERENCEPATH}/MSGBUS_TestUsecases.csv"
+      PYTESTLISTFILE_CSV = f"{REFERENCEPATH}/RMQ_TestUsecases.csv"
       oPyTestListFile_CSV = CFile(PYTESTLISTFILE_CSV)
       print(f"* '{PYTESTLISTFILE_CSV}'")
 
-      PYTESTLISTFILE_HTML = f"{REFERENCEPATH}/MSGBUS_TestUsecases.html"
+      PYTESTLISTFILE_HTML = f"{REFERENCEPATH}/RMQ_TestUsecases.html"
       oPyTestListFile_HTML = CFile(PYTESTLISTFILE_HTML)
       print(f"* '{PYTESTLISTFILE_HTML}'")
       print()
@@ -148,15 +148,15 @@ class CGenCode():
 
       sOut = """<html><head>
 <meta http-equiv="content-type" content="text/html; charset=windows-1252">
-   <meta name="EventBusClient" content="EventBusClient">
-   <title>EventBusClient Test Overview</title>
+   <meta name="RabbitMQ messagebus" content="RabbitMQ messagebus">
+   <title>RabbitMQ messagebus Test Overview</title>
 </head>
 <body vlink="#000000" text="#000000" link="#000000" bgcolor="#FFFFFF" alink="#000000">
 <hr width="100%" color="#FF8C00" align="center">
 <div align="center">
 <font size="6" face="Arial" color="#595959">
 <b>
-EventBusClient<br>Test Cases
+RabbitMQ messagebus<br>Test Cases
 </b></font>
 </div>
 <hr width="100%" color="#FF8C00" align="center">

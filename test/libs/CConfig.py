@@ -115,12 +115,12 @@ class CConfig():
       self.__dictConfig['RECREATEINSTANCE'] = RECREATEINSTANCE
 
       # -- log file and output folders
-      sLogFileName = "MSGBUS_SelfTest.log"
+      sLogFileName = "RMQ_SelfTest.log"
       if TESTID is not None:
          if ';' not in TESTID:
             # in case of a single TESTID is given in command line, we add this ID to the log file name
             # (support of pytest, where every test case is executed separately)
-            sLogFileName = f"MSGBUS_SelfTest_{TESTID}.log"
+            sLogFileName = f"RMQ_SelfTest_{TESTID}.log"
 
       SELFTESTLOGFILE = f"{REFERENCEPATH}/testlogfiles/{sLogFileName}"
 

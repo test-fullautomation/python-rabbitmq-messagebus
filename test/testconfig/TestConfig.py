@@ -41,7 +41,7 @@ listofdictUsecases = []
 #TM***
 # --------------------------------------------------------------------------------------------------------------
 dictUsecase = {}
-dictUsecase['TESTID']            = "MSGBUS_0001"
+dictUsecase['TESTID']            = "RMQ_0001"
 dictUsecase['DESCRIPTION']       = "TBD"
 dictUsecase['EXPECTATION']       = "TBD"
 dictUsecase['SECTION']           = "TBD"
@@ -57,7 +57,7 @@ listofdictUsecases.append(dictUsecase)
 del dictUsecase
 # --------------------------------------------------------------------------------------------------------------
 dictUsecase = {}
-dictUsecase['TESTID']            = "MSGBUS_0002"
+dictUsecase['TESTID']            = "RMQ_0002"
 dictUsecase['DESCRIPTION']       = "TBD"
 dictUsecase['EXPECTATION']       = "TBD"
 dictUsecase['SECTION']           = "TBD"
