@@ -1,6 +1,6 @@
 # **************************************************************************************************************
 #
-#  Copyright 2020-2024 Robert Bosch GmbH
+#  Copyright 2020-2025 Robert Bosch GmbH
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 # Mai Dinh Nam Son - MS/EMC51-XC
 # Derive from the component test of JsonPreprocessor https://github.com/test-fullautomation/python-jsonpreprocessor/tree/develop/test
 #
-# 04.07.2025
+# 11.07.2025
 #
 # --------------------------------------------------------------------------------------------------------------
 
@@ -113,19 +113,19 @@ class CGenCode():
       print(COLBY + f"Writing overview lists to '{REFERENCEPATH}'")
       print()
 
-      PYTESTLISTFILE_RST = f"{REFERENCEPATH}/RMQ_TestUsecases.rst"
+      PYTESTLISTFILE_RST = f"{REFERENCEPATH}/EBC_TestUsecases.rst"
       oPyTestListFile_RST = CFile(PYTESTLISTFILE_RST)
       print(f"* '{PYTESTLISTFILE_RST}'")
 
-      PYTESTLISTFILE_TXT = f"{REFERENCEPATH}/RMQ_TestUsecases.txt"
+      PYTESTLISTFILE_TXT = f"{REFERENCEPATH}/EBC_TestUsecases.txt"
       oPyTestListFile_TXT = CFile(PYTESTLISTFILE_TXT)
       print(f"* '{PYTESTLISTFILE_TXT}'")
 
-      PYTESTLISTFILE_CSV = f"{REFERENCEPATH}/RMQ_TestUsecases.csv"
+      PYTESTLISTFILE_CSV = f"{REFERENCEPATH}/EBC_TestUsecases.csv"
       oPyTestListFile_CSV = CFile(PYTESTLISTFILE_CSV)
       print(f"* '{PYTESTLISTFILE_CSV}'")
 
-      PYTESTLISTFILE_HTML = f"{REFERENCEPATH}/RMQ_TestUsecases.html"
+      PYTESTLISTFILE_HTML = f"{REFERENCEPATH}/EBC_TestUsecases.html"
       oPyTestListFile_HTML = CFile(PYTESTLISTFILE_HTML)
       print(f"* '{PYTESTLISTFILE_HTML}'")
       print()
@@ -148,15 +148,16 @@ class CGenCode():
 
       sOut = """<html><head>
 <meta http-equiv="content-type" content="text/html; charset=windows-1252">
-   <meta name="RabbitMQ messagebus" content="RabbitMQ messagebus">
-   <title>RabbitMQ messagebus Test Overview</title>
+   <meta name="EventBusClient" content="EventBusClient">
+   <title>EventBusClient Test Cases</title>
 </head>
 <body vlink="#000000" text="#000000" link="#000000" bgcolor="#FFFFFF" alink="#000000">
 <hr width="100%" color="#FF8C00" align="center">
 <div align="center">
 <font size="6" face="Arial" color="#595959">
 <b>
-RabbitMQ messagebus<br>Test Cases
+EventBusClient Test Cases<br>
+(<em>based on RabbitMQ messagebus</em>)
 </b></font>
 </div>
 <hr width="100%" color="#FF8C00" align="center">

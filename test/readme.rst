@@ -1,4 +1,4 @@
-.. Copyright 2020-2023 Robert Bosch GmbH
+.. Copyright 2020-2025 Robert Bosch GmbH
 
 .. Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -12,14 +12,15 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 
-Component test of RabbitmqMessagebus
-==================================
+Component test of EventBusClient
+================================
 
-Nguyen The Dai Duong - MS/EMC-TE-XC (Derive from `the component test of JsonPreprocessor <https://github.com/test-fullautomation/python-jsonpreprocessor/tree/develop/test>`_)
-
-04.07.2025
+11.07.2025
 
 ----
+
+**This document needs to be reviewed when tests are implemented.**
+
 
 Table of content
 ----------------
@@ -59,7 +60,7 @@ The log file of the test execution can be found here (default)
 
 .. code::
 
-   testlogfiles/RMQ_SelfTest.log
+   testlogfiles/EBC_SelfTest.log
 
 It is possible to redirect the output with
 
@@ -136,15 +137,15 @@ feature; ``SUBSECTION`` is used to indicate a ``GOODCASE`` or a ``BADCASE`` test
 
 ``TESTID``, ``SECTION`` and ``SUBSECTION`` are used together to define the names of test cases.
 
-Example: The test case name of a ``GOODCASE`` test of the feature A with ``TESTID`` ``RMQ_0201`` is:
+Example: The test case name of a ``GOODCASE`` test of the feature A with ``TESTID`` ``EBC_0201`` is:
 
 .. code::
 
-   RMQ_0201-(FEATURE_A)-[GOODCASE]
+   EBC_0201-(FEATURE_A)-[GOODCASE]
 
 With:
 
-* ``RMQ_0201`` is the ``TESTID``
+* ``EBC_0201`` is the ``TESTID``
 * ``FEATURE_A`` is the ``SECTION`` (*to ease the readability the* ``SECTION`` *is encapsulated in round brackets*)
 * ``GOODCASE`` is the ``SUBSECTION`` (*to ease the readability the* ``SUBSECTION`` *is encapsulated in edged brackets*)
 
@@ -201,7 +202,7 @@ Call of a single test case in command line:
 
 .. code::
 
-   component_test.py --testid="RMQ_0201"
+   component_test.py --testid="EBC_0201"
 
 Corresponding ``pytest`` file containing the call of this test:
 
@@ -219,8 +220,8 @@ The test code itself:
 
 .. code::
 
-   def test_RMQ_0201(self, Description):
-      nReturn = CExecute.Execute("RMQ_0201")
+   def test_EBC_0201(self, Description):
+      nReturn = CExecute.Execute("EBC_0201")
       assert nReturn == 0
 
 The ``pytest`` XML log file can be found here:
@@ -252,10 +253,10 @@ test case overview lists in the following formats:
 
 .. code::
 
-   RMQ_TestUsecases.csv
-   RMQ_TestUsecases.html
-   RMQ_TestUsecases.rst
-   RMQ_TestUsecases.txt
+   EBC_TestUsecases.csv
+   EBC_TestUsecases.html
+   EBC_TestUsecases.rst
+   EBC_TestUsecases.txt
 
 TOC_
 
