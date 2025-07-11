@@ -12,7 +12,65 @@
 % See the License for the specific language governing permissions and
 % limitations under the License.
 
-The \pkg\ ...
+% --------------------------------------------------------------------------------------------------------------
 
-TODO
+The component \pkg\ provides a modular, high-level messaging framework built on top of the message broker \textbf{RabbitMQ}.
+It abstracts low-level standard protocol operations and adds:
+\begin{itemize}
+   \item Plugin support (custom serializers, handlers, message types)
+   \item Dynamic configuration
+   \item Reconnect and lifecycle management
+\end{itemize}
+
+It enables multiple projects to reuse a consistent event bus API without rewriting \textbf{RabbitMQ} logic.
+
+\vspace{2ex}
+
+The \pkg\ is part of a test automation framework called \textbf{RobotFramework AIO}, but can also be installed
+and used stand-alone.
+
+\vspace{2ex}
+
+\textbf{RabbitMQ} is an open-source message broker that enables different parts of an application or separate applications to communicate
+with each other by sending and receiving messages asynchronously. It acts as an intermediary between producers (which send messages)
+and consumers (which receive and process messages). \textbf{RabbitMQ} decouples the sender and receiver, allowing them to operate independently
+and at their own pace. 
+
+Messages are stored in queues until they can be processed, ensuring reliability even if a consumer is temporarily unavailable.
+
+\vspace{2ex}
+
+\textbf{RabbitMQ terms}
+
+\begin{tabular}{|l|p{12cm}|}
+\hline
+\textbf{Term} & \textbf{Description} \\
+\hline
+Producer & Application or service that sends messages \\
+\hline
+Consumer & Application or service that receives and processes messages \\
+\hline
+Queue & Buffer that temporarily stores messages \\
+\hline
+Exchange & Routes messages from producers to queues based on routing rules \\
+\hline
+Binding & Link between an exchange and a queue, defining how messages are routed \\
+\hline
+Routing Key & Address-like string used to decide how messages are routed \\
+\hline
+AMQP & Advanced Message Queuing Protocol, the standard protocol \textbf{RabbitMQ} uses \\
+\hline
+\end{tabular}
+
+\vspace{2ex}
+
+For more detailed information about these components and framworks please refer to the
+corresponding \hyperref[LINKS]{homepages}.
+
+
+
+
+
+
+
 
