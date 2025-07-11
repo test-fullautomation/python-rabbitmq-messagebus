@@ -16,14 +16,11 @@
 #
 # **************************************************************************************************************
 #
-# ========== Release Items for component 'RabbitMqMessagebus' ==========
+# ========== Release Items for component 'EventBusClient' ==========
 #
-# Basically this component is stand-alone, but can also be used as part of an automation framework called
-# RobotFramework AIO. More information about this framework you can find here:
-# 
-# https://github.com/test-fullautomation/RobotFramework_AIO
-# 
-# This JSON file contains component specific release information for the RobotFramework AIO.
+# Basically this component is stand-alone, but can also be used as part of other frameworks.
+#
+# This JSON file contains component specific release information for these frameworks.
 # In case you use the component stand-alone only, you can ignore this file.
 # 
 # --------------------------------------------------------------------------------------------------------------
@@ -38,14 +35,14 @@
 # Section "COMPONENT":
 # --------------------
 
-   "COMPONENT" : "RabbitMqMessagebus",
+   "COMPONENT" : "EventBusClient",
 
 
-# Section "RELEASES" for RobotFramework_AIO:
-# ------------------------------------------
+# Section "RELEASES" for other frameworks:
+# ----------------------------------------
 
    "RELEASES"  : {
-                   "0.14.x.;0.15.0." : [
+                   "0.14.2.;0.15.0." : [
 "
 TODO
 "
