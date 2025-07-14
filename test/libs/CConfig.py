@@ -1,6 +1,6 @@
 # **************************************************************************************************************
 #
-#  Copyright 2020-2024 Robert Bosch GmbH
+#  Copyright 2020-2025 Robert Bosch GmbH
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -115,12 +115,12 @@ class CConfig():
       self.__dictConfig['RECREATEINSTANCE'] = RECREATEINSTANCE
 
       # -- log file and output folders
-      sLogFileName = "RMQ_SelfTest.log"
+      sLogFileName = "EBC_SelfTest.log"
       if TESTID is not None:
          if ';' not in TESTID:
             # in case of a single TESTID is given in command line, we add this ID to the log file name
             # (support of pytest, where every test case is executed separately)
-            sLogFileName = f"RMQ_SelfTest_{TESTID}.log"
+            sLogFileName = f"EBC_SelfTest_{TESTID}.log"
 
       SELFTESTLOGFILE = f"{REFERENCEPATH}/testlogfiles/{sLogFileName}"
 

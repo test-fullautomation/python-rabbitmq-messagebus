@@ -1,6 +1,6 @@
 ﻿# **************************************************************************************************************
 #
-#  Copyright 2020-2024 Robert Bosch GmbH
+#  Copyright 2020-2025 Robert Bosch GmbH
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 # Nguyen The Dai Duong - MS/EMC-TE-XC
 # Derive from the component test of JsonPreprocessor https://github.com/test-fullautomation/python-jsonpreprocessor/tree/develop/test
 #
-# 04.07.2025
+# 11.07.2025
 #
 # --------------------------------------------------------------------------------------------------------------
 
@@ -41,7 +41,7 @@ listofdictUsecases = []
 #TM***
 # --------------------------------------------------------------------------------------------------------------
 dictUsecase = {}
-dictUsecase['TESTID']            = "RMQ_0001"
+dictUsecase['TESTID']            = "EBC_0001"
 dictUsecase['DESCRIPTION']       = "TBD"
 dictUsecase['EXPECTATION']       = "TBD"
 dictUsecase['SECTION']           = "TBD"
@@ -57,7 +57,7 @@ listofdictUsecases.append(dictUsecase)
 del dictUsecase
 # --------------------------------------------------------------------------------------------------------------
 dictUsecase = {}
-dictUsecase['TESTID']            = "RMQ_0002"
+dictUsecase['TESTID']            = "EBC_0002"
 dictUsecase['DESCRIPTION']       = "TBD"
 dictUsecase['EXPECTATION']       = "TBD"
 dictUsecase['SECTION']           = "TBD"

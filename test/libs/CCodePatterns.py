@@ -1,6 +1,6 @@
 # **************************************************************************************************************
 #
-#  Copyright 2020-2024 Robert Bosch GmbH
+#  Copyright 2020-2025 Robert Bosch GmbH
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 # Mai Dinh Nam Son - MS/EMC51-XC 
 # Derive from the component test of JsonPreprocessor https://github.com/test-fullautomation/python-jsonpreprocessor/tree/develop/test
 #
-# 04.07.2025
+# 11.07.2025
 #
 # --------------------------------------------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@ class CCodePatterns():
       """
 
       sPyTestFileHeaderPattern = """# **************************************************************************************************************
-#  Copyright 2020-2023 Robert Bosch GmbH
+#  Copyright 2020-2025 Robert Bosch GmbH
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -126,7 +126,7 @@ class ####CLASSNAME####:
       """
       """
 
-      sCopyRightRST = """.. Copyright 2020-2023 Robert Bosch GmbH
+      sCopyRightRST = """.. Copyright 2020-2025 Robert Bosch GmbH
 
 .. Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -150,7 +150,7 @@ class ####CLASSNAME####:
       """
       """
 
-      sCopyRightTXT = """Copyright 2020-2023 Robert Bosch GmbH
+      sCopyRightTXT = """Copyright 2020-2025 Robert Bosch GmbH
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

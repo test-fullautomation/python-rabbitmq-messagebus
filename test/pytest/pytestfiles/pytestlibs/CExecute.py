@@ -1,6 +1,6 @@
 # **************************************************************************************************************
 #
-#  Copyright 2020-2023 Robert Bosch GmbH
+#  Copyright 2020-2025 Robert Bosch GmbH
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -18,10 +18,9 @@
 #
 # CExecute.py
 #
-# Mai Dinh Nam Son - MS/EMC51-XC
-# Derive from the component test of JsonPreprocessor https://github.com/test-fullautomation/python-jsonpreprocessor/tree/develop/test
+# XC-CT/ECA3-Queckenstedt
 #
-# 04.07.2025
+# 03.07.2023
 #
 # **************************************************************************************************************
 
@@ -36,7 +35,6 @@ from PythonExtensionsCollection.String.CString import CString
 class CExecute(object):
 
    def Execute(sTestID=None):
-
       sThisFilePath = os.path.dirname(CString.NormalizePath(__file__))
       sPython       = CString.NormalizePath(sys.executable)
       sTestScript   = CString.NormalizePath("../../../component_test.py", sReferencePathAbs=sThisFilePath)
