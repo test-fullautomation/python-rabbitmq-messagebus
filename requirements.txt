@@ -4,3 +4,6 @@ GenPackageDoc
 PythonExtensionsCollection
 pydotdict
 regex
+aio-pika>=8.2.0
+pika>=1.2.0
+protobuf>=4.23.0
