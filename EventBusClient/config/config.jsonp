@@ -1,0 +1,13 @@
+{
+  "plugins_path": "./plugins",
+//  "exchange_name": "mcpi.event_bus",
+//  "exchange_type": "x-rtopic",
+  "host": "localhost",
+  "port": 5672,
+  "serializer": "PickleSerializer",
+  "exchange_handler": "XRTopicExchangeHandler",
+  "message_class": "ListenerEventMsg",
+  "threadsafe_publish": true,
+  "auto_reconnect": true,
+  "qos_prefetch": 10
+}
