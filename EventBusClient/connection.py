@@ -109,9 +109,10 @@ Establish a robust connection to RabbitMQ and declare the exchange.
       )
 
       self._channel = await self._connection.channel()
-      self._channel.close_callbacks.add(self.reconnect)
-
-      self._connection.close_callbacks.add(self.reconnect)
+      self._channel.close_callbacks.add(
+         lambda exc: asyncio.create_task(self.reconnect(host, port, exc)))
+      self._connection.close_callbacks.add(
+         lambda exc: asyncio.create_task(self.reconnect(host, port, exc)))
       # Optional: QoS tuning
       await self._channel.set_qos(prefetch_count=10)
 
@@ -140,25 +141,20 @@ Establish a robust connection to RabbitMQ and declare the exchange.
       if self._connection and not self._connection.is_closed:
          await self._connection.close()
 
-   async def reconnect(self, host: str, port: int):
+   async def reconnect(self, host: str, port: int, exc: Exception = None):
       """
-Reconnect to RabbitMQ server and re-establish the connection and channel.
+      Reconnect to RabbitMQ server and re-establish the connection and channel.
 
-**Arguments:**
-
-* ``host``
-
-    / *Condition*: required / *Type*: str /
-
-    The hostname or IP address of the RabbitMQ server.
-
-* ``port``
-
-    / *Condition*: required / *Type*: int /
-
-    The port number on which the RabbitMQ server is listening.
+      **Arguments:**
+      * ``host``: The hostname or IP address of the RabbitMQ server.
+      * ``port``: The port number on which the RabbitMQ server is listening.
+      * ``exc``: The exception that triggered the callback, if any.
       """
       async with self._reconnect_lock:
+         if exc:
+            logger.error(f"[ConnectionManager] Connection closed due to exception: {exc}")
+         else:
+            logger.info("[ConnectionManager] Connection closed, reconnecting...")
          print("[ConnectionManager] Reconnecting...")
          await self._establish_connection(host, port)
          # await self._declare_exchange()
