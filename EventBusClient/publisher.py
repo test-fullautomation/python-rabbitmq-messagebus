@@ -77,6 +77,33 @@ AsyncPublisher: Initializes the publisher with a channel, exchange, and optional
       routing_key: str,
       headers: Optional[dict] = None
    ):
+      """
+Publish a message to the exchange with the specified routing key.
+
+**Arguments:**
+
+* ``message``
+
+    / *Condition*: required / *Type*: BaseMessage /
+
+    The message to be published. It should be an instance of BaseMessage or its subclasses.
+
+* ``routing_key``
+
+    / *Condition*: required / *Type*: str /
+
+    The routing key used to route the message to the appropriate subscribers.
+
+* ``headers``
+
+    / *Condition*: optional / *Type*: dict /
+
+    Additional headers to include with the message. This can be used for metadata or routing information.
+
+**Note:**
+This method serializes the message using the specified serializer and publishes it to the exchange with the given routing key.
+The message is sent with a delivery mode of NOT_PERSISTENT, meaning it will not be saved to disk and will not survive a broker restart.
+      """
       body: bytes = self._serializer.serialize(message)
       await self._exchange.publish(
          aio_pika.Message(

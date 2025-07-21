@@ -32,7 +32,7 @@ from typing import Callable, Type
 from exchange_handler.base import ExchangeHandler
 from publisher import AsyncPublisher
 from subscriber import AsyncSubscriber
-from serializer.base_serializer import Serializer
+# from serializer.base_serializer import Serializer
 from message.base_message import BaseMessage
 from connection import ConnectionManager
 
@@ -58,7 +58,13 @@ It initializes the channel and exchange, and prepares the publisher for sending 
    The connection manager used to get the channel and exchange for publishing messages.
       """
       self._channel = await connection_manager.get_channel()
-      self._exchange = await connection_manager.get_exchange()
+      # self._exchange = await connection_manager.get_exchange()
+      self._exchange = await self._channel.declare_exchange(
+         self.exchange_name,
+         self._EXCHANGE_TYPE,
+         durable=True,
+         auto_delete=False
+      )
       self._publisher = AsyncPublisher(self._channel, self._exchange, self._serializer)
 
    async def publish(self, message: BaseMessage, routing_key: str, headers: dict = None, threadsafe: bool = False):
@@ -142,6 +148,7 @@ Teardown the exchange handler by stopping all subscribers and clearing the list 
       for subscriber in self._subscribers:
          await subscriber.stop()
       self._subscribers.clear()
+      await super().teardown()
 
 
 if __name__ == "__main__":

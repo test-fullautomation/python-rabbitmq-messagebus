@@ -37,11 +37,10 @@ from message.base_message import BaseMessage
 from connection import ConnectionManager
 from plugin_loader import PluginLoader  # Import PluginLoader
 from serializer.base_serializer import Serializer
+from qlogger import QLogger
 
-logger = logging.getLogger(__name__)
-
-# event_bus/client.py
-
+logger = QLogger().get_logger("event_bus_client")
+# logger = logging.getLogger(__name__)
 
 class EventBusClient:
    """
@@ -98,6 +97,9 @@ Create an EventBusClient instance from a configuration file.
       plugin_loader = PluginLoader()
       config = plugin_loader.load_config(config_path)
 
+      if not hasattr(config, "logfile"):
+         config.logfile = None
+
       # Dynamic load components
       handler_cls: Type[ExchangeHandler] = plugin_loader.get_exchange_handler(config.exchange_handler)
       serializer_cls: Type[Serializer] = plugin_loader.get_serializer(config.serializer)
@@ -110,6 +112,8 @@ Create an EventBusClient instance from a configuration file.
          port=config.get("port", 5672),
          exchange_name=config.get("exchange_name", "event_bus")
       )
+
+      client._logger_handler = QLogger().set_handler(config)
       return client
 
    async def connect(self, host="localhost", port=5672, exchange_name="event_bus"):
