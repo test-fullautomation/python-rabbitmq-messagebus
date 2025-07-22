@@ -97,7 +97,7 @@ AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing ke
       self._message_cls = message_cls
       self._serializer = serializer or PickleSerializer()
 
-      self._queue: aio_pika.abc.AbstractQueue | None= None
+      self._queue: aio_pika.abc.AbstractQueue | None = None
       self._consumer_tag: str | None = None
 
    async def start(self):
@@ -115,7 +115,7 @@ Start the subscriber by declaring a queue, binding it to the exchange, and consu
 
    async def stop(self):
       """
-Stop the subscriber by canceling theconsumer, unbinding the queue from the exchange, and deleting the queue.
+Stop the subscriber by canceling the consumer, unbinding the queue from the exchange, and deleting the queue.
       """
       if self._queue and self._consumer_tag:
          await self._queue.cancel(self._consumer_tag)

@@ -100,7 +100,7 @@ Set up the exchange handler by establishing a channel and declaring the exchange
 Tear down the exchange handler by closing the channel and cleaning up resources.
       """
       if self._connection:
-         self._connection.register_exchange_handler(self)
+         self._connection.unregister_exchange_handler(self)
 
    @abstractmethod
    async def publish(self, message: BaseMessage, routing_key: str, headers: dict = None, threadsafe: bool = False): ...

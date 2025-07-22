@@ -57,6 +57,9 @@ ConnectionManager: Initializes the connection manager with an event loop.
       self._channel: Optional[aio_pika.Channel] = None
       self._reconnect_lock = asyncio.Lock()
       self._exchange_handlers = []
+      self._is_reconnecting = False
+      self._close_channel_callback = None
+      self._close_connection_callback = None
 
    async def connect(self, host: str, port: int, exchange_name: str, exchange_type: str):
       """
@@ -147,14 +150,10 @@ Establish a robust connection to RabbitMQ and create a channel.
       )
 
       self._channel = await self._connection.channel()
-      # self._channel.close_callbacks.add(
-      #    lambda exc: asyncio.create_task(self.reconnect(host, port, exc)))
-      for handler in self._exchange_handlers:
-         self._channel.close_callbacks.add(
-            lambda exc, h=handler: asyncio.create_task(h.handle_channel_close(self, exc)))
-
-      self._connection.close_callbacks.add(
-         lambda exc: asyncio.create_task(self.reconnect(host, port, exc)))
+      self._close_channel_callback = lambda exc, reply_code: asyncio.create_task(self.recreate_channel(exc, reply_code))
+      self._channel.close_callbacks.add(self._close_channel_callback)
+      self._close_connection_callback = lambda exc, reply_code: asyncio.create_task(self.reconnect(host, port, exc, reply_code))
+      self._connection.close_callbacks.add(self._close_connection_callback)
       # Optional: QoS tuning
       await self._channel.set_qos(prefetch_count=10)
 
@@ -187,12 +186,53 @@ Get the current channel for publishing messages.
       """
 Gracefully close the connection and channel.
       """
+      if self._close_channel_callback and self._channel:
+         self._channel.close_callbacks.discard(self._close_channel_callback)
+
+      if self._close_connection_callback and self._connection:
+         self._connection.close_callbacks.discard(self._close_connection_callback)
+
       if self._channel and not self._channel.is_closed:
          await self._channel.close()
+
       if self._connection and not self._connection.is_closed:
          await self._connection.close()
 
-   async def reconnect(self, host: str, port: int, exc: Exception = None):
+   async def recreate_channel(self, exc: Exception = None, reply_code: int = 0):
+      """
+Recreate the RabbitMQ channel if it is closed or dropped.
+
+**Arguments:**
+
+   * `exc`
+
+      / *Condition*: optional / *Type*: Exception /
+
+      The exception that caused the channel to drop, if any.
+
+   * `reply_code`
+
+      / *Condition*: optional / *Type*: int /
+
+      The reply code associated with the channel drop, if any.
+      """
+      if exc:
+         logger.error(f"[ConnectionManager] Channel dropped with exception: {exc}, reply_code: {reply_code}")
+      else:
+         logger.info(f"[ConnectionManager] Channel dropped, recreating... (reply_code: {reply_code})")
+
+      if not self._connection or self._connection.is_closed:
+         logger.info("[ConnectionManager] Connection is closed, cannot recreate channel until reconnected.")
+         return
+
+      self._channel = await self._connection.channel()
+      await self._channel.set_qos(prefetch_count=10)
+      for handler in self._exchange_handlers:
+         if hasattr(handler, "setup"):
+            await handler.setup(self)
+      logger.info("[ConnectionManager] Channel recreated successfully.")
+
+   async def reconnect(self, host: str, port: int, exc: Exception = None, reply_code: int = 0):
       """
 Reconnect to RabbitMQ in case of connection loss or error.
 
@@ -217,20 +257,36 @@ Reconnect to RabbitMQ in case of connection loss or error.
    The exception that caused the reconnection attempt, if any. If not provided, it defaults to None.
       """
       async with self._reconnect_lock:
-         if exc:
-            if isinstance(exc, aio_pika.exceptions.AMQPConnectionError):
-               logger.error(f"[ConnectionManager] AMQPConnectionError: {exc}")
-            elif isinstance(exc, asyncio.TimeoutError):
-               logger.error(f"[ConnectionManager] TimeoutError: {exc}")
-            elif isinstance(exc, ConnectionRefusedError):
-               logger.error(f"[ConnectionManager] ConnectionRefusedError: {exc}")
+         if self._is_reconnecting:
+            return
+         self._is_reconnecting = True
+         try:
+            if exc:
+               if isinstance(exc, aio_pika.exceptions.AMQPConnectionError):
+                  logger.error(f"[ConnectionManager] AMQPConnectionError: {exc}, reply_code: {reply_code}")
+               elif isinstance(exc, asyncio.TimeoutError):
+                  logger.error(f"[ConnectionManager] TimeoutError: {exc}, reply_code: {reply_code}")
+               elif isinstance(exc, ConnectionRefusedError):
+                  logger.error(f"[ConnectionManager] ConnectionRefusedError: {exc}, reply_code: {reply_code}")
+               else:
+                  logger.error(f"[ConnectionManager] Unknown exception: {exc}, reply_code: {reply_code}")
             else:
-               logger.error(f"[ConnectionManager] Unknown exception: {exc}")
-         else:
-            logger.info("[ConnectionManager] Connection closed, reconnecting...")
-         print("[ConnectionManager] Reconnecting...")
-         await self._establish_connection(host, port)
-         for handler in self._exchange_handlers:
-            if hasattr(handler, "setup"):
-               await handler.setup(self)
-         print("[ConnectionManager] Reconnected successfully.")
+               logger.info(f"[ConnectionManager] Connection closed, reconnecting... (reply_code: {reply_code})")
+
+            logger.info("[ConnectionManager] Reconnecting...")
+            if self._close_channel_callback and self._channel:
+               self._channel.close_callbacks.discard(self._close_channel_callback)
+            if self._channel and not self._channel.is_closed:
+               await self._channel.close()
+            if self._connection and not self._connection.is_closed:
+               await self._connection.close()
+
+            await self._establish_connection(host, port)
+            for handler in self._exchange_handlers:
+               if hasattr(handler, "setup"):
+                  await handler.setup(self)
+            logger.info("[ConnectionManager] Reconnected successfully.")
+         except Exception as e:
+            logger.info(f"[ConnectionManager] Reconnect failed: {e}")
+         finally:
+            self._is_reconnecting = False

@@ -97,7 +97,7 @@ Create an EventBusClient instance from a configuration file.
       plugin_loader = PluginLoader()
       config = plugin_loader.load_config(config_path)
 
-      if not hasattr(config, "logfile"):
+      if not "logfile" in config:
          config.logfile = None
 
       # Dynamic load components
