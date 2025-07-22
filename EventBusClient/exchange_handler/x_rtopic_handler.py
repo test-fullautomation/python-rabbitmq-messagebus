@@ -32,7 +32,6 @@ from exchange_handler.base import ExchangeHandler
 from publisher import AsyncPublisher
 from subscriber import AsyncSubscriber
 from serializer.base_serializer import Serializer
-from serializer.pickle_serializer import PickleSerializer
 from message.base_message import BaseMessage
 from connection import ConnectionManager
 from typing import Callable, Type
@@ -79,7 +78,7 @@ Set up the exchange handler by establishing a channel and declaring the x-rtopic
       self._channel = await connection_manager.get_channel()
       self._exchange = await self._channel.declare_exchange(
          name=self.exchange_name,
-         type="x-rtopic",  
+         type=self.exchange_type,
          durable=False,
          auto_delete=True
       )
@@ -96,6 +95,8 @@ Set up the exchange handler by establishing a channel and declaring the x-rtopic
       # await self._exchange.bind(base_exchange)
 
       self._publisher = AsyncPublisher(self._channel, self._exchange, self._serializer)
+      self._connection = connection_manager
+      await super().setup(connection_manager)
 
    async def publish(self, message: BaseMessage, routing_key: str, headers: dict = None, threadsafe: bool = False):
       """
@@ -189,3 +190,4 @@ Teardown the exchange handler by stopping all subscribers and clearing the list 
       for subscriber in self._subscribers:
          await subscriber.stop()
       self._subscribers.clear()
+      await super().teardown()

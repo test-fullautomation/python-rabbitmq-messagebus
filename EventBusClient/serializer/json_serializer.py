@@ -27,7 +27,7 @@
 #
 # *******************************************************************************
 import json
-from typing import Any, Type
+from typing import Type
 from serializer.base_serializer import Serializer
 from message.base_message import BaseMessage
 
@@ -108,7 +108,7 @@ Deserialize bytes back into a message object.
          try:
             json_str = data.decode("utf-8")
             obj_dict = json.loads(json_str)
-            return message_cls.from_dict(obj_dict)
+            return message_cls.from_data(data=obj_dict)
          except Exception as ex:
             raise RuntimeError(f"[JsonSerializer] Failed to deserialize: {ex}")
       else:
