@@ -26,7 +26,6 @@
 # - Initialize
 #
 # *******************************************************************************
-from robot.libraries.BuiltIn import BuiltIn
 from QConnectBase.utils import *
 import QConnectBase.constants as constants
 import logging
@@ -126,10 +125,9 @@ Get the log file path for this handler.
 
   Log file path.
       """
-      out_dir = BuiltIn()._context.output._settings.output_directory
       dir_log = os.path.dirname(config.logfile)
       if not os.path.isabs(dir_log):
-         dir_log = out_dir + '/' + dir_log
+         dir_log = os.path.abspath(dir_log)
       if not os.path.exists(dir_log):
          os.makedirs(dir_log)
       return "{0}/{1}".format(dir_log, os.path.basename(config.logfile))
@@ -214,7 +212,8 @@ Get the log file path for this handler.
 
   Log file path.
       """
-      out_dir = BuiltIn()._context.output._settings.output_directory
+      # out_dir = BuiltIn()._context.output._settings.output_directory
+      out_dir = os.getcwd()
       return "{0}/{1}.log".format(out_dir, logger_name + "_trace")
 
    @staticmethod
@@ -306,6 +305,11 @@ Logger class for QConnect Libraries.
    """
    NAME_2_LEVEL_DICT = {
       'TRACE': logging.NOTSET,
+      'DEBUG': logging.DEBUG,
+      'INFO': logging.INFO,
+      'WARNING': logging.WARNING,
+      'ERROR': logging.ERROR,
+      'CRITICAL': logging.CRITICAL,
       'NONE': logging.CRITICAL + 1
    }
 
@@ -360,7 +364,8 @@ Set handler for logger.
       """
       # noinspection PyBroadException
       try:
-         log_level = BuiltIn()._context.output._settings.log_level
+         # log_level = BuiltIn()._context.output._settings.log_level
+         log_level = getattr(config, "log_level", logging.INFO)
          if log_level in QLogger.NAME_2_LEVEL_DICT:
             log_level = QLogger.NAME_2_LEVEL_DICT[log_level]
       except:

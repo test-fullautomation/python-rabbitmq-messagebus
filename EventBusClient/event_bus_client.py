@@ -97,7 +97,7 @@ Create an EventBusClient instance from a configuration file.
       plugin_loader = PluginLoader()
       config = plugin_loader.load_config(config_path)
 
-      if not hasattr(config, "logfile"):
+      if not "logfile" in config:
          config.logfile = None
 
       # Dynamic load components
@@ -179,11 +179,37 @@ Send a message to the event bus with the specified routing key.
       await self.exchange_handler.publish(message, routing_key, headers, threadsafe=threadsafe)
 
    async def on(self, routing_key: str, message_cls: Type[BaseMessage], callback):
+      """
+Subscribe to messages with the specified routing key and message class.
+
+**Arguments:**
+
+* ``routing_key``
+
+   / *Condition*: required / *Type*: str /
+
+   The routing key to subscribe to. Messages with this routing key will be routed to the callback.
+
+* ``message_cls``
+
+   / *Condition*: required / *Type*: Type[BaseMessage] /
+
+   The class of the message to subscribe to. The callback will receive messages of this type.
+
+* ``callback``
+
+   / *Condition*: required / *Type*: Callable[[BaseMessage], Awaitable[None]] /
+
+   The callback function to be called when a message is received. It should accept a single argument of type BaseMessage or its subclasses and return an awaitable (e.g., a coroutine).
+      """
       if not self._connected:
          raise RuntimeError("EventBusClient is not connected")
       await self.exchange_handler.subscribe(routing_key, message_cls, callback)
 
    async def close(self):
+      """
+Close the connection to the event bus and clean up resources.
+      """
       await self.exchange_handler.teardown()
       await self.connection.close()
       self._connected = False

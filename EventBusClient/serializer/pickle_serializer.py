@@ -35,7 +35,7 @@ class PickleSerializer(Serializer):
    """
    PickleSerializer: Built-in serializer using Python pickle.
 
-   ⚠️ WARNING: Pickle is not secure against untrusted data.
+   WARNING: Pickle is not secure against untrusted data.
    Only use in trusted environments.
    """
 

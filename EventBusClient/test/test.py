@@ -14,6 +14,13 @@ class TestMessage(BaseMessage):
         super().__init__()
         self.content = content
 
+    @classmethod
+    def from_data(cls, data):
+        pass
+
+    def get_value(self):
+        return self
+
 
 # Producer process function
 async def producer_process(config_path):
