@@ -1,0 +1,56 @@
+#  Copyright 2020-2023 Robert Bosch GmbH
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+# *******************************************************************************
+#
+# File: base_serialize.py
+#
+# Initially created by Nguyen Huynh Tri Cuong (MS/EMC51) / July 2025.
+#
+# Description:
+#   Base class for serializers in the event bus system.
+#
+# History:
+#
+# 17.07.2025 / V 1.0.0 / Nguyen Huynh Tri Cuong
+# - Initialize
+#
+# *******************************************************************************
+class Serializer:
+    def serialize(self, msg) -> bytes:
+        """
+Serialize a message object to bytes.
+
+**Arguments:**
+
+* ``msg``
+
+    / *Condition*: required / *Type*: Any /
+
+    Message object to be serialized.
+        """
+        raise NotImplementedError()
+
+    def deserialize(self, data: bytes):
+        """
+Deserialize bytes back into a message object.
+
+**Arguments:**
+
+* ``data``
+
+    / *Condition*: required / *Type*: bytes /
+
+    Serialized message data to be deserialized.
+        """
+        raise NotImplementedError()
