@@ -26,8 +26,8 @@
 # - Initialize
 #
 # *******************************************************************************
-from QConnectBase.utils import *
-import QConnectBase.constants as constants
+from utils import Singleton, Utils
+import constants as constants
 import logging
 import os
 
