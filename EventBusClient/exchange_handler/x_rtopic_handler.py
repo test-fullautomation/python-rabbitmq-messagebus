@@ -83,7 +83,7 @@ Set up the exchange handler by establishing a channel and declaring the x-rtopic
          auto_delete=True
       )
 
-      # bind x-rtopic exchange vào exchange gốc
+      # Bind the x-rtopic exchange to the base exchange
       # base_exchange_name = "taf.event_bus"
       # base_exchange = await self._channel.declare_exchange(
       #    name=base_exchange_name,
