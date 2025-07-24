@@ -34,7 +34,7 @@ listofdictUsecases = []
 
 # --------------------------------------------------------------------------------------------------------------
 
-# If both 'EXPECTEDEXCEPTION' and 'EXPECTEDRETURN' are None, the check of values returned from MessageBus is 
+# If both 'EXPECTEDEXCEPTION' and 'EXPECTEDRETURN' are None, the check of values returned from MessageBus is
 # skipped and the test case result is UNKNOWN.
 
 # --------------------------------------------------------------------------------------------------------------
@@ -42,33 +42,29 @@ listofdictUsecases = []
 # --------------------------------------------------------------------------------------------------------------
 dictUsecase = {}
 dictUsecase['TESTID']            = "EBC_0001"
-dictUsecase['DESCRIPTION']       = "TBD"
-dictUsecase['EXPECTATION']       = "TBD"
-dictUsecase['SECTION']           = "TBD"
+dictUsecase['DESCRIPTION']       = "Dummy test to verify the set setup in pass case. Will be replace later"
+dictUsecase['EXPECTATION']       = "Got version = 0.1.0"
+dictUsecase['SECTION']           = "DUMMY_TEST"
 dictUsecase['SUBSECTION']        = "GOODCASE"
 dictUsecase['HINT']              = None
 dictUsecase['COMMENT']           = None
-dictUsecase['TESTFILE']          = r"TBD"
+dictUsecase['TESTFILE']          = r"EBC_0001.py"
 dictUsecase['EXPECTEDEXCEPTION'] = None
-dictUsecase['EXPECTEDRETURN']    = """
-TBD
-"""
+dictUsecase['EXPECTEDRETURN']    = "0.1.0"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
 # --------------------------------------------------------------------------------------------------------------
 dictUsecase = {}
 dictUsecase['TESTID']            = "EBC_0002"
-dictUsecase['DESCRIPTION']       = "TBD"
-dictUsecase['EXPECTATION']       = "TBD"
-dictUsecase['SECTION']           = "TBD"
-dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['DESCRIPTION']       = "Dummy test to verify the set setup in fail case. Will be replace later"
+dictUsecase['EXPECTATION']       = "Mismatch result cause the test to be failed"
+dictUsecase['SECTION']           = "DUMMY_TEST"
+dictUsecase['SUBSECTION']        = "BADCASE"
 dictUsecase['HINT']              = None
 dictUsecase['COMMENT']           = None
-dictUsecase['TESTFILE']          = r"TBD"
+dictUsecase['TESTFILE']          = r"EBC_0002.py"
 dictUsecase['EXPECTEDEXCEPTION'] = None
-dictUsecase['EXPECTEDRETURN']    = """
-TBD
-"""
+dictUsecase['EXPECTEDRETURN']    = "09.07.2026"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
 # --------------------------------------------------------------------------------------------------------------

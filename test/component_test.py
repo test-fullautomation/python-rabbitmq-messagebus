@@ -48,6 +48,7 @@ from libs.CConfig import CConfig
 from libs.CGenCode import CGenCode
 
 from testconfig.TestConfig import *
+from EventBusClient.EventBusClient import CEventBusClient as EventBusClient
 
 # --------------------------------------------------------------------------------------------------------------
 # !!! the module under test !!!
@@ -99,9 +100,8 @@ def AnalyzeReturnedValues(EXPECTEDRETURN=None, actualReturned=None):
       for sLine in listSplitLines:
          if sLine != "":
             listExpectedLines.append(sLine)
-      # PrettyPrint(listExpectedLines)
 
-      listReturnedLines = PrettyPrint(actualReturned, bToConsole=False)
+      listReturnedLines = actualReturned.splitlines() if isinstance(actualReturned, str) else [actualReturned]
 
       # check number of lines
       nNrOfLinesReturned = len(listReturnedLines)
@@ -112,16 +112,14 @@ def AnalyzeReturnedValues(EXPECTEDRETURN=None, actualReturned=None):
          listErrors.append(sResult)
          print("EventBusClient returned:")
          print()
-         PrettyPrint(actualReturned, bToConsole=True)
+         print(actualReturned)
          print()
          return listErrors, bSuccess, sResult
 
       # compare content line by line
-      bDeviation = False
       for nIndex, sLineReturned in enumerate(listReturnedLines):
          sLineExpected = listExpectedLines[nIndex]
          if sLineReturned != sLineExpected:
-            bDeviation = True
             sResult    = f"Found deviating return values\n(1) '{sLineExpected}'   > (expected)\n(2) '{sLineReturned}'   > (returned)"
             listErrors.append(sResult)
          # eof if sLineReturned != sLineExpected:
@@ -236,6 +234,7 @@ if CONFIGDUMP is True:
 THISSCRIPT         = oConfig.Get('THISSCRIPT')
 THISSCRIPTNAME     = oConfig.Get('THISSCRIPTNAME')
 TESTCONFIGPATH     = oConfig.Get('TESTCONFIGPATH')
+TESTFILESPATH      = oConfig.Get('TESTFILESPATH')
 OSNAME             = oConfig.Get('OSNAME')
 PLATFORMSYSTEM     = oConfig.Get('PLATFORMSYSTEM')
 PYTHON             = oConfig.Get('PYTHON')
@@ -385,10 +384,6 @@ listTestsNotPassed = []
 
 for dictUsecase in listofdictUsecases:
 
-   # debug
-   # PrettyPrint(dictUsecase, sPrefix="dictUsecase")
-   # print()
-
    nCntUsecases = nCntUsecases + 1
 
    # get required parameters
@@ -414,10 +409,10 @@ for dictUsecase in listofdictUsecases:
 
    if USERAWPATH is not True:
       # Default is that the path 'TESTFILE' is normalized before the EventBusClient is called.
-      # The reference for relative paths is the position of the file TestConfig.py (TESTCONFIGPATH).
+      # The reference for relative paths is the position of the file TestConfig.py (TESTFILESPATH).
       # In case of USERAWPATH is True, the path 'TESTFILE' is not normalized.
       # And the path is relative to the position of the executing script (this script).
-      TESTFILE = CString.NormalizePath(TESTFILE, sReferencePathAbs=TESTCONFIGPATH)
+      TESTFILE = CString.NormalizePath(TESTFILE, sReferencePathAbs=TESTFILESPATH)
 
    # get derived parameters
    TESTFULLNAME    = f"{TESTID}-({SECTION})-[{SUBSECTION}]"
@@ -463,28 +458,49 @@ for dictUsecase in listofdictUsecases:
    actualReturned = None
    sException   = None
    try:
-      '''
-      actualReturned = <===Test scenario execute with oEventBusClient object and the TESTFILE===>
-      '''
+      # Execute the test file with the EventBusClient object
+      # Load the test file as a module and execute the test function
+      import importlib.util
+      import inspect
+
+      spec = importlib.util.spec_from_file_location("test_module", TESTFILE)
+      test_module = importlib.util.module_from_spec(spec)
+      spec.loader.exec_module(test_module)
+
+      # Find test functions in the module (function's name is test)
+      test_functions = [func for name, func in inspect.getmembers(test_module, inspect.isfunction)
+                       if name == 'test']
+
+      if test_functions:
+         # Execute the first test function found with the EventBusClient object
+         test_function = test_functions[0]
+         actualReturned = test_function(oEventBusClient)
+      else:
+         # No test function found, it is likely happen by test developer mistake
+         sErrorMessage = f"No function named 'test' found in ${TESTFILE}"
+         printerror(sErrorMessage)
+         oSelfTestLogFile.Write(sErrorMessage, 1)
+         actualReturned = None
+         nCntFailedUsecases = nCntFailedUsecases + 1
+         continue
    except Exception as reason:
       sException = f"'{reason}'"
       printerror(sException, "EventBusClient threw exception")
       oSelfTestLogFile.Write("EventBusClient threw exception:", 1)
       oSelfTestLogFile.Write(sException)
       oSelfTestLogFile.Write()
+      nCntFailedUsecases = nCntFailedUsecases + 1
+      continue
+
    if RECREATEINSTANCE is True:
       # !!! the object under test !!!
       del oEventBusClient
    # //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-   listReturnedLines = PrettyPrint(actualReturned, bToConsole=False)
-   oSelfTestLogFile.Write("EventBusClient returned:", 1)
-   oSelfTestLogFile.Write(listReturnedLines)
+   # listReturnedLines = actualReturned.splitlines() if isinstance(actualReturned, str) else [actualReturned]
 
-   # additional debug:
-   # print("EventBusClient returned:")
-   # pprint.pprint(actualReturned)
-   # PrettyPrint(actualReturned, bToConsole=True)
+   oSelfTestLogFile.Write("EventBusClient returned:", 1)
+   oSelfTestLogFile.Write(actualReturned)
 
    if ( (EXPECTEDEXCEPTION is None) and (EXPECTEDRETURN is None) ):
       nCntUnknownUsecases = nCntUnknownUsecases + 1
@@ -497,7 +513,7 @@ for dictUsecase in listofdictUsecases:
       listTestsNotPassed.append(TESTFULLNAME)
       print("EventBusClient returned:")
       print()
-      PrettyPrint(actualReturned, bToConsole=True)
+      print(actualReturned)
       print()
       continue # for dictUsecase in listofdictUsecases:
 
