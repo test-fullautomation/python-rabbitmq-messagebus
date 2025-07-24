@@ -195,7 +195,12 @@ setuptools.setup(
     long_description = long_description,
     long_description_content_type = str(oRepositoryConfig.Get('LONGDESCRIPTIONCONTENTTYPE')),
     url = str(oRepositoryConfig.Get('URL')),
-    packages = [str(oRepositoryConfig.Get('PACKAGENAME')),],
+    packages = [str(oRepositoryConfig.Get('PACKAGENAME')),    
+                str(oRepositoryConfig.Get('PACKAGENAME')) + ".config",
+                str(oRepositoryConfig.Get('PACKAGENAME')) + ".exchange_handler",
+                str(oRepositoryConfig.Get('PACKAGENAME')) + ".message",
+                str(oRepositoryConfig.Get('PACKAGENAME')) + ".serializer",
+                str(oRepositoryConfig.Get('PACKAGENAME')) + ".test"],
     classifiers = [
         str(oRepositoryConfig.Get('PROGRAMMINGLANGUAGE')),
         str(oRepositoryConfig.Get('LICENCE')),
