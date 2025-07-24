@@ -1,55 +1,67 @@
+% Copyright 2020-2025 Robert Bosch GmbH
 
-\section{EventBusClient}\label{sec:eventbusclient}
+% Licensed under the Apache License, Version 2.0 (the "License");
+% you may not use this file except in compliance with the License.
+% You may obtain a copy of the License at
 
-\subsection{Overview}\label{subsec:overview}
-The \textbf{EventBusClient} provides a high-level API for interacting with a RabbitMQ-based event bus system.
+% http://www.apache.org/licenses/LICENSE-2.0
+
+% Unless required by applicable law or agreed to in writing, software
+% distributed under the License is distributed on an "AS IS" BASIS,
+% WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+% See the License for the specific language governing permissions and
+% limitations under the License.
+
+% --------------------------------------------------------------------------------------------------------------
+
+\section{Overview}\label{sec:overview}
+The \textbf{EventBusClient} provides a high-level API for interacting with a \textbf{RabbitMQ}-based event bus system.
 It abstracts low-level AMQP details and supports dynamic loading of project-specific plugins for serializers, exchange handlers, and message structures.
 This client is designed for modularity and ease of use across multiple projects.
 
----
 
-\subsection{Features}\label{subsec:features}
+\section{Features}\label{sec:features}
 \begin{itemize}
   \item \textbf{Dynamic plugin loading}: Load custom serializers, exchange handlers, and message classes at runtime from a configurable plugins directory.
   \item \textbf{Thread-safe publishing}: Supports safe publishing from multiple threads with minimal locking overhead.
-  \item \textbf{Automatic reconnect}: Automatically reconnects to RabbitMQ after connection loss (if enabled in configuration).
+  \item \textbf{Automatic reconnect}: Automatically reconnects to \textbf{RabbitMQ} after connection loss (if enabled in configuration).
   \item \textbf{Pluggable architecture}: Supports both built-in and project-specific extensions.
   \item \textbf{Supports JSON, Protobuf, Pickle serializers}.
 \end{itemize}
 
-\subsection{Architecture}\label{subsec:architecture}
-The EventBusClient is built around a modular architecture that allows for easy extension and customization. It consists of the following components:
+\section{Architecture}\label{sec:architecture}
+The \textbf{EventBusClient} is built around a modular architecture that allows for easy extension and customization. It consists of the following components:
 \begin{itemize}
   \item \textbf{Base Classes}: Define interfaces for exchange handlers, serializers, and messages.
   \item \textbf{Plugins Directory}: Contains custom implementations of the base classes.
-  \item \textbf{Configuration File}: Specifies the plugins path, RabbitMQ connection details, and selected implementations.
-  \item \textbf{EventBusClient Class}: The main class that interacts with RabbitMQ and manages plugins.
+  \item \textbf{Configuration File}: Specifies the plugins path, \textbf{RabbitMQ} connection details, and selected implementations.
+  \item \textbf{EventBusClient Class}: The main class that interacts with \textbf{RabbitMQ} and manages plugins.
   \item \textbf{Message Classes}: Define the structure of messages sent and received over the event bus.
-  \item \textbf{Exchange Handlers}: Handle the declaration and publishing of messages to RabbitMQ exchanges.
-  \item \textbf{Serializers}: Convert messages to and from byte streams for transmission over RabbitMQ.
+  \item \textbf{Exchange Handlers}: Handle the declaration and publishing of messages to \textbf{RabbitMQ} exchanges.
+  \item \textbf{Serializers}: Convert messages to and from byte streams for transmission over \textbf{RabbitMQ}.
 \end{itemize}
 The client uses a combination of built-in plugins and user-defined plugins to provide flexibility in message handling and serialization.
-\subsection{Installation}\label{subsec:installation}
-To install the EventBusClient, use pip to install the package from PyPI:
-\begin{verbatim}
+\section{Installation}\label{sec:installation}
+To install the \textbf{EventBusClient}, use pip to install the package from PyPI:
+\begin{pythonlog}
 pip install event-bus-client
-\end{verbatim}
-Ensure you have RabbitMQ server running and accessible at the specified host and port in the configuration file.
-\subsection{Dependencies}\label{subsec:dependencies}
+\end{pythonlog}
+Ensure you have \textbf{RabbitMQ} server running and accessible at the specified host and port in the configuration file.
+\section{Dependencies}\label{sec:dependencies}
 
-The EventBusClient requires the following dependencies:
+The \textbf{EventBusClient} requires the following dependencies:
 \begin{itemize}
-  \item \textbf{pika}: For RabbitMQ communication.
-  \item \textbf{protobuf}: For Protocol Buffers serialization (if using ProtobufSerializer).
-  \item \textbf{jsonpickle}: For JSON serialization (if using JSONSerializer).
-  \item \textbf{pickle}: For Pickle serialization (if using PickleSerializer).
+  \item \textbf{pika}: For common \textbf{RabbitMQ} communication
+  \item \textbf{aio-pika}: Specifically for asynchronous \textbf{RabbitMQ} communication
+  \item \textbf{protobuf}: For Protocol Buffers serialization (if using \textbf{ProtobufSerializer})
+  \item \textbf{jsonpickle}: For JSON serialization (if using \textbf{JSONSerializer})
 \end{itemize}
 Ensure these dependencies are installed in your Python environment. You can install them using pip:
-\begin{verbatim}
+\begin{pythonlog}
 pip install pika protobuf jsonpickle
-\end{verbatim}
-\subsection{Directory Structure}\label{subsec:directory-structure}
-\begin{verbatim}
+\end{pythonlog}
+\section{Directory Structure}\label{sec:directory-structure}
+\begin{pythonlog}
 project/
 |-- EventBusClient/
 |   |-- event_bus_client.py
@@ -76,13 +88,13 @@ project/
 |   |-- config/
 |   |   |-- config.jsonp
 |-- app.py
-\end{verbatim}
+\end{pythonlog}
 
+\newpage
+\section{Configuration}\label{sec:configuration}
+The \plog{config.jsonp} file controls all aspects of the \textbf{EventBusClient}, including plugin paths, \textbf{RabbitMQ} connection, and selected implementations.
 
-\subsection{Configuration}\label{subsec:configuration}
-The \texttt{config.jsonp} file controls all aspects of the EventBusClient, including plugin paths, RabbitMQ connection, and selected implementations.
-
-\begin{verbatim}
+\begin{pythoncode}
 {
   "plugins_path": "./plugins",
   "host": "localhost",
@@ -94,50 +106,47 @@ The \texttt{config.jsonp} file controls all aspects of the EventBusClient, inclu
   "auto_reconnect": true,
   "qos_prefetch": 10
 }
-\end{verbatim}
+\end{pythoncode}
 
----
 
-\subsection{Usage}\label{subsec:usage}
+\section{Usage}\label{sec:usage}
 
-\subsubsection{Initialization}
-Create an EventBusClient instance from configuration:
-\begin{verbatim}[language=Python]
+\subsection{Initialization}
+Create an \textbf{EventBusClient} instance from configuration:
+\begin{pythoncode}
 from event_bus.client import EventBusClient
 
 client = await EventBusClient.from_config("./config/config.jsonp")
-\end{verbatim}
+\end{pythoncode}
 
----
 
-\subsubsection{Publishing Messages}
+\subsection{Publishing Messages}
 Send a message using the configured serializer and exchange handler:
-\begin{verbatim}[language=Python]
+\begin{pythoncode}
 msg = ListenerEventMsg(event="start_cycle", timestamp=1234567890)
 await client.send("zone1.topic.start", msg)
-\end{verbatim}
+\end{pythoncode}
 
 Enable thread-safe publish from a non-async thread:
-\begin{verbatim}[language=Python]
+\begin{pythoncode}
 client.send("zone1.topic.alert", msg, threadsafe=True)
-\end{verbatim}
+\end{pythoncode}
 
----
 
-\subsubsection{Subscribing to Messages}
+\subsection{Subscribing to Messages}
 Subscribe to a routing key and handle incoming messages:
-\begin{verbatim}[language=Python]
+\begin{pythoncode}
 async def on_message(msg: ListenerEventMsg):
     print(f"Received event: {msg.event} at {msg.timestamp}")
 
 await client.on("zone1.#", ListenerEventMsg, on_message)
-\end{verbatim}
+\end{pythoncode}
 
----
 
-\subsection{Example: Producer and Consumer}
-This example (from \texttt{test.py}) starts a producer and a consumer in separate processes:
-\begin{verbatim}[language=Python]
+\newpage
+\section{Example: Producer and Consumer}
+This example (from \plog{EventBusClient/test/test.py}) starts a producer and a consumer in separate processes:
+\begin{pythoncode}
 # Start consumer
 consumer = Process(target=run_process, args=(consumer_process, config_path))
 consumer.start()
@@ -148,30 +157,29 @@ producer.start()
 # Wait for both to finish
 producer.join()
 consumer.join()
-\end{verbatim}
+\end{pythoncode}
 
-\subsection{Example: Custom Plugin Structure}\label{subsec:example:-custom-plugin-structure}
+\section{Example: Custom Plugin Structure}\label{sec:example:-custom-plugin-structure}
 To create a custom plugin, follow these steps:
 \begin{itemize}
   \item Create a directory for your plugin in the configured plugins path.
   \item Implement the required interfaces (e.g., BaseExchangeHandler, BaseMessage, BaseSerializer).
-  \item Register your plugin in the \texttt{config.jsonp} file.
-  \item Ensure your plugin is discoverable by the EventBusClient.
+  \item Register your plugin in the \plog{config.jsonp} file.
+  \item Ensure your plugin is discoverable by the \textbf{EventBusClient}.
   \item Place your plugin code in the plugins directory, following the structure:
-  \item For example, if your plugin is named \texttt{CustomPlugin}, the directory structure should look like this:
-  \item \begin{verbatim}
-    plugins/
-    |-- CustomPlugin/
-        |-- __init__.py
-        |-- custom_exchange_handler.py
-        |-- custom_message.py
-        |-- custom_serializer.py
-    \end{verbatim}
+  \item For example, if your plugin is named \plog{CustomPlugin}, the directory structure should look like this:
+        \begin{pythonlog}
+plugins/
+|-- CustomPlugin/
+    |-- __init__.py
+    |-- custom_exchange_handler.py
+    |-- custom_message.py
+    |-- custom_serializer.py\end{pythonlog}
 \end{itemize}
-\subsection{Example: Built-in Plugins}
-The EventBusClient comes with several built-in plugins that can be used directly or extended:
+\section{Example: Built-in Plugins}
+The \textbf{EventBusClient} comes with several built-in plugins that can be used directly or extended:
 \begin{itemize}
-  \item \textbf{XRTopicExchangeHandler}: Handles topic exchanges with RabbitMQ.
+  \item \textbf{XRTopicExchangeHandler}: Handles topic exchanges with \textbf{RabbitMQ}.
   \item \textbf{ListenerEventMsg}: A default message class for listener events.
   \item \textbf{PickleSerializer}: Serializes messages using Python's Pickle module.
   \item \textbf{JSONSerializer}: Serializes messages to JSON format.
@@ -179,9 +187,10 @@ The EventBusClient comes with several built-in plugins that can be used directly
 \end{itemize}
 These plugins can be used as-is or extended to create custom functionality.
 
-\subsection{Example: Built-in Configuration}
-The built-in configuration file \texttt{config.jsonp} provides a starting point for configuring the EventBusClient:
-\begin{verbatim}
+\newpage
+\section{Example: Built-in Configuration}
+The built-in configuration file \plog{config.jsonp} provides a starting point for configuring the \textbf{EventBusClient}:
+\begin{pythoncode}
 {
   "plugins_path": "./plugins",
   "host": "localhost",
@@ -193,14 +202,14 @@ The built-in configuration file \texttt{config.jsonp} provides a starting point 
   "auto_reconnect": true,
   "qos_prefetch": 10
 }
-\end{verbatim}
+\end{pythoncode}
 
-This configuration specifies the plugins path, RabbitMQ connection details, serializer, exchange handler, message class, and other options.
+This configuration specifies the plugins path, \textbf{RabbitMQ} connection details, serializer, exchange handler, message class, and other options.
 
 
-\subsection{Example: Custom Exchange Handler}\label{subsec:example:-custom-exchange-handler}
+\section{Example: Custom Exchange Handler}\label{sec:example:-custom-exchange-handler}
 To create a custom exchange handler, implement the required interface and place it in the plugins directory. For example, a custom exchange handler might look like this:
-\begin{verbatim}[language=Python]
+\begin{pythoncode}
 from event_bus.plugins import BaseExchangeHandler
 class CustomExchangeHandler(BaseExchangeHandler):
     def declare_exchange(self, channel):
@@ -215,11 +224,11 @@ class CustomExchangeHandler(BaseExchangeHandler):
   "plugins_path": "./plugins",
   "exchange_handler": "CustomExchangeHandler"
 }
-\end{verbatim}
+\end{pythoncode}
 
-\subsection{Example: Custom Message Class}\label{subsec:example:-custom-message-class}
+\section{Example: Custom Message Class}\label{sec:example:-custom-message-class}
 To create a custom message class, define it in your project and register it in the configuration:
-\begin{verbatim}[language=Python]
+\begin{pythoncode}
 from event_bus.plugins import BaseMessage
 class CustomMessage(BaseMessage):
     def __init__(self, data):
@@ -237,11 +246,11 @@ class CustomMessage(BaseMessage):
   "plugins_path": "./plugins",
   "message_class": "CustomMessage"
 }
-\end{verbatim}
+\end{pythoncode}
 
-\subsection{Example: Custom Serializer}\label{subsec:example:-custom-serializer}
+\section{Example: Custom Serializer}\label{sec:example:-custom-serializer}
 To create a custom serializer, implement the required interface and place it in the plugins directory. For example, a custom serializer might look like this:
-\begin{verbatim}[language=Python]
+\begin{pythoncode}
 from event_bus.plugins import BaseSerializer
 class CustomSerializer(BaseSerializer):
     def serialize(self, obj):
@@ -256,4 +265,4 @@ class CustomSerializer(BaseSerializer):
   "plugins_path": "./plugins",
   "serializer": "CustomSerializer"
 }
-\end{verbatim}
+\end{pythoncode}
