@@ -33,15 +33,18 @@ import pkgutil
 import importlib
 from typing import Dict, Type
 from JsonPreprocessor.CJsonPreprocessor import CJsonPreprocessor
-from serializer.base_serializer import Serializer
-from exchange_handler.base import ExchangeHandler
-from message.base_message import BaseMessage
-from utils import Utils
+from .serializer.base_serializer import Serializer
+from .exchange_handler.base import ExchangeHandler
+from .message.base_message import BaseMessage
+from .utils import Utils
 from pydotdict import DotDict
 # from exchange_handler.topic_handler import TopicExchangeHandler
 
 
 class PluginLoader:
+   """
+PluginLoader: Dynamically loads serializers, exchange handlers, and messages.
+   """
    def __init__(self, base_path: str = None):
       """
 PluginLoader: Dynamically loads serializers, exchange handlers, and messages.

@@ -28,12 +28,12 @@
 #
 # *******************************************************************************
 import asyncio
-from exchange_handler.base import ExchangeHandler
-from publisher import AsyncPublisher
-from subscriber import AsyncSubscriber
-from serializer.base_serializer import Serializer
-from message.base_message import BaseMessage
-from connection import ConnectionManager
+from EventBusClient.exchange_handler.base import ExchangeHandler
+from EventBusClient.publisher import AsyncPublisher
+from EventBusClient.subscriber import AsyncSubscriber
+from EventBusClient.serializer.base_serializer import Serializer
+from EventBusClient.message.base_message import BaseMessage
+from EventBusClient.connection import ConnectionManager
 from typing import Callable, Type
 
 

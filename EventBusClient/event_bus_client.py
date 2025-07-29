@@ -30,14 +30,12 @@
 import logging
 import asyncio
 from typing import Callable, Awaitable, Optional, Type
-from publisher import AsyncPublisher
-from subscriber import AsyncSubscriber
-from exchange_handler.base import ExchangeHandler
-from message.base_message import BaseMessage
-from connection import ConnectionManager
-from plugin_loader import PluginLoader  # Import PluginLoader
-from serializer.base_serializer import Serializer
-from qlogger import QLogger
+from EventBusClient.exchange_handler.base import ExchangeHandler
+from EventBusClient.message.base_message import BaseMessage
+from EventBusClient.connection import ConnectionManager
+from EventBusClient.plugin_loader import PluginLoader  # Import PluginLoader
+from EventBusClient.serializer.base_serializer import Serializer
+from EventBusClient.qlogger import QLogger
 
 logger = QLogger().get_logger("event_bus_client")
 # logger = logging.getLogger(__name__)
@@ -152,27 +150,27 @@ Send a message to the event bus with the specified routing key.
 
 * ``routing_key``
 
-    / *Condition*: required / *Type*: str /
+   / *Condition*: required / *Type*: str /
 
-    The routing key used to route the message to the appropriate subscribers.
+   The routing key used to route the message to the appropriate subscribers.
 
 * ``message``
 
-    / *Condition*: required / *Type*: BaseMessage /
+   / *Condition*: required / *Type*: BaseMessage /
 
-    The message to be sent. It should be an instance of BaseMessage or its subclasses.
+   The message to be sent. It should be an instance of BaseMessage or its subclasses.
 
 * ``headers``
 
-    / *Condition*: optional / *Type*: dict /
+   / *Condition*: optional / *Type*: dict /
 
-    Additional headers to include with the message. This can be used for metadata or routing information.
+   Additional headers to include with the message. This can be used for metadata or routing information.
 
 * ``threadsafe``
 
-    / *Condition*: optional / *Type*: bool /
+   / *Condition*: optional / *Type*: bool /
 
-    If True, the message will be sent in a threadsafe manner. Defaults to False.
+   If True, the message will be sent in a threadsafe manner. Defaults to False.
       """
       if not self._connected:
          raise RuntimeError("EventBusClient is not connected")

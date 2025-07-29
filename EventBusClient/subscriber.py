@@ -31,9 +31,9 @@ from typing import Callable, Type
 import asyncio
 import aio_pika
 from aio_pika.abc import AbstractIncomingMessage
-from serializer.base_serializer import Serializer
-from serializer.pickle_serializer import PickleSerializer
-from message.base_message import BaseMessage
+from EventBusClient.serializer.base_serializer import Serializer
+from EventBusClient.serializer.pickle_serializer import PickleSerializer
+from EventBusClient.message.base_message import BaseMessage
 
 
 class AsyncSubscriber:

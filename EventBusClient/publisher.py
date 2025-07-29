@@ -29,9 +29,9 @@
 # *******************************************************************************
 from typing import Optional
 import aio_pika
-from serializer.pickle_serializer import PickleSerializer
-from serializer.base_serializer import Serializer
-from message.base_message import BaseMessage
+from EventBusClient.serializer.pickle_serializer import PickleSerializer
+from EventBusClient.serializer.base_serializer import Serializer
+from EventBusClient.message.base_message import BaseMessage
 
 
 class AsyncPublisher:

@@ -30,11 +30,11 @@
 import asyncio
 # import  logging
 from abc import ABC, abstractmethod
-from message.base_message import BaseMessage
-from publisher import AsyncPublisher
-from subscriber import AsyncSubscriber
+from EventBusClient.message.base_message import BaseMessage
+from EventBusClient.publisher import AsyncPublisher
+from EventBusClient.subscriber import AsyncSubscriber
 from typing import Type
-from qlogger import QLogger
+from EventBusClient.qlogger import QLogger
 
 # logger = logging.getLogger(__name__)
 logger = QLogger().get_logger("event_bus_client")

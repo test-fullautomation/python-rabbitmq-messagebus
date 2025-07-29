@@ -28,7 +28,7 @@
 # *******************************************************************************
 import pickle
 from typing import Any
-from serializer.base_serializer import Serializer
+from EventBusClient.serializer.base_serializer import Serializer
 
 
 class PickleSerializer(Serializer):

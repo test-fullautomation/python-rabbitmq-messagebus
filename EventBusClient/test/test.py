@@ -4,8 +4,8 @@ import logging
 import sys
 import time
 from multiprocessing import Process
-from event_bus_client import EventBusClient
-from message.base_message import BaseMessage
+from EventBusClient.event_bus_client import EventBusClient
+from EventBusClient.message.base_message import BaseMessage
 
 
 # Simple message class for our test

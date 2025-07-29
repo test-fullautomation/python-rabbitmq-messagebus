@@ -28,8 +28,8 @@
 # *******************************************************************************
 import json
 from typing import Type
-from serializer.base_serializer import Serializer
-from message.base_message import BaseMessage
+from EventBusClient.serializer.base_serializer import Serializer
+from EventBusClient.message.base_message import BaseMessage
 
 
 class JsonSerializer(Serializer):

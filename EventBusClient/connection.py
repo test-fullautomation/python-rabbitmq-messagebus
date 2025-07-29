@@ -31,7 +31,7 @@ import asyncio
 # import logging
 from typing import Optional
 import aio_pika
-from qlogger import QLogger
+from .qlogger import QLogger
 
 # logger = logging.getLogger(__name__)
 logger = QLogger().get_logger("event_bus_client")
