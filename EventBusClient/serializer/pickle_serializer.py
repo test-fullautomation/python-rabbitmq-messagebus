@@ -33,10 +33,10 @@ from EventBusClient.serializer.base_serializer import Serializer
 
 class PickleSerializer(Serializer):
    """
-   PickleSerializer: Built-in serializer using Python pickle.
+PickleSerializer: Built-in serializer using Python pickle.
 
-   WARNING: Pickle is not secure against untrusted data.
-   Only use in trusted environments.
+WARNING: Pickle is not secure against untrusted data.
+Only use in trusted environments.
    """
 
    def serialize(self, msg: Any) -> bytes:

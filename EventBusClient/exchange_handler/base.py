@@ -52,21 +52,21 @@ ExchangeHandler: Initializes the exchange handler with a name, serializer, and e
 
 * ``name``
 
-   / *Condition*: optional / *Type*: str /
+  / *Condition*: optional / *Type*: str /
 
-   The name of the exchange handler. If not provided, it defaults to a generated name based on the class type and instance number.
+  The name of the exchange handler. If not provided, it defaults to a generated name based on the class type and instance number.
 
 * ``serializer``
 
-   / *Condition*: optional / *Type*: Serializer /
+  / *Condition*: optional / *Type*: Serializer /
 
-   The serializer used to serialize and deserialize messages. If not provided, it defaults to None.
+  The serializer used to serialize and deserialize messages. If not provided, it defaults to None.
 
 * ``loop``
 
-   / *Condition*: optional / *Type*: asyncio.AbstractEventLoop /
+  / *Condition*: optional / *Type*: asyncio.AbstractEventLoop /
 
-   The event loop to use for asynchronous operations. If not provided, the current event loop will be used.
+  The event loop to use for asynchronous operations. If not provided, the current event loop will be used.
       """
       self.exchange_name = name if name is not None else f"{self._EXCHANGE_TYPE}_{getattr(self.__class__, '_instance_number', 0)}"
       self.__class__._instance_number += 1
@@ -88,9 +88,9 @@ Set up the exchange handler by establishing a channel and declaring the exchange
 
 * ``connection_manager``
 
-   / *Condition*: required / *Type*: ConnectionManager /
+  / *Condition*: required / *Type*: ConnectionManager /
 
-   The connection manager used to get the channel and exchange for publishing messages.
+  The connection manager used to get the channel and exchange for publishing messages.
       """
       connection_manager.register_exchange_handler(self)
 
@@ -108,6 +108,33 @@ Tear down the exchange handler by closing the channel and cleaning up resources.
    @abstractmethod
    async def subscribe(self, routing_key: str, message_cls: Type[BaseMessage], callback): ...
 
+   async def unsubscribe(self, routing_key: str, callback):
+      """
+Unsubscribe a callback from a specific routing key.
+
+**Arguments:**
+
+* ``routing_key``
+
+  / *Condition*: required / *Type*: str /
+
+  The routing key to unsubscribe from.
+
+* ``callback``
+
+  / *Condition*: required / *Type*: Callable /
+
+  The callback function to remove from the subscriber list.
+      """
+      for subscriber in self._subscribers:
+         if subscriber.routing_key == routing_key and subscriber.callback == callback:
+            await subscriber.stop()
+            self._subscribers.remove(subscriber)
+            logger.info(f"Unsubscribed callback from routing key: {routing_key}")
+            break
+      else:
+         logger.warning(f"No subscriber found for routing key: {routing_key} with the given callback.")
+
    async def handle_channel_close(self, exc: Exception = None):
       """
 Handle channel closure by attempting to re-create the channel.
@@ -116,9 +143,9 @@ Handle channel closure by attempting to re-create the channel.
 
 * ``exc``
 
-   / *Condition*: optional / *Type*: Exception /
+  / *Condition*: optional / *Type*: Exception /
 
-   The exception that caused the channel to close, if any. If not provided, it defaults to None.
+  The exception that caused the channel to close, if any. If not provided, it defaults to None.
       """
       logger.info(f"[ConnectionManager] Channel closed. Exception: {exc} \nAttempting to re-create channel...")
       if self._connection and not self._connection.is_closed:

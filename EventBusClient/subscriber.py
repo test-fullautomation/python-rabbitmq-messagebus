@@ -56,39 +56,39 @@ AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing ke
 
 * ``channel``
 
-   / *Condition*: required / *Type*: aio_pika.abc.AbstractChannel /
+  / *Condition*: required / *Type*: aio_pika.abc.AbstractChannel /
 
-   The channel to subscribe to messages on.
+  The channel to subscribe to messages on.
 
 * ``exchange``
 
-   / *Condition*: required / *Type*: aio_pika.abc.AbstractExchange /
+  / *Condition*: required / *Type*: aio_pika.abc.AbstractExchange /
 
-   The exchange to subscribe to messages from.
+  The exchange to subscribe to messages from.
 
 * ``routing_key``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The routing key to filter messages.
+  The routing key to filter messages.
 
 * ``message_cls``
 
-   / *Condition*: required / *Type*: Type[BaseMessage] /
+  / *Condition*: required / *Type*: Type[BaseMessage] /
 
-   The class of the message to be processed. It should be a subclass of BaseMessage.
+  The class of the message to be processed. It should be a subclass of BaseMessage.
 
 * ``callback``
 
-   / *Condition*: required / *Type*: Callable[[BaseMessage], None] /
+  / *Condition*: required / *Type*: Callable[[BaseMessage], None] /
 
-   The callback function to process the received messages. It should accept an instance of BaseMessage or its subclasses.
+  The callback function to process the received messages. It should accept an instance of BaseMessage or its subclasses.
 
 * ``serializer``
 
-   / *Condition*: optional / *Type*: Serializer /
+  / *Condition*: optional / *Type*: Serializer /
 
-   The serializer used to deserialize messages. Defaults to PickleSerializer if not provided.
+  The serializer used to deserialize messages. Defaults to PickleSerializer if not provided.
       """
       self._channel = channel
       self._exchange = exchange
@@ -132,9 +132,9 @@ Handle incoming messages by deserializing them and invoking the callback.
 
 * ``message``
 
-   / *Condition*: required / *Type*: AbstractIncomingMessage /
+  / *Condition*: required / *Type*: AbstractIncomingMessage /
 
-   The incoming message to be processed. It should contain the serialized message body.
+  The incoming message to be processed. It should contain the serialized message body.
       """
       async with message.process():
          try:
@@ -147,3 +147,12 @@ Handle incoming messages by deserializing them and invoking the callback.
                self._callback(obj)
          except Exception as e:
             print(f"[AsyncSubscriber] Error handling message: {e}")
+
+   @property
+   def routing_key(self):
+       return self._routing_key
+
+   @property
+   def callback(self):
+       return self._callback
+

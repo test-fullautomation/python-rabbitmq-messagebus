@@ -34,8 +34,8 @@ from EventBusClient.message.base_message import BaseMessage
 
 class JsonSerializer(Serializer):
    """
-   JsonSerializer: Serializes BaseMessage subclasses to JSON strings.
-   Requires message classes to implement:
+JsonSerializer: Serializes BaseMessage subclasses to JSON strings.
+Requires message classes to implement:
    - to_dict()
    - from_dict(data: dict)
    """
@@ -53,7 +53,7 @@ Serialize a message object to JSON bytes.
 
 **Returns:**
 
-* bytes
+  / *Type*: byte /
 
   Serialized message as JSON bytes.
       """
@@ -74,15 +74,15 @@ Deserialize bytes back into a message object.
 
 * ``data``
 
-    / *Condition*: required / *Type*: bytes /
+  / *Condition*: required / *Type*: bytes /
 
-    Serialized message data in bytes format.
+  Serialized message data in bytes format.
 
 * ``message_cls``
 
-   / *Condition*: required / *Type*: Type[BaseMessage] /
+  / *Condition*: required / *Type*: Type[BaseMessage] /
 
-   Class of the message to deserialize into.
+  Class of the message to deserialize into.
 
 **Returns:**
 
@@ -93,13 +93,13 @@ Deserialize bytes back into a message object.
 **Raises:**
 
 * ``ValueError``
-    If `message_cls` is not provided.
+  If `message_cls` is not provided.
 
 * ``TypeError``
-    If `message_cls` does not implement `from_dict(data: dict)`.
+  If `message_cls` does not implement `from_dict(data: dict)`.
 
 * ``RuntimeError``
-    If deserialization fails due to invalid data or other issues.
+  If deserialization fails due to invalid data or other issues.
       """
       if not message_cls:
          raise ValueError("[JsonSerializer] message_cls must be provided for deserialization")

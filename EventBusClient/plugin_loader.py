@@ -53,9 +53,9 @@ PluginLoader: Dynamically loads serializers, exchange handlers, and messages.
 
 * ``base_path``
 
-   / *Condition*: optional / *Type*: str /
+  / *Condition*: optional / *Type*: str /
 
-   Base path to search for plugins. Defaults to the directory of this file.
+  Base path to search for plugins. Defaults to the directory of this file.
       """
       self.base_path = base_path or os.path.dirname(os.path.abspath(__file__))
 
@@ -120,15 +120,15 @@ Get a serializer class by its name.
 
 * ``name``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   Name of the serializer class to retrieve.
+  Name of the serializer class to retrieve.
 
 **Returns:**
 
-   / *Type*: Serializer | None /
+  / *Type*: Serializer | None /
 
-   Serializer class or None if not found.
+  Serializer class or None if not found.
       """
       return self.serializer_dict.get(name)
 
@@ -140,15 +140,15 @@ Get an exchange handler class by its name.
 
 * ``name``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   Name of the exchange handler class to retrieve.
+  Name of the exchange handler class to retrieve.
 
 **Returns:**
 
-   / *Type*: ExchangeHandler | None /
+  / *Type*: ExchangeHandler | None /
 
-   Exchange handler class or None if not found.
+  Exchange handler class or None if not found.
       """
       return self.exchange_handler_dict.get(name)
 
@@ -160,15 +160,15 @@ Get a message class by its name.
 
 * ``name``
 
-    / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-    Name of the message class to retrieve
+  Name of the message class to retrieve
 
 **Returns:**
 
-   / *Type*: BaseMessage | None /
+  / *Type*: BaseMessage | None /
 
-   Message class or None if not found.
+  Message class or None if not found.
       """
       return self.message_dict.get(name)
 
@@ -180,15 +180,15 @@ Load configuration from a JSONP file located in the same directory as the given 
 
 * ``config_path``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   Path to the configuration file. If it is a relative path, it will be resolved to an absolute path.
+  Path to the configuration file. If it is a relative path, it will be resolved to an absolute path.
 
 **Returns:**
 
-   / *Type*: DotDict | None /
+  / *Type*: DotDict | None /
 
-   A DotDict containing the configuration data if the file exists and is loaded successfully, otherwise None.
+  A DotDict containing the configuration data if the file exists and is loaded successfully, otherwise None.
       """
       file_path = config_path if os.path.isabs(config_path) else os.path.abspath(config_path)
       if file_path:

@@ -53,9 +53,9 @@ It initializes the channel and exchange, and prepares the publisher for sending 
 
 * ``connection_manager``
 
-   / *Condition*: required / *Type*: ConnectionManager /
+  / *Condition*: required / *Type*: ConnectionManager /
 
-   The connection manager used to get the channel and exchange for publishing messages.
+  The connection manager used to get the channel and exchange for publishing messages.
       """
       self._channel = await connection_manager.get_channel()
       # self._exchange = await connection_manager.get_exchange()
@@ -75,21 +75,21 @@ Publish a message to the exchange with the specified routing key.
 
 * ``message``
 
-   / *Condition*: required / *Type*: BaseMessage /
+  / *Condition*: required / *Type*: BaseMessage /
 
-   The message to be published. It should be an instance of BaseMessage or its subclasses.
+  The message to be published. It should be an instance of BaseMessage or its subclasses.
 
 * ``routing_key``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The routing key used to route the message to the appropriate subscribers.
+  The routing key used to route the message to the appropriate subscribers.
 
 *  ``headers``
 
-   / *Condition*: optional / *Type*: dict /
+  / *Condition*: optional / *Type*: dict /
 
-   Additional headers to include with the message. This can be used for metadata or routing information.
+  Additional headers to include with the message. This can be used for metadata or routing information.
       """
       if threadsafe:
          future = asyncio.run_coroutine_threadsafe(
@@ -114,21 +114,21 @@ Subscribe to messages on the exchange with the specified routing key.
 
 * ``routing_key``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The routing key used to filter messages for this subscriber.
+  The routing key used to filter messages for this subscriber.
 
 * ``message_cls``
 
-   / *Condition*: required / *Type*: Type[BaseMessage] /
+  / *Condition*: required / *Type*: Type[BaseMessage] /
 
-   The class of the message that this subscriber will handle. It should be a subclass of BaseMessage.
+  The class of the message that this subscriber will handle. It should be a subclass of BaseMessage.
 
 * ``callback``
 
-   / *Condition*: required / *Type*: Callable[[BaseMessage], None] /
+  / *Condition*: required / *Type*: Callable[[BaseMessage], None] /
 
-   The callback function that will be called when a message matching the routing key is received.
+  The callback function that will be called when a message matching the routing key is received.
       """
       subscriber = AsyncSubscriber(
          channel=self._channel,
