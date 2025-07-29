@@ -53,7 +53,7 @@ Serialize a message object to JSON bytes.
 
 **Returns:**
 
-  / *Type*: byte /
+  / *Type*: bytes /
 
   Serialized message as JSON bytes.
       """
