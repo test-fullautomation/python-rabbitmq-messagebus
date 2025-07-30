@@ -30,12 +30,12 @@
 import logging
 import asyncio
 from typing import Callable, Awaitable, Optional, Type
-from EventBusClient.exchange_handler.base import ExchangeHandler
-from EventBusClient.message.base_message import BaseMessage
-from EventBusClient.connection import ConnectionManager
-from EventBusClient.plugin_loader import PluginLoader  # Import PluginLoader
-from EventBusClient.serializer.base_serializer import Serializer
-from EventBusClient.qlogger import QLogger
+from .exchange_handler.base import ExchangeHandler
+from .message.base_message import BaseMessage
+from .connection import ConnectionManager
+from .plugin_loader import PluginLoader
+from .serializer.base_serializer import Serializer
+from .qlogger import QLogger
 
 logger = QLogger().get_logger("event_bus_client")
 # logger = logging.getLogger(__name__)

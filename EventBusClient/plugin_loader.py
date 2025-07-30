@@ -41,6 +41,43 @@ from pydotdict import DotDict
 # from exchange_handler.topic_handler import TopicExchangeHandler
 
 
+CONFIG_SCHEMA = {
+    "plugins_path": str,
+    "host": str,
+    "port": int,
+    "serializer": str,
+    "exchange_handler": str,
+    "message_class": str,
+    "threadsafe_publish": bool,
+    "auto_reconnect": bool,
+    "qos_prefetch": int
+}
+
+class ConfigValidator:
+   """
+Validates configuration data against a given schema.
+Raises ValueError if validation fails.
+   """
+   def __init__(self, schema: dict):
+      self.schema = schema
+
+   def validate(self, config: dict):
+      for key, value_type in self.schema.items():
+         if key not in config:
+            raise ValueError(f"Missing required key: {key}")
+         if not isinstance(config[key], value_type):
+            raise ValueError(f"Key '{key}' must be of type {value_type.__name__}, got {type(config[key]).__name__}")
+         if key == "port":
+            if not (1024 <= config[key] <= 65535):
+               raise ValueError("Port must be between 1024 and 65535")
+
+      extra_keys = set(config.keys()) - set(self.schema.keys())
+      if extra_keys:
+         raise ValueError(f"Unknown config keys: {', '.join(list(extra_keys))}")
+
+      return True
+
+
 class PluginLoader:
    """
    The `PluginLoader` class dynamically loads serializers, exchange handlers, and messages.
@@ -179,7 +216,7 @@ Get a message class by its name.
 
    def load_config(self, config_path: str) -> DotDict | None:
       """
-Load configuration from a JSONP file located in the same directory as the given config path.
+Load configuration from a JSONP file and validate it against the schema.
 
 **Arguments:**
 
@@ -196,12 +233,21 @@ Load configuration from a JSONP file located in the same directory as the given 
   A DotDict containing the configuration data if the file exists and is loaded successfully, otherwise None.
       """
       file_path = config_path if os.path.isabs(config_path) else os.path.abspath(config_path)
+      config_data = None
       if file_path:
-         config_dir = os.path.dirname(os.path.abspath(file_path))
-         return CJsonPreprocessor().jsonLoad(
-            os.path.join(config_dir, "config.jsonp")
-         )
-      return None
+         config_dir = file_path if os.path.isdir(file_path) else os.path.dirname(os.path.abspath(file_path))
+         config_file = file_path if os.path.isfile(file_path) else os.path.join(config_dir, "config.jsonp")
+         config_data = CJsonPreprocessor().jsonLoad(config_file)
+
+      if config_data:
+         ConfigValidator(CONFIG_SCHEMA).validate(config_data)
+
+      return config_data
+
+      #    return CJsonPreprocessor().jsonLoad(
+      #       os.path.join(config_dir, "config.jsonp")
+      #    )
+      # return None
 
 
 if __name__ == "__main__":
