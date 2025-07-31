@@ -80,12 +80,12 @@ Raises ValueError if validation fails.
 
 class PluginLoader:
    """
-   The `PluginLoader` class dynamically loads serializers, exchange handlers, and messages.
+The `PluginLoader` class dynamically loads serializers, exchange handlers, and messages.
    
-   This class scans specified directories for Python modules, imports them, and registers
-   any classes that match the expected base types (e.g., `Serializer`, `ExchangeHandler`,
-   and `BaseMessage`). It is designed to facilitate the dynamic discovery and use of
-   plugins in the application.
+This class scans specified directories for Python modules, imports them, and registers
+any classes that match the expected base types (e.g., `Serializer`, `ExchangeHandler`,
+and `BaseMessage`). It is designed to facilitate the dynamic discovery and use of
+plugins in the application.
    """
    def __init__(self, base_path: str = None):
       """
