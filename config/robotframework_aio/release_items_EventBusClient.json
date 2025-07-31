@@ -51,6 +51,10 @@
 **Environment/Installation**
 
 * To use EventBusClient, ensure RabbitMQ is installed and running. Install the package dependencies via pip, and configure your RabbitMQ server connection in the application settings as required.
+
+**Documentation**
+
+`EventBusClient.pdf <https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/EventBusClient/EventBusClient.pdf\>\`_
 "
                                       ]
                  }
