@@ -48,6 +48,7 @@ Usage
 To use the EventBusClient in a real-world scenario with producer and consumer processes, see the example below:
 
 .. code-block:: python
+
    import asyncio
    import logging
    import time
@@ -61,7 +62,7 @@ To use the EventBusClient in a real-world scenario with producer and consumer pr
            super().__init__()
            self.content = content
 
-   # Producer process: sends messages to the topic
+   # Producer process: sends messages to the topic exchange
    async def producer_process(config_path):
        client = await EventBusClient.from_config(config_path)
        for i in range(5):
@@ -134,7 +135,7 @@ Update the ``config_path`` in your code to point to this file.
 Package Documentation
 ---------------------
 
-A detailed documentation of the **RabbitMqMessagebus** package can be found here: `RabbitMqMessagebus.pdf <https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/EventBusClient/EventBusClient.pdf>`_
+A detailed documentation of the **RabbitMqMessagebus** package can be found here: `EventBusClient.pdf <https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/EventBusClient/EventBusClient.pdf>`_
 
 Feedback
 --------

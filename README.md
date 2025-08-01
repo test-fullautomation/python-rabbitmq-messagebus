@@ -38,13 +38,14 @@ import time
 from multiprocessing import Process
 from EventBusClient.event_bus_client import EventBusClient
 from EventBusClient.message.base_message import BaseMessage
+
 # Define a custom message class
 class TestMessage(BaseMessage):
     def __init__(self, content=None):
         super().__init__()
         self.content = content
 
-# Producer process: sends messages to the topic
+# Producer process: sends messages to the topic exchange
 async def producer_process(config_path):
     client = await EventBusClient.from_config(config_path)
     for i in range(5):
@@ -119,7 +120,7 @@ Update the `config_path` in your code to point to this file.
 
 A detailed documentation of the **RabbitMqMessagebus** package can be
 found here:
-[RabbitMqMessagebus.pdf](https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/EventBusClient/EventBusClient.pdf)
+[EventBusClient.pdf](https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/EventBusClient/EventBusClient.pdf)
 
 ## Feedback
 
