@@ -68,6 +68,20 @@ dictUsecase['EXPECTEDRETURN']    = "Messages received in correct order: [1, 2, 3
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
 # --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0003"
+dictUsecase['DESCRIPTION']       = "Test one publisher delivering messages to multiple subscribers using the same routing key"
+dictUsecase['EXPECTATION']       = "All subscribers receive the same message with correct content"
+dictUsecase['SECTION']           = "MESSAGE_FLOW"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0003.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "All 3 subscribers received message: Hello, Multiple Subscribers!"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
 
 # --------------------------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------------------------
