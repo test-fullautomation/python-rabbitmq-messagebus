@@ -18,14 +18,53 @@
 #
 # EBC_0001.py
 #
-# Test case for EBC_0001: Verify version
+# Test case for EBC_0001: Send message from one publisher to one specific subscriber and confirm receipt
 #
 # --------------------------------------------------------------------------------------------------------------
 
-def test(oEventBusClient):
+import asyncio
+
+from test.testutils.messages.simple_test_message import SimpleTestMessage
+
+async def test(oEventBusClient):
     """
-    Test case EBC_0001: Verify version
-    This test verifies that the EventBusClient returns version information correctly.
+    Test case EBC_0001: Send message from one publisher to one specific subscriber and confirm receipt.
+    This test verifies point-to-point message flow functions as expected.
+
+    Args:
+        oEventBusClient: The EventBusClient instance to test
+
+    Returns:
+        str: Result message indicating success or failure
     """
-    version = oEventBusClient.getVersion()
-    return version
+
+    received_messages = []
+    test_message_content = "Hello, World!"
+    routing_key = "test.message.routing"
+
+    async def message_callback(message):
+        """Callback function to handle received messages."""
+        received_messages.append(message.get_value())
+
+    try:
+        await oEventBusClient.on(routing_key, SimpleTestMessage, message_callback)
+
+        # Give subscriber a moment to be ready
+        await asyncio.sleep(0.1)
+
+        test_message = SimpleTestMessage(test_message_content)
+        await oEventBusClient.send(routing_key, test_message)
+
+        # Wait for message to be processed
+        await asyncio.sleep(0.5)
+
+        # Check if message was received
+        if len(received_messages) == 1 and received_messages[0] == test_message_content:
+            return f"Message received: {received_messages[0]}"
+        elif len(received_messages) == 0:
+            return "No message received"
+        else:
+            return f"Unexpected message received: {received_messages}"
+
+    except Exception as e:
+        return f"Error during message flow test: {str(e)}"

@@ -42,29 +42,29 @@ listofdictUsecases = []
 # --------------------------------------------------------------------------------------------------------------
 dictUsecase = {}
 dictUsecase['TESTID']            = "EBC_0001"
-dictUsecase['DESCRIPTION']       = "Dummy test to verify the set setup in pass case. Will be replace later"
-dictUsecase['EXPECTATION']       = "Got version = 0.1.0"
-dictUsecase['SECTION']           = "DUMMY_TEST"
+dictUsecase['DESCRIPTION']       = "Send message from one publisher to one specific subscriber and confirm receipt"
+dictUsecase['EXPECTATION']       = "Message successfully sent and received with correct content"
+dictUsecase['SECTION']           = "MESSAGE_FLOW"
 dictUsecase['SUBSECTION']        = "GOODCASE"
 dictUsecase['HINT']              = None
 dictUsecase['COMMENT']           = None
 dictUsecase['TESTFILE']          = r"EBC_0001.py"
 dictUsecase['EXPECTEDEXCEPTION'] = None
-dictUsecase['EXPECTEDRETURN']    = "0.1.0"
+dictUsecase['EXPECTEDRETURN']    = "Message received: Hello, World!"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
 # --------------------------------------------------------------------------------------------------------------
 dictUsecase = {}
 dictUsecase['TESTID']            = "EBC_0002"
-dictUsecase['DESCRIPTION']       = "Dummy test to verify the set setup in fail case. Will be replace later"
-dictUsecase['EXPECTATION']       = "Mismatch result cause the test to be failed"
-dictUsecase['SECTION']           = "DUMMY_TEST"
-dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['DESCRIPTION']       = "Ensure messages arrive in same order they are sent"
+dictUsecase['EXPECTATION']       = "Messages received in the same order they were sent"
+dictUsecase['SECTION']           = "MESSAGE_FLOW"
+dictUsecase['SUBSECTION']        = "GOODCASE"
 dictUsecase['HINT']              = None
 dictUsecase['COMMENT']           = None
 dictUsecase['TESTFILE']          = r"EBC_0002.py"
 dictUsecase['EXPECTEDEXCEPTION'] = None
-dictUsecase['EXPECTEDRETURN']    = "09.07.2026"
+dictUsecase['EXPECTEDRETURN']    = "Messages received in correct order: [1, 2, 3, 4, 5]"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
 # --------------------------------------------------------------------------------------------------------------
