@@ -82,6 +82,16 @@ dictUsecase['EXPECTEDRETURN']    = "All 3 subscribers received message: Hello, M
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
 # --------------------------------------------------------------------------------------------------------------
-
-# --------------------------------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0004"
+dictUsecase['DESCRIPTION']       = "Validate multiple publishers can send to a single subscriber without conflict"
+dictUsecase['EXPECTATION']       = "Subscriber receives all messages from all publishers correctly"
+dictUsecase['SECTION']           = "MESSAGE_FLOW"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0004.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "All 3 messages received successfully: ['Publisher 1 message', 'Publisher 2 message', 'Publisher 3 message']"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
