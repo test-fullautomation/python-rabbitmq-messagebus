@@ -109,3 +109,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "All wildcard patterns tested successfully: Star='Star wildcard message', Hash='Hash wildcard message'"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0006"
+dictUsecase['DESCRIPTION']       = "Verify routing key case sensitivity"
+dictUsecase['EXPECTATION']       = "Messages with different case routing keys should be treated as separate routes"
+dictUsecase['SECTION']           = "TopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0006.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Case sensitivity verified: lowercase received 1 messages, uppercase received 1 messages"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
