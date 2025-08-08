@@ -137,3 +137,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = "object of type 'NoneType' has no len()"
 dictUsecase['EXPECTEDRETURN']    = None
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0008"
+dictUsecase['DESCRIPTION']       = "Use invalid wildcard in routing key"
+dictUsecase['EXPECTATION']       = "Exception should be raised when using invalid wildcard in routing keys"
+dictUsecase['SECTION']           = "TopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0008.py"
+dictUsecase['EXPECTEDEXCEPTION'] = "object of type 'NoneType' has no len()"
+dictUsecase['EXPECTEDRETURN']    = None
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
