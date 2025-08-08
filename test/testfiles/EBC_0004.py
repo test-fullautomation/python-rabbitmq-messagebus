@@ -23,20 +23,27 @@
 # --------------------------------------------------------------------------------------------------------------
 
 import asyncio
+import os
+import sys
+
+# Add parent directory to path to access test modules
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
+from EventBusClient.event_bus_client import EventBusClient
 
-async def test(oEventBusClient):
+async def test(config_folder_path):
     """
     Test case EBC_0004: Validate multiple publishers can send to a single subscriber without conflict.
     This test verifies that multiple publishers can send messages to a single subscriber and all messages are received correctly.
 
     Args:
-        oEventBusClient: The EventBusClient instance to test
+        config_folder_path: Path to the folder containing config files
 
     Returns:
-        str: Result message indicating success or failure
+        tuple: (result_message, oEventBusClient) for proper cleanup
     """
+    oEventBusClient = None
     received_messages = []
     routing_key = "test.multiple.publishers"
     publisher_count = 3
@@ -46,6 +53,10 @@ async def test(oEventBusClient):
         received_messages.append(message.get_value())
 
     try:
+        # Create EventBusClient from config file
+        config_file = os.path.join(config_folder_path, 'config.jsonp')
+        oEventBusClient = await EventBusClient.from_config(config_file)
+
         await oEventBusClient.on(routing_key, SimpleTestMessage, message_callback)
         await asyncio.sleep(0.2)
 
@@ -59,20 +70,25 @@ async def test(oEventBusClient):
 
         # Check that all expected messages were received (order doesn't matter for multiple publishers)
         if len(received_messages) != publisher_count:
-            return f"Expected {publisher_count} messages, but received {len(received_messages)}: {received_messages}"
+            result = f"Expected {publisher_count} messages, but received {len(received_messages)}: {received_messages}"
+            return result, oEventBusClient
 
         # Check that all expected message contents are present
         for expected_content in test_message_contents:
             if expected_content not in received_messages:
-                return f"Missing expected message: '{expected_content}'. Received: {received_messages}"
+                result = f"Missing expected message: '{expected_content}'. Received: {received_messages}"
+                return result, oEventBusClient
 
         # Check for unexpected messages
         for received_content in received_messages:
             if received_content not in test_message_contents:
-                return f"Received unexpected message: '{received_content}'. Expected only: {test_message_contents}"
+                result = f"Received unexpected message: '{received_content}'. Expected only: {test_message_contents}"
+                return result, oEventBusClient
 
         # All messages received correctly (regardless of order)
-        return f"All {publisher_count} messages received successfully: {sorted(received_messages)}"
+        result = f"All {publisher_count} messages received successfully: {sorted(received_messages)}"
+        return result, oEventBusClient
 
     except Exception as e:
-        return f"Error during multiple publisher test: {str(e)}"
+        result = f"Error during multiple publisher test: {str(e)}"
+        return result, oEventBusClient

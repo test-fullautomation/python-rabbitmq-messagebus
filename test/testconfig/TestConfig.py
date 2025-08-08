@@ -44,7 +44,7 @@ dictUsecase = {}
 dictUsecase['TESTID']            = "EBC_0001"
 dictUsecase['DESCRIPTION']       = "Send message from one publisher to one specific subscriber and confirm receipt"
 dictUsecase['EXPECTATION']       = "Message successfully sent and received with correct content"
-dictUsecase['SECTION']           = "MESSAGE_FLOW"
+dictUsecase['SECTION']           = "TopicExchangeHandler"
 dictUsecase['SUBSECTION']        = "GOODCASE"
 dictUsecase['HINT']              = None
 dictUsecase['COMMENT']           = None
@@ -58,7 +58,7 @@ dictUsecase = {}
 dictUsecase['TESTID']            = "EBC_0002"
 dictUsecase['DESCRIPTION']       = "Ensure messages arrive in same order they are sent"
 dictUsecase['EXPECTATION']       = "Messages received in the same order they were sent"
-dictUsecase['SECTION']           = "MESSAGE_FLOW"
+dictUsecase['SECTION']           = "TopicExchangeHandler"
 dictUsecase['SUBSECTION']        = "GOODCASE"
 dictUsecase['HINT']              = None
 dictUsecase['COMMENT']           = None
@@ -72,7 +72,7 @@ dictUsecase = {}
 dictUsecase['TESTID']            = "EBC_0003"
 dictUsecase['DESCRIPTION']       = "Test one publisher delivering messages to multiple subscribers using the same routing key"
 dictUsecase['EXPECTATION']       = "All subscribers receive the same message with correct content"
-dictUsecase['SECTION']           = "MESSAGE_FLOW"
+dictUsecase['SECTION']           = "TopicExchangeHandler"
 dictUsecase['SUBSECTION']        = "GOODCASE"
 dictUsecase['HINT']              = None
 dictUsecase['COMMENT']           = None
@@ -86,12 +86,26 @@ dictUsecase = {}
 dictUsecase['TESTID']            = "EBC_0004"
 dictUsecase['DESCRIPTION']       = "Validate multiple publishers can send to a single subscriber without conflict"
 dictUsecase['EXPECTATION']       = "Subscriber receives all messages from all publishers correctly"
-dictUsecase['SECTION']           = "MESSAGE_FLOW"
+dictUsecase['SECTION']           = "TopicExchangeHandler"
 dictUsecase['SUBSECTION']        = "GOODCASE"
 dictUsecase['HINT']              = None
 dictUsecase['COMMENT']           = None
 dictUsecase['TESTFILE']          = r"EBC_0004.py"
 dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "All 3 messages received successfully: ['Publisher 1 message', 'Publisher 2 message', 'Publisher 3 message']"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0005"
+dictUsecase['DESCRIPTION']       = "Send message with wildcard routing key patterns (* and #)"
+dictUsecase['EXPECTATION']       = "Messages delivered correctly to subscribers using wildcard routing patterns"
+dictUsecase['SECTION']           = "TopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0005.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "All wildcard patterns tested successfully: Star='Star wildcard message', Hash='Hash wildcard message'"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase

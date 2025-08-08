@@ -26,20 +26,25 @@ import asyncio
 import sys
 import os
 
-from testutils.messages.simple_test_message import SimpleTestMessage
+# Add parent directory to path to access test modules
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-async def test(oEventBusClient):
+from testutils.messages.simple_test_message import SimpleTestMessage
+from EventBusClient.event_bus_client import EventBusClient
+
+async def test(config_folder_path):
     """
     Test case EBC_0002: Ensure messages arrive in same order they are sent.
     This test verifies message sequencing guarantee where applicable.
 
     Args:
-        oEventBusClient: The EventBusClient instance to test
+        config_folder_path: Path to the folder containing config files
 
     Returns:
-        str: Result message indicating success or failure with message order verification
+        tuple: (result_message, oEventBusClient) for proper cleanup
     """
 
+    oEventBusClient = None
     received_messages = []
     routing_key = "test.ordering.messages"
     test_message_count = 5
@@ -49,6 +54,10 @@ async def test(oEventBusClient):
         received_messages.append(message.get_value())
 
     try:
+        # Create EventBusClient from config file
+        config_file = os.path.join(config_folder_path, 'config.jsonp')
+        oEventBusClient = await EventBusClient.from_config(config_file)
+
         await oEventBusClient.on(routing_key, SimpleTestMessage, message_callback)
 
         # Give subscriber a moment to be ready
@@ -67,12 +76,14 @@ async def test(oEventBusClient):
         expected_order = list(range(1, test_message_count + 1))
 
         if len(received_messages) != test_message_count:
-            return f"Expected {test_message_count} messages, but received {len(received_messages)}: {received_messages}"
-
-        if received_messages == expected_order:
-            return f"Messages received in correct order: {received_messages}"
+            result = f"Expected {test_message_count} messages, but received {len(received_messages)}: {received_messages}"
+        elif received_messages == expected_order:
+            result = f"Messages received in correct order: {received_messages}"
         else:
-            return f"Messages received in wrong order. Expected: {expected_order}, Got: {received_messages}"
+            result = f"Messages received in wrong order. Expected: {expected_order}, Got: {received_messages}"
+
+        return result, oEventBusClient
 
     except Exception as e:
-        return f"Error during message ordering test: {str(e)}"
+        result = f"Error during message ordering test: {str(e)}"
+        return result, oEventBusClient

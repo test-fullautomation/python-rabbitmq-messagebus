@@ -23,21 +23,28 @@
 # --------------------------------------------------------------------------------------------------------------
 
 import asyncio
+import os
+import sys
 
-from test.testutils.messages.simple_test_message import SimpleTestMessage
+# Add parent directory to path to access test modules
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-async def test(oEventBusClient):
+from testutils.messages.simple_test_message import SimpleTestMessage
+from EventBusClient.event_bus_client import EventBusClient
+
+async def test(config_folder_path):
     """
     Test case EBC_0001: Send message from one publisher to one specific subscriber and confirm receipt.
     This test verifies point-to-point message flow functions as expected.
 
     Args:
-        oEventBusClient: The EventBusClient instance to test
+        config_folder_path: Path to the folder containing config files
 
     Returns:
-        str: Result message indicating success or failure
+        tuple: (result_message, oEventBusClient) for proper cleanup
     """
 
+    oEventBusClient = None
     received_messages = []
     test_message_content = "Hello, World!"
     routing_key = "test.message.routing"
@@ -47,6 +54,9 @@ async def test(oEventBusClient):
         received_messages.append(message.get_value())
 
     try:
+        # Create EventBusClient from config file
+        config_file = os.path.join(config_folder_path, 'config.jsonp')
+        oEventBusClient = await EventBusClient.from_config(config_file)
         await oEventBusClient.on(routing_key, SimpleTestMessage, message_callback)
 
         # Give subscriber a moment to be ready
@@ -60,11 +70,15 @@ async def test(oEventBusClient):
 
         # Check if message was received
         if len(received_messages) == 1 and received_messages[0] == test_message_content:
-            return f"Message received: {received_messages[0]}"
+            result = f"Message received: {received_messages[0]}"
         elif len(received_messages) == 0:
-            return "No message received"
+            result = "No message received"
         else:
-            return f"Unexpected message received: {received_messages}"
+            result = f"Unexpected message received: {received_messages}"
+
+        return result, oEventBusClient
 
     except Exception as e:
-        return f"Error during message flow test: {str(e)}"
+        print(e)
+        result = f"Error during message flow test: {str(e)}"
+        return result, oEventBusClient

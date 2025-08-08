@@ -56,14 +56,14 @@ from EventBusClient.event_bus_client import EventBusClient
 # <---from RabbitMqMessagebus.RabbitMqMessagebus import EventBusClient--->
 # --------------------------------------------------------------------------------------------------------------
 
-# Helper function to handle async EventBusClient creation and cleanup
-async def test_eventbus_client_with_cleanup(config_path, test_function):
+# Helper function to handle async EventBusClient cleanup
+async def test_eventbus_client_with_cleanup(config_folder_path, test_function):
     """
-    Create an EventBusClient, execute a test function, and ensure proper cleanup.
+    Execute a test function that creates its own EventBusClient, and ensure proper cleanup.
 
     Args:
-        config_path: Path to the config file for EventBusClient
-        test_function: The test function to execute
+        config_folder_path: Path to the folder containing config files
+        test_function: The test function to execute (should return tuple of (result, client_object))
 
     Returns:
         tuple: (actualReturned, sException)
@@ -73,14 +73,18 @@ async def test_eventbus_client_with_cleanup(config_path, test_function):
     sException = None
 
     try:
-        oTestEventBusClient = await EventBusClient.from_config(config_path)
-
-        result = test_function(oTestEventBusClient)
+        result = test_function(config_folder_path)
 
         if asyncio.iscoroutine(result):
-            actualReturned = await result
+            result = await result
+
+        # Expect test function to return (actualReturned, oTestEventBusClient)
+        if isinstance(result, tuple) and len(result) == 2:
+            actualReturned, oTestEventBusClient = result
         else:
+            # For special test functions that return only the result, they may handle the clean up itself
             actualReturned = result
+            oTestEventBusClient = None
 
     except Exception as reason:
         sException = f"'{reason}'"
@@ -478,6 +482,15 @@ for dictUsecase in listofdictUsecases:
    # If both 'EXPECTEDEXCEPTION' and 'EXPECTEDRETURN' are None, the check of values returned from EventBusClient
    # is skipped and the test case result is UNKNOWN.
 
+   # IMPORTANT: Test functions should now create their own EventBusClient instance from the config folder path
+   # provided as argument, and return a tuple of (result, client_object) for proper cleanup.
+   # Example test function signature:
+   #   async def test(config_folder_path):
+   #       config_file = os.path.join(config_folder_path, 'specific_config.json')
+   #       client = await EventBusClient.from_config(config_file)
+   #       result = ... # perform test operations
+   #       return result, client
+
    # //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
    actualReturned = None
@@ -498,10 +511,10 @@ for dictUsecase in listofdictUsecases:
 
       if test_functions:
          test_function = test_functions[0]
-         config_path = os.path.join(TESTCONFIGPATH, 'config.json')
-         # Use async helper function to handle EventBusClient creation and cleanup
+         config_folder_path = TESTCONFIGPATH
+         # Use async helper function to handle EventBusClient cleanup
          actualReturned, sException = asyncio.run(
-            test_eventbus_client_with_cleanup(config_path, test_function)
+            test_eventbus_client_with_cleanup(config_folder_path, test_function)
          )
 
          # If there was an exception in the async helper, we should handle it here

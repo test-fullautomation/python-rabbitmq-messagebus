@@ -3,7 +3,7 @@
   "host": "localhost",
   "port": 5672,
   "serializer": "PickleSerializer",
-  "exchange_handler": "XRTopicExchangeHandler",
+  "exchange_handler": "TopicExchangeHandler",
   "message_class": "ListenerEventMsg",
   "threadsafe_publish": true,
   "auto_reconnect": true,
