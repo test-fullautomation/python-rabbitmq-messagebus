@@ -517,8 +517,8 @@ for dictUsecase in listofdictUsecases:
             test_eventbus_client_with_cleanup(config_folder_path, test_function)
          )
 
-         # If there was an exception in the async helper, we should handle it here
-         if sException is not None:
+         # If there was an exception but no exception is expected, handle it as error
+         if sException is not None and EXPECTEDEXCEPTION is None:
             printerror(sException, "EventBusClient threw exception")
             oSelfTestLogFile.Write("EventBusClient threw exception:", 1)
             oSelfTestLogFile.Write(sException)

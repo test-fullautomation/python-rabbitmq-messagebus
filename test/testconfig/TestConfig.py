@@ -123,3 +123,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "Case sensitivity verified: lowercase received 1 messages, uppercase received 1 messages"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0007"
+dictUsecase['DESCRIPTION']       = "Send message with malformed routing key pattern"
+dictUsecase['EXPECTATION']       = "Exception should be raised when using invalid routing key format"
+dictUsecase['SECTION']           = "TopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0007.py"
+dictUsecase['EXPECTEDEXCEPTION'] = "object of type 'NoneType' has no len()"
+dictUsecase['EXPECTEDRETURN']    = None
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
