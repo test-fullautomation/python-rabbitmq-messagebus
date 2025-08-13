@@ -251,3 +251,36 @@ async def wait_for_message_sequence(
         poll_interval=poll_interval,
         error_message=f"Expected sequence {expected_sequence} not received within {timeout_seconds} seconds. Got: {messages_list}"
     )
+
+
+async def wait_for_client_connected(
+    event_bus_client,
+    timeout_seconds: float = 5.0,
+    poll_interval: float = 0.1
+) -> bool:
+    """
+    Wait for EventBusClient to be connected.
+
+    Args:
+        event_bus_client: EventBusClient instance to check connection status
+        timeout_seconds: Maximum time to wait in seconds (default: 5.0)
+        poll_interval: Time to wait between checks in seconds (default: 0.1)
+
+    Returns:
+        True if client is connected within timeout
+
+    Raises:
+        PollingTimeoutError: If timeout is reached before client is connected
+        AttributeError: If event_bus_client doesn't have _connected attribute
+    """
+    def condition():
+        if not hasattr(event_bus_client, '_connected'):
+            raise AttributeError("EventBusClient instance must have '_connected' attribute")
+        return event_bus_client._connected
+
+    return await poll_until_condition(
+        condition_func=condition,
+        timeout_seconds=timeout_seconds,
+        poll_interval=poll_interval,
+        error_message=f"EventBusClient not connected within {timeout_seconds} seconds"
+    )

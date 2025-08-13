@@ -30,7 +30,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
-from testutils.polling_utils import poll_until_condition, PollingTimeoutError
+from testutils.polling_utils import poll_until_condition, wait_for_client_connected, PollingTimeoutError
 from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
@@ -82,6 +82,9 @@ async def test(config_folder_path):
         # Set up subscribers with wildcard routing key patterns
         await oEventBusClient.on(star_subscriber_pattern, SimpleTestMessage, star_wildcard_callback)
         await oEventBusClient.on(hash_subscriber_pattern, SimpleTestMessage, hash_wildcard_callback)
+
+        # Wait for client to be connected before sending messages
+        await wait_for_client_connected(oEventBusClient)
 
         # Send messages with routing keys that should match wildcard patterns
         star_message = SimpleTestMessage(star_content)

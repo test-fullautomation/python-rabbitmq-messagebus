@@ -30,7 +30,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
-from testutils.polling_utils import wait_for_messages, PollingTimeoutError
+from testutils.polling_utils import wait_for_messages, wait_for_client_connected, PollingTimeoutError
 from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
@@ -59,6 +59,9 @@ async def test(config_folder_path):
         oEventBusClient = await EventBusClient.from_config(config_file)
 
         await oEventBusClient.on(routing_key, SimpleTestMessage, message_callback)
+
+        # Wait for client to be connected before sending messages
+        await wait_for_client_connected(oEventBusClient)
 
         # Simulate multiple publishers sending messages
         for content in test_message_contents:

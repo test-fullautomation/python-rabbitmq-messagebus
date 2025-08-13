@@ -30,7 +30,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
-from testutils.polling_utils import poll_until_condition, PollingTimeoutError
+from testutils.polling_utils import poll_until_condition, wait_for_client_connected, PollingTimeoutError
 from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
@@ -76,6 +76,9 @@ async def test(config_folder_path):
         await oEventBusClient.on(routing_key, SimpleTestMessage, subscriber1_callback)
         await oEventBusClient.on(routing_key, SimpleTestMessage, subscriber2_callback)
         await oEventBusClient.on(routing_key, SimpleTestMessage, subscriber3_callback)
+
+        # Wait for client to be connected before sending message
+        await wait_for_client_connected(oEventBusClient)
 
         test_message = SimpleTestMessage(test_message_content)
         await oEventBusClient.send(routing_key, test_message)

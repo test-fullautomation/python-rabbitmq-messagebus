@@ -30,7 +30,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
-from testutils.polling_utils import poll_until_condition, PollingTimeoutError
+from testutils.polling_utils import poll_until_condition, wait_for_client_connected, PollingTimeoutError
 from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
@@ -70,6 +70,9 @@ async def test(config_folder_path):
 
         await oEventBusClient.on(lowercase_routing_key, SimpleTestMessage, lowercase_callback)
         await oEventBusClient.on(uppercase_routing_key, SimpleTestMessage, uppercase_callback)
+
+        # Wait for client to be connected before sending messages
+        await wait_for_client_connected(oEventBusClient)
 
         # Send message to lowercase routing key
         lowercase_message = SimpleTestMessage(lowercase_message_content)

@@ -30,6 +30,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
+from testutils.polling_utils import wait_for_client_connected
 from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
@@ -56,6 +57,9 @@ async def test(config_folder_path):
         # Create EventBusClient from config file
         config_file = os.path.join(config_folder_path, 'config.jsonp')
         oEventBusClient = await EventBusClient.from_config(config_file)
+
+        # Wait for client to be connected before sending message
+        await wait_for_client_connected(oEventBusClient)
 
         # Try to send message with None routing key (should raise exception)
         # This represents an invalid wildcard that should fail
