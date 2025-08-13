@@ -29,9 +29,9 @@
 # *******************************************************************************
 from typing import Optional
 import aio_pika
-from serializer.pickle_serializer import PickleSerializer
-from serializer.base_serializer import Serializer
-from message.base_message import BaseMessage
+from EventBusClient.serializer.pickle_serializer import PickleSerializer
+from EventBusClient.serializer.base_serializer import Serializer
+from EventBusClient.message.base_message import BaseMessage
 
 
 class AsyncPublisher:
@@ -51,21 +51,21 @@ AsyncPublisher: Initializes the publisher with a channel, exchange, and optional
 
 * ``channel``
 
-    / *Condition*: required / *Type*: aio_pika.abc.AbstractChannel /
+  / *Condition*: required / *Type*: aio_pika.abc.AbstractChannel /
 
-    The channel to publish messages on.
+  The channel to publish messages on.
 
 * ``exchange``
 
-    / *Condition*: required / *Type*: aio_pika.abc.AbstractExchange /
+  / *Condition*: required / *Type*: aio_pika.abc.AbstractExchange /
 
-    The exchange to publish messages to.
+  The exchange to publish messages to.
 
 * ``serializer``
 
-    / *Condition*: optional / *Type*: Serializer /
+  / *Condition*: optional / *Type*: Serializer /
 
-    The serializer used to serialize messages. Defaults to PickleSerializer if not provided.
+  The serializer used to serialize messages. Defaults to PickleSerializer if not provided.
       """
       self._channel = channel
       self._exchange = exchange
@@ -84,21 +84,21 @@ Publish a message to the exchange with the specified routing key.
 
 * ``message``
 
-    / *Condition*: required / *Type*: BaseMessage /
+  / *Condition*: required / *Type*: BaseMessage /
 
-    The message to be published. It should be an instance of BaseMessage or its subclasses.
+  The message to be published. It should be an instance of BaseMessage or its subclasses.
 
 * ``routing_key``
 
-    / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-    The routing key used to route the message to the appropriate subscribers.
+  The routing key used to route the message to the appropriate subscribers.
 
 * ``headers``
 
-    / *Condition*: optional / *Type*: dict /
+  / *Condition*: optional / *Type*: dict /
 
-    Additional headers to include with the message. This can be used for metadata or routing information.
+  Additional headers to include with the message. This can be used for metadata or routing information.
 
 **Note:**
 This method serializes the message using the specified serializer and publishes it to the exchange with the given routing key.

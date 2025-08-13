@@ -35,9 +35,9 @@ Serialize a message object to bytes.
 
 * ``msg``
 
-    / *Condition*: required / *Type*: Any /
+  / *Condition*: required / *Type*: Any /
 
-    Message object to be serialized.
+  Message object to be serialized.
         """
         raise NotImplementedError()
 
@@ -49,8 +49,8 @@ Deserialize bytes back into a message object.
 
 * ``data``
 
-    / *Condition*: required / *Type*: bytes /
+  / *Condition*: required / *Type*: bytes /
 
-    Serialized message data to be deserialized.
+  Serialized message data to be deserialized.
         """
         raise NotImplementedError()

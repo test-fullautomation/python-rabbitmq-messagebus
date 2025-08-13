@@ -31,7 +31,7 @@ import asyncio
 # import logging
 from typing import Optional
 import aio_pika
-from qlogger import QLogger
+from .qlogger import QLogger
 
 # logger = logging.getLogger(__name__)
 logger = QLogger().get_logger("event_bus_client")
@@ -48,9 +48,9 @@ ConnectionManager: Initializes the connection manager with an event loop.
 
 * ``loop``
 
-   / *Condition*: optional / *Type*: asyncio.AbstractEventLoop /
+  / *Condition*: optional / *Type*: asyncio.AbstractEventLoop /
 
-   The event loop to use for asynchronous operations. If not provided, the current event loop is used.
+  The event loop to use for asynchronous operations. If not provided, the current event loop is used.
       """
       self._loop = loop or asyncio.get_event_loop()
       self._connection: Optional[aio_pika.RobustConnection] = None
@@ -69,27 +69,27 @@ Establish a robust connection to RabbitMQ and declare the exchange.
 
 * ``host``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The hostname or IP address of the RabbitMQ server.
+  The hostname or IP address of the RabbitMQ server.
 
 * ``port``
 
-   / *Condition*: required / *Type*: int /
+  / *Condition*: required / *Type*: int /
 
-   The port number on which the RabbitMQ server is listening.
+  The port number on which the RabbitMQ server is listening.
 
 * ``exchange_name``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The name of the exchange to declare or use.
+  The name of the exchange to declare or use.
 
 * ``exchange_type``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The type of the exchange (e.g., "direct", "topic", "fanout", "x-rtopic").
+  The type of the exchange (e.g., "direct", "topic", "fanout", "x-rtopic").
       """
       # self._exchange_name = exchange_name
       # self._exchange_type = exchange_type
@@ -104,9 +104,9 @@ Register an exchange handler to handle messages from the exchange.
 
 * ``handler``
 
-   / *Condition*: required / *Type*: ExchangeHandler /
+  / *Condition*: required / *Type*: ExchangeHandler /
 
-   The exchange handler to register. It should be an instance of ExchangeHandler or its subclasses.
+  The exchange handler to register. It should be an instance of ExchangeHandler or its subclasses.
       """
       self._exchange_handlers.append(handler)
 
@@ -118,9 +118,9 @@ Unregister an exchange handler.
 
 * ``handler``
 
-   / *Condition*: required / *Type*: ExchangeHandler /
+  / *Condition*: required / *Type*: ExchangeHandler /
 
-   The exchange handler to unregister. It should be an instance of ExchangeHandler or its subclasses.
+  The exchange handler to unregister. It should be an instance of ExchangeHandler or its subclasses.
       """
       if handler in self._exchange_handlers:
          self._exchange_handlers.remove(handler)
@@ -133,15 +133,15 @@ Establish a robust connection to RabbitMQ and create a channel.
 
 * ``host``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The hostname or IP address of the RabbitMQ server.
+  The hostname or IP address of the RabbitMQ server.
 
 * ``port``
 
-   / *Condition*: required / *Type*: int /
+  / *Condition*: required / *Type*: int /
 
-   The port number on which the RabbitMQ server is listening.
+  The port number on which the RabbitMQ server is listening.
       """
       self._connection = await aio_pika.connect_robust(
          host=host,
@@ -173,9 +173,9 @@ Get the current channel for publishing messages.
 
 **Returns:**
 
-   / *Type*: aio_pika.Channel | None /
+  / *Type*: aio_pika.Channel | None /
 
-   Channel instance or None if not available.
+  Channel instance or None if not available.
       """
       return self._channel
 

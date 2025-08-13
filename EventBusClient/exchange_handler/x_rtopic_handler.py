@@ -28,13 +28,13 @@
 #
 # *******************************************************************************
 import asyncio
-from exchange_handler.base import ExchangeHandler
-from publisher import AsyncPublisher
-from subscriber import AsyncSubscriber
-from serializer.base_serializer import Serializer
-from message.base_message import BaseMessage
-from connection import ConnectionManager
-from typing import Callable, Type
+from EventBusClient.exchange_handler.base import ExchangeHandler
+from EventBusClient.publisher import AsyncPublisher
+from EventBusClient.subscriber import AsyncSubscriber
+from EventBusClient.serializer.base_serializer import Serializer
+from EventBusClient.message.base_message import BaseMessage
+from EventBusClient.connection import ConnectionManager
+from typing import Callable, Type, Optional
 
 
 class XRTopicExchangeHandler(ExchangeHandler):
@@ -51,15 +51,15 @@ XRTopicExchangeHandler: Initializes the exchange handler with a serializer and e
 
 * ``serializer``
 
-   / *Condition*: optional / *Type*: Serializer /
+  / *Condition*: optional / *Type*: Serializer /
 
-   The serializer used to serialize and deserialize messages. Defaults to PickleSerializer if not provided.
+  The serializer used to serialize and deserialize messages. Defaults to PickleSerializer if not provided.
 
 * ``loop``
 
-   / *Condition*: optional / *Type*: asyncio.AbstractEventLoop /
+  / *Condition*: optional / *Type*: asyncio.AbstractEventLoop /
 
-   The event loop to use for asynchronous operations. If not provided, the current event loop will be used.
+  The event loop to use for asynchronous operations. If not provided, the current event loop will be used.
       """
       super().__init__(name, serializer, loop)
 
@@ -71,9 +71,9 @@ Set up the exchange handler by establishing a channel and declaring the x-rtopic
 
 * ``connection_manager``
 
-    / *Condition*: required / *Type*: ConnectionManager /
+  / *Condition*: required / *Type*: ConnectionManager /
 
-    The connection manager used to get the channel and exchange for publishing messages.
+  The connection manager used to get the channel and exchange for publishing messages.
       """
       self._channel = await connection_manager.get_channel()
       self._exchange = await self._channel.declare_exchange(
@@ -106,27 +106,27 @@ Publish a message to the exchange with the specified routing key.
 
 * ``message``
 
-   / *Condition*: required / *Type*: BaseMessage /
+  / *Condition*: required / *Type*: BaseMessage /
 
-   The message to be published. It should be an instance of BaseMessage or its subclasses.
+  The message to be published. It should be an instance of BaseMessage or its subclasses.
 
 * ``routing_key``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The routing key used to route the message to the appropriate subscribers.
+  The routing key used to route the message to the appropriate subscribers.
 
 * ``headers``
 
-   / *Condition*: optional / *Type*: dict /
+  / *Condition*: optional / *Type*: dict /
 
-   Additional headers to include with the message. This can be used for metadata or routing information.
+  Additional headers to include with the message. This can be used for metadata or routing information.
 
 *  ``threadsafe``
 
-   / *Condition*: optional / *Type*: bool /
+  / *Condition*: optional / *Type*: bool /
 
-   If True, the publish operation will be thread-safe, allowing it to be called from different threads.
+  If True, the publish operation will be thread-safe, allowing it to be called from different threads.
 
 This is useful in multi-threaded applications where the event bus client may be accessed from multiple threads.
       """
@@ -145,7 +145,8 @@ This is useful in multi-threaded applications where the event bus client may be 
       self,
       routing_key: str,
       message_cls: Type[BaseMessage],
-      callback: Callable[[BaseMessage], None]
+      callback: Callable[[BaseMessage], None],
+      cache_size: Optional[int] = None
    ):
       """
 Subscribe to messages on the exchange with the specified routing key.
@@ -154,21 +155,21 @@ Subscribe to messages on the exchange with the specified routing key.
 
 * ``routing_key``
 
-    / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-    The routing key used to filter messages for this subscription.
+  The routing key used to filter messages for this subscription.
 
 * ``message_cls``
 
-    / *Condition*: required / *Type*: Type[BaseMessage] /
+  / *Condition*: required / *Type*: Type[BaseMessage] /
 
-    The class of the message to be received. The subscriber will only process messages of this type.
+  The class of the message to be received. The subscriber will only process messages of this type.
 
 * ``callback``
 
-    / *Condition*: required / *Type*: Callable[[BaseMessage], None] /
+  / *Condition*: required / *Type*: Callable[[BaseMessage], None] /
 
-    The callback function to be called when a message is received. It should accept a single argument of type `BaseMessage`.
+  The callback function to be called when a message is received. It should accept a single argument of type `BaseMessage`.
 
 This function will be called with the deserialized message object when a message matching the routing key is received.
       """
@@ -182,6 +183,11 @@ This function will be called with the deserialized message object when a message
       )
       await subscriber.start()
       self._subscribers.append(subscriber)
+      cache = await subscriber.start(cache_size=cache_size)
+      # optionally remember sub for later unsubscribe
+      # self._subs[(topic, msg_cls)] = sub
+      self._subscribers.append(subscriber)
+      return cache
 
    async def teardown(self):
       """

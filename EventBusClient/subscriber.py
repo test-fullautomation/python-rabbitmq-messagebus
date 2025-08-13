@@ -27,13 +27,14 @@
 # - Initialize
 #
 # *******************************************************************************
-from typing import Callable, Type
 import asyncio
 import aio_pika
+from typing import Any, Callable, Optional, Type
 from aio_pika.abc import AbstractIncomingMessage
-from serializer.base_serializer import Serializer
-from serializer.pickle_serializer import PickleSerializer
-from message.base_message import BaseMessage
+from EventBusClient.serializer.base_serializer import Serializer
+from EventBusClient.serializer.pickle_serializer import PickleSerializer
+from EventBusClient.message.base_message import BaseMessage
+from .subscription_cache import SubscriptionCache
 
 
 class AsyncSubscriber:
@@ -47,7 +48,8 @@ AsyncSubscriber: Subscribes to messages from an exchange using aio_pika.
       routing_key: str,
       message_cls: Type[BaseMessage],
       callback: Callable[[BaseMessage], None],
-      serializer: Serializer = None
+      serializer: Serializer = None,
+      cache_size_default: int = 200
    ):
       """
 AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing key, message class, callback, and optional serializer.
@@ -56,39 +58,39 @@ AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing ke
 
 * ``channel``
 
-   / *Condition*: required / *Type*: aio_pika.abc.AbstractChannel /
+  / *Condition*: required / *Type*: aio_pika.abc.AbstractChannel /
 
-   The channel to subscribe to messages on.
+  The channel to subscribe to messages on.
 
 * ``exchange``
 
-   / *Condition*: required / *Type*: aio_pika.abc.AbstractExchange /
+  / *Condition*: required / *Type*: aio_pika.abc.AbstractExchange /
 
-   The exchange to subscribe to messages from.
+  The exchange to subscribe to messages from.
 
 * ``routing_key``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The routing key to filter messages.
+  The routing key to filter messages.
 
 * ``message_cls``
 
-   / *Condition*: required / *Type*: Type[BaseMessage] /
+  / *Condition*: required / *Type*: Type[BaseMessage] /
 
-   The class of the message to be processed. It should be a subclass of BaseMessage.
+  The class of the message to be processed. It should be a subclass of BaseMessage.
 
 * ``callback``
 
-   / *Condition*: required / *Type*: Callable[[BaseMessage], None] /
+  / *Condition*: required / *Type*: Callable[[BaseMessage], None] /
 
-   The callback function to process the received messages. It should accept an instance of BaseMessage or its subclasses.
+  The callback function to process the received messages. It should accept an instance of BaseMessage or its subclasses.
 
 * ``serializer``
 
-   / *Condition*: optional / *Type*: Serializer /
+  / *Condition*: optional / *Type*: Serializer /
 
-   The serializer used to deserialize messages. Defaults to PickleSerializer if not provided.
+  The serializer used to deserialize messages. Defaults to PickleSerializer if not provided.
       """
       self._channel = channel
       self._exchange = exchange
@@ -99,8 +101,16 @@ AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing ke
 
       self._queue: aio_pika.abc.AbstractQueue | None = None
       self._consumer_tag: str | None = None
+      self._cache: Optional[SubscriptionCache[Any]] = None
+      self._cache_default = cache_size_default
 
-   async def start(self):
+   @property
+   def cache(self) -> SubscriptionCache[Any]:
+      if self._cache is None:
+         self._cache = SubscriptionCache(maxlen=self._cache_default)
+      return self._cache
+
+   async def start(self, cache_size: Optional[int] = None):
       """
 Start the subscriber by declaring a queue, binding it to the exchange, and consuming messages.
       """
@@ -109,9 +119,10 @@ Start the subscriber by declaring a queue, binding it to the exchange, and consu
          exclusive=True,
          auto_delete=True
       )
+      self._cache = SubscriptionCache(maxlen=cache_size or self._cache_default)
       await self._queue.bind(self._exchange, routing_key=self._routing_key)
-
       self._consumer_tag = await self._queue.consume(self._on_message)
+      return self._cache
 
    async def stop(self):
       """
@@ -132,18 +143,31 @@ Handle incoming messages by deserializing them and invoking the callback.
 
 * ``message``
 
-   / *Condition*: required / *Type*: AbstractIncomingMessage /
+  / *Condition*: required / *Type*: AbstractIncomingMessage /
 
-   The incoming message to be processed. It should contain the serialized message body.
+  The incoming message to be processed. It should contain the serialized message body.
       """
       async with message.process():
          try:
             obj = self._serializer.deserialize(message.body)
+            if self._cache:
+               self._cache.append(obj)
+
             if not isinstance(obj, self._message_cls):
                raise TypeError(f"Expected {self._message_cls}, got {type(obj)}")
+
             if asyncio.iscoroutinefunction(self._callback):
                await self._callback(obj)
             else:
                self._callback(obj)
          except Exception as e:
             print(f"[AsyncSubscriber] Error handling message: {e}")
+
+   @property
+   def routing_key(self):
+       return self._routing_key
+
+   @property
+   def callback(self):
+       return self._callback
+

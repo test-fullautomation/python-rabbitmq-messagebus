@@ -28,13 +28,13 @@
 #
 # *******************************************************************************
 import asyncio
-from typing import Callable, Type
-from exchange_handler.base import ExchangeHandler
-from publisher import AsyncPublisher
-from subscriber import AsyncSubscriber
+from typing import Callable, Type, Optional
+from EventBusClient.exchange_handler.base import ExchangeHandler
+from EventBusClient.publisher import AsyncPublisher
+from EventBusClient.subscriber import AsyncSubscriber
 # from serializer.base_serializer import Serializer
-from message.base_message import BaseMessage
-from connection import ConnectionManager
+from EventBusClient.message.base_message import BaseMessage
+from EventBusClient.connection import ConnectionManager
 
 
 class TopicExchangeHandler(ExchangeHandler):
@@ -53,9 +53,9 @@ It initializes the channel and exchange, and prepares the publisher for sending 
 
 * ``connection_manager``
 
-   / *Condition*: required / *Type*: ConnectionManager /
+  / *Condition*: required / *Type*: ConnectionManager /
 
-   The connection manager used to get the channel and exchange for publishing messages.
+  The connection manager used to get the channel and exchange for publishing messages.
       """
       self._channel = await connection_manager.get_channel()
       # self._exchange = await connection_manager.get_exchange()
@@ -75,21 +75,21 @@ Publish a message to the exchange with the specified routing key.
 
 * ``message``
 
-   / *Condition*: required / *Type*: BaseMessage /
+  / *Condition*: required / *Type*: BaseMessage /
 
-   The message to be published. It should be an instance of BaseMessage or its subclasses.
+  The message to be published. It should be an instance of BaseMessage or its subclasses.
 
 * ``routing_key``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The routing key used to route the message to the appropriate subscribers.
+  The routing key used to route the message to the appropriate subscribers.
 
 *  ``headers``
 
-   / *Condition*: optional / *Type*: dict /
+  / *Condition*: optional / *Type*: dict /
 
-   Additional headers to include with the message. This can be used for metadata or routing information.
+  Additional headers to include with the message. This can be used for metadata or routing information.
       """
       if threadsafe:
          future = asyncio.run_coroutine_threadsafe(
@@ -105,7 +105,8 @@ Publish a message to the exchange with the specified routing key.
       self,
       routing_key: str,
       message_cls: Type[BaseMessage],
-      callback: Callable[[BaseMessage], None]
+      callback: Callable[[BaseMessage], None],
+      cache_size: Optional[int] = None
    ):
       """
 Subscribe to messages on the exchange with the specified routing key.
@@ -114,21 +115,21 @@ Subscribe to messages on the exchange with the specified routing key.
 
 * ``routing_key``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The routing key used to filter messages for this subscriber.
+  The routing key used to filter messages for this subscriber.
 
 * ``message_cls``
 
-   / *Condition*: required / *Type*: Type[BaseMessage] /
+  / *Condition*: required / *Type*: Type[BaseMessage] /
 
-   The class of the message that this subscriber will handle. It should be a subclass of BaseMessage.
+  The class of the message that this subscriber will handle. It should be a subclass of BaseMessage.
 
 * ``callback``
 
-   / *Condition*: required / *Type*: Callable[[BaseMessage], None] /
+  / *Condition*: required / *Type*: Callable[[BaseMessage], None] /
 
-   The callback function that will be called when a message matching the routing key is received.
+  The callback function that will be called when a message matching the routing key is received.
       """
       subscriber = AsyncSubscriber(
          channel=self._channel,
@@ -138,8 +139,14 @@ Subscribe to messages on the exchange with the specified routing key.
          callback=callback,
          serializer=self._serializer
       )
-      await subscriber.start()
+      # await subscriber.start()
+      # self._subscribers.append(subscriber)
+
+      cache = await subscriber.start(cache_size=cache_size)
+      # optionally remember sub for later unsubscribe
+      # self._subs[(topic, msg_cls)] = sub
       self._subscribers.append(subscriber)
+      return cache
 
    async def teardown(self):
       """

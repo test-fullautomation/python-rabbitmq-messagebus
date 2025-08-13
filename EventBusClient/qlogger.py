@@ -26,8 +26,8 @@
 # - Initialize
 #
 # *******************************************************************************
-from utils import Singleton, Utils
-import constants as constants
+from EventBusClient.utils import Singleton, Utils
+import EventBusClient.constants as constants
 import logging
 import os
 

@@ -192,8 +192,9 @@ Get a name of a caller in the format module.class.method
 
   / *Condition*: required / *Type*: int /
 
-  Specifies how many levels of stack to skip while getting caller
-         name. skip=1 means "who calls me", skip=2 "who calls my caller" etc.
+  Specifies how many levels of stack to skip while getting caller name.
+  * ``skip=1`` means "who calls me"
+  * ``skip=2`` means "who calls my caller" etc.
 
 **Returns:**
 
