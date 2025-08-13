@@ -30,6 +30,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
+from testutils.polling_utils import wait_for_messages, PollingTimeoutError
 from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
@@ -58,7 +59,6 @@ async def test(config_folder_path):
         oEventBusClient = await EventBusClient.from_config(config_file)
 
         await oEventBusClient.on(routing_key, SimpleTestMessage, message_callback)
-        await asyncio.sleep(0.2)
 
         # Simulate multiple publishers sending messages
         for content in test_message_contents:
@@ -66,11 +66,10 @@ async def test(config_folder_path):
             await oEventBusClient.send(routing_key, test_message)
             await asyncio.sleep(0.05)
 
-        await asyncio.sleep(0.8)  # Wait for all messages to be processed
-
-        # Check that all expected messages were received (order doesn't matter for multiple publishers)
-        if len(received_messages) != publisher_count:
-            result = f"Expected {publisher_count} messages, but received {len(received_messages)}: {received_messages}"
+        try:
+            await wait_for_messages(received_messages, expected_count=publisher_count, timeout_seconds=5.0)
+        except PollingTimeoutError:
+            result = f"Expected {publisher_count} messages, but only received {len(received_messages)} within timeout: {received_messages}"
             return result, oEventBusClient
 
         # Check that all expected message contents are present

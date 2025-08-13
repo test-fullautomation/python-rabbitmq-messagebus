@@ -75,9 +75,6 @@ async def test(config_folder_path):
         config_file = os.path.join(config_folder_path, 'config.jsonp')
         oEventBusClient = await EventBusClient.from_config(config_file)
 
-        # Give client a moment to be ready
-        await asyncio.sleep(0.1)
-
         # Create a message that will cause serialization issues
         # This simulates encoding problems that prevent proper message serialization
         problematic_message = ProblematicEncodingMessage(test_message_content)

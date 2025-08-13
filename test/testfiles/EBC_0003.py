@@ -30,6 +30,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
+from testutils.polling_utils import poll_until_condition, PollingTimeoutError
 from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
@@ -76,14 +77,19 @@ async def test(config_folder_path):
         await oEventBusClient.on(routing_key, SimpleTestMessage, subscriber2_callback)
         await oEventBusClient.on(routing_key, SimpleTestMessage, subscriber3_callback)
 
-        # Give subscribers a moment to be ready
-        await asyncio.sleep(0.2)
-
         test_message = SimpleTestMessage(test_message_content)
         await oEventBusClient.send(routing_key, test_message)
 
-        # Wait for message to be processed by all subscribers
-        await asyncio.sleep(0.8)
+        # Wait for message to be processed by all subscribers using polling
+        def all_subscribers_received():
+            all_lists = [subscriber1_messages, subscriber2_messages, subscriber3_messages]
+            return all(len(msgs) >= 1 for msgs in all_lists)
+
+        try:
+            await poll_until_condition(all_subscribers_received, timeout_seconds=5.0, poll_interval=0.1)
+        except PollingTimeoutError:
+            result = "Not all subscribers received the message within timeout"
+            return result, oEventBusClient
 
         # Verify that all subscribers received the message
         all_messages = [subscriber1_messages, subscriber2_messages, subscriber3_messages]

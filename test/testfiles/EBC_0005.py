@@ -30,6 +30,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
+from testutils.polling_utils import poll_until_condition, PollingTimeoutError
 from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
@@ -82,9 +83,6 @@ async def test(config_folder_path):
         await oEventBusClient.on(star_subscriber_pattern, SimpleTestMessage, star_wildcard_callback)
         await oEventBusClient.on(hash_subscriber_pattern, SimpleTestMessage, hash_wildcard_callback)
 
-        # Give subscribers time to be ready
-        await asyncio.sleep(0.1)
-
         # Send messages with routing keys that should match wildcard patterns
         star_message = SimpleTestMessage(star_content)
         await oEventBusClient.send(star_routing_key, star_message)
@@ -92,8 +90,15 @@ async def test(config_folder_path):
         hash_message = SimpleTestMessage(hash_content)
         await oEventBusClient.send(hash_routing_key, hash_message)
 
-        # Wait for messages to be processed
-        await asyncio.sleep(0.5)
+        # Wait for messages to be processed using polling utility
+        def both_wildcard_messages_received():
+            return (len(star_wildcard_messages) >= 1 and len(hash_wildcard_messages) >= 1)
+
+        try:
+            await poll_until_condition(both_wildcard_messages_received, timeout_seconds=5.0)
+        except PollingTimeoutError:
+            result = f"Not all wildcard messages received within timeout. Star: {len(star_wildcard_messages)}, Hash: {len(hash_wildcard_messages)}"
+            return result, oEventBusClient
 
         # Verify all wildcard messages were received correctly
         if (len(star_wildcard_messages) == 1 and star_wildcard_messages[0] == star_content and

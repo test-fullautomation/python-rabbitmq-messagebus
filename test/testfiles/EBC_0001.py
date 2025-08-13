@@ -30,6 +30,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
+from testutils.polling_utils import wait_for_messages, PollingTimeoutError
 from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
@@ -59,22 +60,15 @@ async def test(config_folder_path):
         oEventBusClient = await EventBusClient.from_config(config_file)
         await oEventBusClient.on(routing_key, SimpleTestMessage, message_callback)
 
-        # Give subscriber a moment to be ready
-        await asyncio.sleep(0.1)
-
         test_message = SimpleTestMessage(test_message_content)
         await oEventBusClient.send(routing_key, test_message)
 
-        # Wait for message to be processed
-        await asyncio.sleep(0.5)
-
-        # Check if message was received
-        if len(received_messages) == 1 and received_messages[0] == test_message_content:
+        # Wait for message to be processed using polling utility
+        try:
+            await wait_for_messages(received_messages, expected_count=1, timeout_seconds=5.0)
             result = f"Message received: {received_messages[0]}"
-        elif len(received_messages) == 0:
-            result = "No message received"
-        else:
-            result = f"Unexpected message received: {received_messages}"
+        except PollingTimeoutError:
+            result = "No message received within timeout"
 
         return result, oEventBusClient
 

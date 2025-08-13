@@ -30,6 +30,7 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
+from testutils.polling_utils import wait_for_message_sequence, PollingTimeoutError
 from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
@@ -60,27 +61,23 @@ async def test(config_folder_path):
 
         await oEventBusClient.on(routing_key, SimpleTestMessage, message_callback)
 
-        # Give subscriber a moment to be ready
-        await asyncio.sleep(0.1)
-
         # Send multiple messages in sequence
+        expected_order = []
         for i in range(1, test_message_count + 1):
             test_message = SimpleTestMessage(i)
             await oEventBusClient.send(routing_key, test_message)
+            expected_order.append(i)
             await asyncio.sleep(0.01)
 
-        # Wait for all messages to be processed
-        await asyncio.sleep(1.0)
-
-        # Check if all messages were received in the correct order
-        expected_order = list(range(1, test_message_count + 1))
-
-        if len(received_messages) != test_message_count:
-            result = f"Expected {test_message_count} messages, but received {len(received_messages)}: {received_messages}"
-        elif received_messages == expected_order:
+        # Wait for messages to be received in correct sequence using polling utility
+        try:
+            await wait_for_message_sequence(received_messages, expected_order, timeout_seconds=5.0)
             result = f"Messages received in correct order: {received_messages}"
-        else:
-            result = f"Messages received in wrong order. Expected: {expected_order}, Got: {received_messages}"
+        except PollingTimeoutError as e:
+            if len(received_messages) != test_message_count:
+                result = f"Expected {test_message_count} messages, but received {len(received_messages)}: {received_messages}"
+            else:
+                result = f"Messages received in wrong order. Expected: {expected_order}, Got: {received_messages}"
 
         return result, oEventBusClient
 

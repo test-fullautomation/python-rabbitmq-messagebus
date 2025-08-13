@@ -57,9 +57,6 @@ async def test(config_folder_path):
         config_file = os.path.join(config_folder_path, 'config.jsonp')
         oEventBusClient = await EventBusClient.from_config(config_file)
 
-        # Give client a moment to be ready
-        await asyncio.sleep(0.1)
-
         # Try to send message with None routing key (should raise exception)
         # This represents an invalid wildcard that should fail
         test_message = SimpleTestMessage(test_message_content)

@@ -30,6 +30,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from testutils.messages.simple_test_message import SimpleTestMessage
+from testutils.polling_utils import poll_until_condition, PollingTimeoutError
 from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
@@ -70,8 +71,6 @@ async def test(config_folder_path):
         await oEventBusClient.on(lowercase_routing_key, SimpleTestMessage, lowercase_callback)
         await oEventBusClient.on(uppercase_routing_key, SimpleTestMessage, uppercase_callback)
 
-        await asyncio.sleep(0.1)
-
         # Send message to lowercase routing key
         lowercase_message = SimpleTestMessage(lowercase_message_content)
         await oEventBusClient.send(lowercase_routing_key, lowercase_message)
@@ -80,8 +79,14 @@ async def test(config_folder_path):
         uppercase_message = SimpleTestMessage(uppercase_message_content)
         await oEventBusClient.send(uppercase_routing_key, uppercase_message)
 
-        # Wait for messages to be processed
-        await asyncio.sleep(0.5)
+        def both_case_messages_received():
+            return (len(lowercase_received_messages) >= 1 and len(uppercase_received_messages) >= 1)
+
+        try:
+            await poll_until_condition(both_case_messages_received, timeout_seconds=5.0)
+        except PollingTimeoutError:
+            result = f"Not all case-sensitive messages received within timeout. Lowercase: {len(lowercase_received_messages)}, Uppercase: {len(uppercase_received_messages)}"
+            return result, oEventBusClient
 
         lowercase_count = len(lowercase_received_messages)
         uppercase_count = len(uppercase_received_messages)
