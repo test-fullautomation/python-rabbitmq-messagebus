@@ -38,6 +38,7 @@ VERSION_DATE = "11.07.2025"
 # --------------------------------------------------------------------------------------------------------------
 
 import os, sys, time
+import asyncio
 import colorama as col
 
 from PythonExtensionsCollection.String.CString import CString
@@ -48,11 +49,56 @@ from libs.CConfig import CConfig
 from libs.CGenCode import CGenCode
 
 from testconfig.TestConfig import *
+from EventBusClient.event_bus_client import EventBusClient
 
 # --------------------------------------------------------------------------------------------------------------
 # !!! the module under test !!!
 # <---from RabbitMqMessagebus.RabbitMqMessagebus import EventBusClient--->
 # --------------------------------------------------------------------------------------------------------------
+
+# Helper function to handle async EventBusClient cleanup
+async def test_eventbus_client_with_cleanup(config_folder_path, test_function):
+    """
+    Execute a test function that creates its own EventBusClient, and ensure proper cleanup.
+
+    Args:
+        config_folder_path: Path to the folder containing config files
+        test_function: The test function to execute (should return tuple of (result, client_object))
+
+    Returns:
+        tuple: (actualReturned, sException)
+    """
+    oTestEventBusClient = None
+    actualReturned = None
+    sException = None
+
+    try:
+        result = test_function(config_folder_path)
+
+        if asyncio.iscoroutine(result):
+            result = await result
+
+        # Expect test function to return (actualReturned, oTestEventBusClient)
+        if isinstance(result, tuple) and len(result) == 2:
+            actualReturned, oTestEventBusClient = result
+        else:
+            # For special test functions that return only the result, they may handle the clean up itself
+            actualReturned = result
+            oTestEventBusClient = None
+
+    except Exception as reason:
+        sException = f"'{reason}'"
+
+    finally:
+        # Always ensure the EventBusClient connection is properly closed
+        if oTestEventBusClient is not None:
+            try:
+                await oTestEventBusClient.close()
+                del oTestEventBusClient
+            except Exception as ex:
+                print(f"Warning: Failed to close EventBusClient: {ex}")
+
+    return actualReturned, sException
 
 col.init(autoreset=True)
 
@@ -99,9 +145,8 @@ def AnalyzeReturnedValues(EXPECTEDRETURN=None, actualReturned=None):
       for sLine in listSplitLines:
          if sLine != "":
             listExpectedLines.append(sLine)
-      # PrettyPrint(listExpectedLines)
 
-      listReturnedLines = PrettyPrint(actualReturned, bToConsole=False)
+      listReturnedLines = actualReturned.splitlines() if isinstance(actualReturned, str) else [actualReturned]
 
       # check number of lines
       nNrOfLinesReturned = len(listReturnedLines)
@@ -112,16 +157,14 @@ def AnalyzeReturnedValues(EXPECTEDRETURN=None, actualReturned=None):
          listErrors.append(sResult)
          print("EventBusClient returned:")
          print()
-         PrettyPrint(actualReturned, bToConsole=True)
+         print(actualReturned)
          print()
          return listErrors, bSuccess, sResult
 
       # compare content line by line
-      bDeviation = False
       for nIndex, sLineReturned in enumerate(listReturnedLines):
          sLineExpected = listExpectedLines[nIndex]
          if sLineReturned != sLineExpected:
-            bDeviation = True
             sResult    = f"Found deviating return values\n(1) '{sLineExpected}'   > (expected)\n(2) '{sLineReturned}'   > (returned)"
             listErrors.append(sResult)
          # eof if sLineReturned != sLineExpected:
@@ -207,13 +250,13 @@ oConfig.Set("THISSCRIPTFULLNAME", THISSCRIPTFULLNAME)
 
 # add information about system under test
 try:
-   # not yet implemented officially
-   oEventBusClient = EventBusClient()  # <===The object under test must be imported at the beginning of this file===>
-   sut_version = oEventBusClient.getVersion()
-   sut_version_date = oEventBusClient.getVersionDate()
-   del oEventBusClient
-   SUT_FULL_NAME = f"EventBusClient v. {sut_version} / {sut_version_date}"
-   oConfig.Set("SUT_FULL_NAME", SUT_FULL_NAME)
+   # This section would be for getting version info but we'll skip it for now
+   # it is because getVersion and getVersionDate has not been implemented yet
+   # sut_version = EventBusClient.getVersion()
+   # sut_version_date = EventBusClient.getVersionDate()
+   # SUT_FULL_NAME = f"EventBusClient v. {sut_version} / {sut_version_date}"
+   # oConfig.Set("SUT_FULL_NAME", SUT_FULL_NAME)
+   pass
 except:
    pass
 
@@ -236,6 +279,7 @@ if CONFIGDUMP is True:
 THISSCRIPT         = oConfig.Get('THISSCRIPT')
 THISSCRIPTNAME     = oConfig.Get('THISSCRIPTNAME')
 TESTCONFIGPATH     = oConfig.Get('TESTCONFIGPATH')
+TESTFILESPATH      = oConfig.Get('TESTFILESPATH')
 OSNAME             = oConfig.Get('OSNAME')
 PLATFORMSYSTEM     = oConfig.Get('PLATFORMSYSTEM')
 PYTHON             = oConfig.Get('PYTHON')
@@ -243,7 +287,6 @@ PYTHONVERSION      = oConfig.Get('PYTHONVERSION')
 TESTLOGFILESFOLDER = oConfig.Get('TESTLOGFILESFOLDER')
 SELFTESTLOGFILE    = oConfig.Get('SELFTESTLOGFILE')
 TESTID             = oConfig.Get('TESTID')
-RECREATEINSTANCE   = oConfig.Get('RECREATEINSTANCE')
 
 # -- start logging
 oSelfTestLogFile = CFile(SELFTESTLOGFILE)
@@ -364,30 +407,14 @@ nCntFailedUsecases  = 0
 nCntUnknownUsecases = 0
 
 # --------------------------------------------------------------------------------------------------------------
-# !!! the object under test !!!
-oEventBusClient = None
-if RECREATEINSTANCE is not True:
-   oEventBusClient = EventBusClient()  # <===The object under test must be imported at the beginning of this file===>
-#
-# The default behavior is: The object under test is created only once for all test cases!
-# Every test case uses the same EventBusClient class object. This is also like a stress test,
-# to see how stable the EventBusClient is.
-#
-# An alternative way is to create a EventBusClient class object for every test case separately
-# (= create at the beginning, destroy at the end of a test case).
-# Every test case uses an own EventBusClient class object
-#
-# This depends on the switch RECREATEINSTANCE (command line)
-#
+# Note: EventBusClient requires async initialization via from_config()
+# We don't create a global instance here since each test need to be wrapped in an async function
+# and we will use an async helper function to handle the creation and cleanup of EventBusClient
 # --------------------------------------------------------------------------------------------------------------
 
 listTestsNotPassed = []
 
 for dictUsecase in listofdictUsecases:
-
-   # debug
-   # PrettyPrint(dictUsecase, sPrefix="dictUsecase")
-   # print()
 
    nCntUsecases = nCntUsecases + 1
 
@@ -414,10 +441,10 @@ for dictUsecase in listofdictUsecases:
 
    if USERAWPATH is not True:
       # Default is that the path 'TESTFILE' is normalized before the EventBusClient is called.
-      # The reference for relative paths is the position of the file TestConfig.py (TESTCONFIGPATH).
+      # The reference for relative paths is the position of the file TestConfig.py (TESTFILESPATH).
       # In case of USERAWPATH is True, the path 'TESTFILE' is not normalized.
       # And the path is relative to the position of the executing script (this script).
-      TESTFILE = CString.NormalizePath(TESTFILE, sReferencePathAbs=TESTCONFIGPATH)
+      TESTFILE = CString.NormalizePath(TESTFILE, sReferencePathAbs=TESTFILESPATH)
 
    # get derived parameters
    TESTFULLNAME    = f"{TESTID}-({SECTION})-[{SUBSECTION}]"
@@ -455,36 +482,72 @@ for dictUsecase in listofdictUsecases:
    # If both 'EXPECTEDEXCEPTION' and 'EXPECTEDRETURN' are None, the check of values returned from EventBusClient
    # is skipped and the test case result is UNKNOWN.
 
+   # IMPORTANT: Test functions should now create their own EventBusClient instance from the config folder path
+   # provided as argument, and return a tuple of (result, client_object) for proper cleanup.
+   # Example test function signature:
+   #   async def test(config_folder_path):
+   #       config_file = os.path.join(config_folder_path, 'specific_config.json')
+   #       client = await EventBusClient.from_config(config_file)
+   #       result = ... # perform test operations
+   #       return result, client
+
    # //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-   # -- test case execution
-   if RECREATEINSTANCE is True:
-      # !!! the object under test !!!
-      oEventBusClient = EventBusClient()  # <===The object under test must be imported at the beginning of this file===>
+
    actualReturned = None
    sException   = None
    try:
-      '''
-      actualReturned = <===Test scenario execute with oEventBusClient object and the TESTFILE===>
-      '''
+      # Execute the test file with the EventBusClient object
+      # Load the test file as a module and execute the test function
+      import importlib.util
+      import inspect
+
+      spec = importlib.util.spec_from_file_location("test_module", TESTFILE)
+      test_module = importlib.util.module_from_spec(spec)
+      spec.loader.exec_module(test_module)
+
+      # Find test functions in the module (function's name is test)
+      test_functions = [func for name, func in inspect.getmembers(test_module, inspect.isfunction)
+                       if name == 'test']
+
+      if test_functions:
+         test_function = test_functions[0]
+         config_folder_path = TESTCONFIGPATH
+         # Use async helper function to handle EventBusClient cleanup
+         actualReturned, sException = asyncio.run(
+            test_eventbus_client_with_cleanup(config_folder_path, test_function)
+         )
+
+         # If there was an exception but no exception is expected, handle it as error
+         if sException is not None and EXPECTEDEXCEPTION is None:
+            printerror(sException, "EventBusClient threw exception")
+            oSelfTestLogFile.Write("EventBusClient threw exception:", 1)
+            oSelfTestLogFile.Write(sException)
+            oSelfTestLogFile.Write()
+            nCntFailedUsecases = nCntFailedUsecases + 1
+            continue
+      else:
+         # No test function found, it is likely happen by test developer mistake
+         sErrorMessage = f"No function named 'test' found in ${TESTFILE}"
+         printerror(sErrorMessage)
+         oSelfTestLogFile.Write(sErrorMessage, 1)
+         actualReturned = None
+         nCntFailedUsecases = nCntFailedUsecases + 1
+         continue
    except Exception as reason:
       sException = f"'{reason}'"
       printerror(sException, "EventBusClient threw exception")
       oSelfTestLogFile.Write("EventBusClient threw exception:", 1)
       oSelfTestLogFile.Write(sException)
       oSelfTestLogFile.Write()
-   if RECREATEINSTANCE is True:
-      # !!! the object under test !!!
-      del oEventBusClient
+      nCntFailedUsecases = nCntFailedUsecases + 1
+      continue
+
    # //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-   listReturnedLines = PrettyPrint(actualReturned, bToConsole=False)
-   oSelfTestLogFile.Write("EventBusClient returned:", 1)
-   oSelfTestLogFile.Write(listReturnedLines)
+   # listReturnedLines = actualReturned.splitlines() if isinstance(actualReturned, str) else [actualReturned]
 
-   # additional debug:
-   # print("EventBusClient returned:")
-   # pprint.pprint(actualReturned)
-   # PrettyPrint(actualReturned, bToConsole=True)
+   oSelfTestLogFile.Write("EventBusClient returned:", 1)
+   oSelfTestLogFile.Write(actualReturned)
 
    if ( (EXPECTEDEXCEPTION is None) and (EXPECTEDRETURN is None) ):
       nCntUnknownUsecases = nCntUnknownUsecases + 1
@@ -497,7 +560,7 @@ for dictUsecase in listofdictUsecases:
       listTestsNotPassed.append(TESTFULLNAME)
       print("EventBusClient returned:")
       print()
-      PrettyPrint(actualReturned, bToConsole=True)
+      print(actualReturned)
       print()
       continue # for dictUsecase in listofdictUsecases:
 
@@ -540,12 +603,6 @@ for dictUsecase in listofdictUsecases:
       listTestsNotPassed.append(TESTFULLNAME)
 
 # eof for dictUsecase in listofdictUsecases:
-
-try:
-   # !!! the object under test !!!
-   del oEventBusClient
-except:
-   pass
 
 # --------------------------------------------------------------------------------------------------------------
 

@@ -74,6 +74,7 @@ class CConfig():
       REFERENCEPATH = os.path.dirname(THISSCRIPT) # position of main() script is reference for all relative paths
       self.__dictConfig['REFERENCEPATH']  = REFERENCEPATH
       self.__dictConfig['TESTCONFIGPATH'] = f"{REFERENCEPATH}/testconfig" # reference for all relative paths inside TestConfig.py
+      self.__dictConfig['TESTFILESPATH']  = f"{REFERENCEPATH}/testfiles"
       self.__dictConfig['OSNAME']         = os.name
       self.__dictConfig['PLATFORMSYSTEM'] = platform.system()
       PYTHON = CString.NormalizePath(sys.executable)

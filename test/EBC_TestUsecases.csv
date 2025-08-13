@@ -1,0 +1,12 @@
+sep=|
+TESTID|SECTION|SUBSECTION|DESCRIPTION
+EBC_0001|TopicExchangeHandler|GOODCASE|Send message from one publisher to one specific subscriber and confirm receipt
+EBC_0002|TopicExchangeHandler|GOODCASE|Ensure messages arrive in same order they are sent
+EBC_0003|TopicExchangeHandler|GOODCASE|Test one publisher delivering messages to multiple subscribers using the same routing key
+EBC_0004|TopicExchangeHandler|GOODCASE|Validate multiple publishers can send to a single subscriber without conflict
+EBC_0005|TopicExchangeHandler|GOODCASE|Send message with wildcard routing key patterns (* and #)
+EBC_0006|TopicExchangeHandler|GOODCASE|Verify routing key case sensitivity
+EBC_0007|TopicExchangeHandler|BADCASE|Send message with malformed routing key pattern
+EBC_0008|TopicExchangeHandler|BADCASE|Use invalid wildcard in routing key
+EBC_0009|TopicExchangeHandler|BADCASE|Send message with routing key exceeding maximum length
+EBC_0010|TopicExchangeHandler|BADCASE|Topic pattern matching fails due to encoding/serialization issues

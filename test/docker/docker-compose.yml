@@ -1,0 +1,29 @@
+services:
+  rabbitmq:
+    build: .
+    image: rabbitmq-test
+    container_name: rabbitmq-test
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"     # AMQP port
+      - "15672:15672"   # Management UI port
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_logs:/var/log/rabbitmq
+    networks:
+      - rabbitmq_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  rabbitmq_data:
+  rabbitmq_logs:
+
+networks:
+  rabbitmq_network:
+    driver: bridge
