@@ -34,7 +34,7 @@ from EventBusClient.subscriber import AsyncSubscriber
 from EventBusClient.serializer.base_serializer import Serializer
 from EventBusClient.message.base_message import BaseMessage
 from EventBusClient.connection import ConnectionManager
-from typing import Callable, Type
+from typing import Callable, Type, Optional
 
 
 class XRTopicExchangeHandler(ExchangeHandler):
@@ -145,7 +145,8 @@ This is useful in multi-threaded applications where the event bus client may be 
       self,
       routing_key: str,
       message_cls: Type[BaseMessage],
-      callback: Callable[[BaseMessage], None]
+      callback: Callable[[BaseMessage], None],
+      cache_size: Optional[int] = None
    ):
       """
 Subscribe to messages on the exchange with the specified routing key.
@@ -182,6 +183,11 @@ This function will be called with the deserialized message object when a message
       )
       await subscriber.start()
       self._subscribers.append(subscriber)
+      cache = await subscriber.start(cache_size=cache_size)
+      # optionally remember sub for later unsubscribe
+      # self._subs[(topic, msg_cls)] = sub
+      self._subscribers.append(subscriber)
+      return cache
 
    async def teardown(self):
       """

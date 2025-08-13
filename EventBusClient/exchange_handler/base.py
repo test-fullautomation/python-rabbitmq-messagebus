@@ -33,7 +33,7 @@ from abc import ABC, abstractmethod
 from EventBusClient.message.base_message import BaseMessage
 from EventBusClient.publisher import AsyncPublisher
 from EventBusClient.subscriber import AsyncSubscriber
-from typing import Type
+from typing import Type, Optional
 from EventBusClient.qlogger import QLogger
 
 # logger = logging.getLogger(__name__)
@@ -106,7 +106,7 @@ Tear down the exchange handler by closing the channel and cleaning up resources.
    async def publish(self, message: BaseMessage, routing_key: str, headers: dict = None, threadsafe: bool = False): ...
 
    @abstractmethod
-   async def subscribe(self, routing_key: str, message_cls: Type[BaseMessage], callback): ...
+   async def subscribe(self, routing_key: str, message_cls: Type[BaseMessage], callback, cache_size: Optional[int]): ...
 
    async def unsubscribe(self, routing_key: str, callback):
       """

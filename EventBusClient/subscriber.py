@@ -27,13 +27,14 @@
 # - Initialize
 #
 # *******************************************************************************
-from typing import Callable, Type
 import asyncio
 import aio_pika
+from typing import Any, Callable, Optional, Type
 from aio_pika.abc import AbstractIncomingMessage
 from EventBusClient.serializer.base_serializer import Serializer
 from EventBusClient.serializer.pickle_serializer import PickleSerializer
 from EventBusClient.message.base_message import BaseMessage
+from .subscription_cache import SubscriptionCache
 
 
 class AsyncSubscriber:
@@ -47,7 +48,8 @@ AsyncSubscriber: Subscribes to messages from an exchange using aio_pika.
       routing_key: str,
       message_cls: Type[BaseMessage],
       callback: Callable[[BaseMessage], None],
-      serializer: Serializer = None
+      serializer: Serializer = None,
+      cache_size_default: int = 200
    ):
       """
 AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing key, message class, callback, and optional serializer.
@@ -99,8 +101,16 @@ AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing ke
 
       self._queue: aio_pika.abc.AbstractQueue | None = None
       self._consumer_tag: str | None = None
+      self._cache: Optional[SubscriptionCache[Any]] = None
+      self._cache_default = cache_size_default
 
-   async def start(self):
+   @property
+   def cache(self) -> SubscriptionCache[Any]:
+      if self._cache is None:
+         self._cache = SubscriptionCache(maxlen=self._cache_default)
+      return self._cache
+
+   async def start(self, cache_size: Optional[int] = None):
       """
 Start the subscriber by declaring a queue, binding it to the exchange, and consuming messages.
       """
@@ -109,9 +119,10 @@ Start the subscriber by declaring a queue, binding it to the exchange, and consu
          exclusive=True,
          auto_delete=True
       )
+      self._cache = SubscriptionCache(maxlen=cache_size or self._cache_default)
       await self._queue.bind(self._exchange, routing_key=self._routing_key)
-
       self._consumer_tag = await self._queue.consume(self._on_message)
+      return self._cache
 
    async def stop(self):
       """
@@ -139,8 +150,12 @@ Handle incoming messages by deserializing them and invoking the callback.
       async with message.process():
          try:
             obj = self._serializer.deserialize(message.body)
+            if self._cache:
+               self._cache.append(obj)
+
             if not isinstance(obj, self._message_cls):
                raise TypeError(f"Expected {self._message_cls}, got {type(obj)}")
+
             if asyncio.iscoroutinefunction(self._callback):
                await self._callback(obj)
             else:

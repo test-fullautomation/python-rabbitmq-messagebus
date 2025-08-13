@@ -36,6 +36,8 @@ from .connection import ConnectionManager
 from .plugin_loader import PluginLoader
 from .serializer.base_serializer import Serializer
 from .qlogger import QLogger
+from .startup_policy import StartupPolicy, NoWait
+from .rendezvous import Rendezvous
 
 logger = QLogger().get_logger("event_bus_client")
 # logger = logging.getLogger(__name__)
@@ -48,8 +50,10 @@ EventBusClient: Client for interacting with the event bus system.
       self,
       exchange_handler: ExchangeHandler,
       serializer: Optional[Serializer] = None,
-      loop: Optional[asyncio.AbstractEventLoop] = None
-   ):
+      loop: Optional[asyncio.AbstractEventLoop] = None,
+      zone_id: Optional[str] = None,
+      alias: Optional[str] = None,
+      startup_policy: StartupPolicy | None = None   ):
       """
 EventBusClient: Initializes the event bus client with an exchange handler and serializer.
 
@@ -73,14 +77,20 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
 
   The event loop to use for asynchronous operations. If not provided, the current event loop will be used.
       """
+      self._startup_policy = startup_policy or NoWait()
+      self.rendezvous = Rendezvous(self)
+
       self.loop = loop or asyncio.get_event_loop()
       self.connection = ConnectionManager(loop=self.loop)
       self.exchange_handler = exchange_handler
       self.serializer = serializer
+      self.zone_id = zone_id
+      self.alias = alias
+      self.system_up = False
       self._connected = False
 
    @classmethod
-   async def from_config(cls, config_path: str):
+   async def from_config(cls, config_path: str, startup_policy: StartupPolicy | None = None):
       """
 Create an EventBusClient instance from a configuration file.
 
@@ -104,7 +114,7 @@ Create an EventBusClient instance from a configuration file.
 
       serializer = serializer_cls()
       handler = handler_cls(serializer=serializer)
-      client = cls(exchange_handler=handler, serializer=serializer)
+      client = cls(exchange_handler=handler, serializer=serializer, startup_policy=startup_policy)
       await client.connect(
          host=config.get("host", "localhost"),
          port=config.get("port", 5672),
@@ -141,6 +151,7 @@ Connect to the event bus server and set up the exchange handler.
       await self.connection.connect(host, port, exchange_name, self.exchange_handler.exchange_type)
       await self.exchange_handler.setup(self.connection)
       self._connected = True
+      await self._startup_policy.wait_until_ready(self)
 
    async def send(self, routing_key: str, message: BaseMessage, headers: dict = None, threadsafe=False):
       """
@@ -218,7 +229,41 @@ Subscribe to messages with the specified routing key and message class.
       """
       if not self._connected:
          raise RuntimeError("EventBusClient is not connected")
-      await self.exchange_handler.subscribe(routing_key, message_cls, callback)
+      return await self.exchange_handler.subscribe(routing_key, message_cls, callback)
+
+
+   async def wait_until_ready(self, requirements: dict[str, int], timeout: float = 5.0) -> bool:
+      """
+Convenience wrapper over rendezvous.wait_for.
+
+**Arguments:**
+* ``requirements``
+
+  / *Condition*: required / *Type*: dict[str, int] /
+
+  A dictionary where keys are role names and values are the number of instances required for each role.
+
+* ``timeout``
+
+  / *Condition*: optional / *Type*: float /
+
+  The maximum time to wait for the rendezvous to be satisfied. Defaults to 5.0 seconds.
+      """
+      return await self.rendezvous.wait_for(requirements, timeout=timeout)
+
+   async def announce_ready(self, roles: list[str]) -> None:
+      """
+Convenience wrapper over rendezvous.announce_ready.
+
+**Arguments:**
+
+* ``roles``
+
+  / *Condition*: required / *Type*: list[str] /
+
+  A list of role names that this instance is ready for. This is used to signal readiness in the rendezvous system.
+      """
+      await self.rendezvous.announce_ready(roles)
 
    async def close(self):
       """
@@ -227,6 +272,14 @@ Close the connection to the event bus and clean up resources.
       await self.exchange_handler.teardown()
       await self.connection.close()
       self._connected = False
+
+   def build_routing_key(self, *path: str) -> str:
+      parts = [p for p in path if p]
+      if self.zone_id:
+         parts.append(self.zone_id)
+      if self.alias:
+         parts.append(self.alias)
+      return ".".join(parts)
 
 
 async def main():

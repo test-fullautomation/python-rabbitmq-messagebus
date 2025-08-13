@@ -28,7 +28,7 @@
 #
 # *******************************************************************************
 import asyncio
-from typing import Callable, Type
+from typing import Callable, Type, Optional
 from EventBusClient.exchange_handler.base import ExchangeHandler
 from EventBusClient.publisher import AsyncPublisher
 from EventBusClient.subscriber import AsyncSubscriber
@@ -105,7 +105,8 @@ Publish a message to the exchange with the specified routing key.
       self,
       routing_key: str,
       message_cls: Type[BaseMessage],
-      callback: Callable[[BaseMessage], None]
+      callback: Callable[[BaseMessage], None],
+      cache_size: Optional[int] = None
    ):
       """
 Subscribe to messages on the exchange with the specified routing key.
@@ -138,8 +139,14 @@ Subscribe to messages on the exchange with the specified routing key.
          callback=callback,
          serializer=self._serializer
       )
-      await subscriber.start()
+      # await subscriber.start()
+      # self._subscribers.append(subscriber)
+
+      cache = await subscriber.start(cache_size=cache_size)
+      # optionally remember sub for later unsubscribe
+      # self._subs[(topic, msg_cls)] = sub
       self._subscribers.append(subscriber)
+      return cache
 
    async def teardown(self):
       """
