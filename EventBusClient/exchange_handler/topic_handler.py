@@ -105,7 +105,7 @@ Publish a message to the exchange with the specified routing key.
       self,
       routing_key: str,
       message_cls: Type[BaseMessage],
-      callback: Callable[[BaseMessage], None],
+      callback: Callable[[BaseMessage], None] = None,
       cache_size: Optional[int] = None
    ):
       """

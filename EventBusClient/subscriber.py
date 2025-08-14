@@ -47,7 +47,7 @@ AsyncSubscriber: Subscribes to messages from an exchange using aio_pika.
       exchange: aio_pika.abc.AbstractExchange,
       routing_key: str,
       message_cls: Type[BaseMessage],
-      callback: Callable[[BaseMessage], None],
+      callback: Callable[[BaseMessage], None] = None,
       serializer: Serializer = None,
       cache_size_default: int = 200
    ):
@@ -156,10 +156,11 @@ Handle incoming messages by deserializing them and invoking the callback.
             if not isinstance(obj, self._message_cls):
                raise TypeError(f"Expected {self._message_cls}, got {type(obj)}")
 
-            if asyncio.iscoroutinefunction(self._callback):
-               await self._callback(obj)
-            else:
-               self._callback(obj)
+            if self._callback:
+               if asyncio.iscoroutinefunction(self._callback):
+                  await self._callback(obj)
+               else:
+                  self._callback(obj)
          except Exception as e:
             print(f"[AsyncSubscriber] Error handling message: {e}")
 

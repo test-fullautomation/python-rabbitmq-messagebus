@@ -27,11 +27,13 @@
 # - Initialize
 #
 # *******************************************************************************
+from __future__ import annotations
 import logging
 import asyncio
 from typing import Callable, Awaitable, Optional, Type
 from .exchange_handler.base import ExchangeHandler
 from .message.base_message import BaseMessage
+from .message.basic_message import BasicMessage
 from .connection import ConnectionManager
 from .plugin_loader import PluginLoader
 from .serializer.base_serializer import Serializer
@@ -53,7 +55,10 @@ EventBusClient: Client for interacting with the event bus system.
       loop: Optional[asyncio.AbstractEventLoop] = None,
       zone_id: Optional[str] = None,
       alias: Optional[str] = None,
-      startup_policy: StartupPolicy | None = None   ):
+      startup_policy: Optional[StartupPolicy] = None,
+      prefetch_count: int = 10,
+      auto_reconnect: bool = True
+   ):
       """
 EventBusClient: Initializes the event bus client with an exchange handler and serializer.
 
@@ -81,8 +86,9 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
       self.rendezvous = Rendezvous(self)
 
       self.loop = loop or asyncio.get_event_loop()
-      self.connection = ConnectionManager(loop=self.loop)
+      self.connection = ConnectionManager(loop=self.loop, auto_reconnect=auto_reconnect)
       self.exchange_handler = exchange_handler
+      self.prefetch_count = prefetch_count
       self.serializer = serializer
       self.zone_id = zone_id
       self.alias = alias
@@ -90,7 +96,7 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
       self._connected = False
 
    @classmethod
-   async def from_config(cls, config_path: str, startup_policy: StartupPolicy | None = None):
+   async def from_config(cls, config_path: str, startup_policy: StartupPolicy | None = None) -> EventBusClient:
       """
 Create an EventBusClient instance from a configuration file.
 
@@ -114,17 +120,18 @@ Create an EventBusClient instance from a configuration file.
 
       serializer = serializer_cls()
       handler = handler_cls(serializer=serializer)
-      client = cls(exchange_handler=handler, serializer=serializer, startup_policy=startup_policy)
+      auto_reconnect = config.get("auto_reconnect", True)
+      client = cls(exchange_handler=handler, serializer=serializer, startup_policy=startup_policy, auto_reconnect=auto_reconnect)
       await client.connect(
          host=config.get("host", "localhost"),
          port=config.get("port", 5672),
-         exchange_name=config.get("exchange_name", "event_bus")
+         prefetch_count=config.get("prefetch_count", 10)
       )
 
       client._logger_handler = QLogger().set_handler(config)
       return client
 
-   async def connect(self, host="localhost", port=5672, exchange_name="event_bus"):
+   async def connect(self, host="localhost", port=5672, prefetch_count: int = 10):
       """
 Connect to the event bus server and set up the exchange handler.
 
@@ -132,23 +139,23 @@ Connect to the event bus server and set up the exchange handler.
 
 * ``host``
 
-  / *Condition*: optional / *Type*: str /
+  / *Condition*: optional / *Type*: str / *Default*: "localhost" /
 
   Hostname of the event bus server. Defaults to "localhost".
 
 * ``port``
 
-  / *Condition*: optional / *Type*: int /
+  / *Condition*: optional / *Type*: int / *Default*: 5672 /
 
   Port number of the event bus server. Defaults to 5672.
 
-* ``exchange_name``
+* ``prefetch_count``
 
-  / *Condition*: optional / *Type*: str /
+    / *Condition*: optional / *Type*: int / *Default*: 10 /
 
-  Name of the exchange to connect to. Defaults to "event_bus".
+    The number of messages to prefetch from the server. This controls how many messages can be sent to the client before they are acknowledged. Defaults to 10.
       """
-      await self.connection.connect(host, port, exchange_name, self.exchange_handler.exchange_type)
+      await self.connection.connect(host, port, prefetch_count)
       await self.exchange_handler.setup(self.connection)
       self._connected = True
       await self._startup_policy.wait_until_ready(self)
@@ -187,7 +194,7 @@ Send a message to the event bus with the specified routing key.
          raise RuntimeError("EventBusClient is not connected")
       await self.exchange_handler.publish(message, routing_key, headers, threadsafe=threadsafe)
 
-   async def off(self, routing_key: str):
+   async def off(self, routing_key: str, callback: Optional[Callable[[BaseMessage], Awaitable[None]]] = None):
       """
 Unsubscribe from messages with the specified routing key.
 
@@ -198,12 +205,18 @@ Unsubscribe from messages with the specified routing key.
   / *Condition*: required / *Type*: str /
 
   The routing key to unsubscribe from.
+
+* ``callback``
+
+  / *Condition*: optional / *Type*: Callable[[BaseMessage], Awaitable[None]] / *Default*: None /
+
+  The callback function to remove from the subscriber list. If not provided, all callbacks for the routing key will be unsubscribed.
       """
       if not self._connected:
          raise RuntimeError("EventBusClient is not connected")
-      await self.exchange_handler.unsubscribe(routing_key)
+      await self.exchange_handler.unsubscribe(routing_key, callback)
 
-   async def on(self, routing_key: str, message_cls: Type[BaseMessage], callback):
+   async def on(self, routing_key: str, message_cls: Type[BaseMessage], callback: [[BaseMessage], Awaitable[None]] = None, cache_size: Optional[int] = None):
       """
 Subscribe to messages with the specified routing key and message class.
 
@@ -229,7 +242,7 @@ Subscribe to messages with the specified routing key and message class.
       """
       if not self._connected:
          raise RuntimeError("EventBusClient is not connected")
-      return await self.exchange_handler.subscribe(routing_key, message_cls, callback)
+      return await self.exchange_handler.subscribe(routing_key, message_cls, callback, cache_size)
 
 
    async def wait_until_ready(self, requirements: dict[str, int], timeout: float = 5.0) -> bool:
@@ -274,6 +287,25 @@ Close the connection to the event bus and clean up resources.
       self._connected = False
 
    def build_routing_key(self, *path: str) -> str:
+      """
+Build a routing key from the given path components.
+
+**Arguments:**
+
+* ``path``
+
+  / *Condition*: required / *Type*: str /
+
+  The components of the routing key. Each component will be joined with a dot (.) to form the final routing key.
+
+**Returns:**
+
+* ``str``
+
+  / *Type*: str /
+
+  The constructed routing key as a string.
+      """
       parts = [p for p in path if p]
       if self.zone_id:
          parts.append(self.zone_id)
@@ -286,8 +318,8 @@ async def main():
    # Example usage
    client = await EventBusClient.from_config("config/config.jsonp")
    await client.connect()
-   await client.send("test.routing.key", BaseMessage())
-   await client.on("test.routing.key", BaseMessage, lambda msg: print(msg))
+   await client.send("test.routing.key", BasicMessage("Test"))
+   await client.on("test.routing.key", BasicMessage, lambda msg: print(msg))
    await client.close()
 
 

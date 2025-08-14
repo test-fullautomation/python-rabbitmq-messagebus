@@ -47,8 +47,6 @@ CONFIG_SCHEMA = {
     "port": int,
     "serializer": str,
     "exchange_handler": str,
-    "message_class": str,
-    "threadsafe_publish": bool,
     "auto_reconnect": bool,
     "qos_prefetch": int
 }
