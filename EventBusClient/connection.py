@@ -80,6 +80,12 @@ Establish a robust connection to RabbitMQ and declare the exchange.
   / *Condition*: required / *Type*: int /
 
   The port number on which the RabbitMQ server is listening.
+
+* ``prefetch_count``
+
+  / *Condition*: optional / *Type*: int /
+
+  The number of messages to prefetch from the RabbitMQ server. Defaults to 10.
       """
       await self._establish_connection(host, port, prefetch_count)
 
@@ -193,17 +199,17 @@ Recreate the RabbitMQ channel if it is closed or dropped.
 
 **Arguments:**
 
-   * `exc`
+* `exc`
 
-      / *Condition*: optional / *Type*: Exception /
+  / *Condition*: optional / *Type*: Exception /
 
-      The exception that caused the channel to drop, if any.
+  The exception that caused the channel to drop, if any.
 
-   * `reply_code`
+* `reply_code`
 
-      / *Condition*: optional / *Type*: int /
+  / *Condition*: optional / *Type*: int /
 
-      The reply code associated with the channel drop, if any.
+  The reply code associated with the channel drop, if any.
       """
       if exc:
          logger.error(f"[ConnectionManager] Channel dropped with exception: {exc}, reply_code: {reply_code}")
@@ -229,21 +235,21 @@ Reconnect to RabbitMQ in case of connection loss or error.
 
 * ``host``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The hostname or IP address of the RabbitMQ server.
+  The hostname or IP address of the RabbitMQ server.
 
 * ``port``
 
-   / *Condition*: required / *Type*: int /
+  / *Condition*: required / *Type*: int /
 
-   The port number on which the RabbitMQ server is listening.
+  The port number on which the RabbitMQ server is listening.
 
 * ``exc``
 
-   / *Condition*: optional / *Type*: Exception /
+  / *Condition*: optional / *Type*: Exception /
 
-   The exception that caused the reconnection attempt, if any. If not provided, it defaults to None.
+  The exception that caused the reconnection attempt, if any. If not provided, it defaults to None.
       """
       async with self._reconnect_lock:
          if self._is_reconnecting:

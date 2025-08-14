@@ -216,7 +216,7 @@ Unsubscribe from messages with the specified routing key.
          raise RuntimeError("EventBusClient is not connected")
       await self.exchange_handler.unsubscribe(routing_key, callback)
 
-   async def on(self, routing_key: str, message_cls: Type[BaseMessage], callback: [[BaseMessage], Awaitable[None]] = None, cache_size: Optional[int] = None):
+   async def on(self, routing_key: str, message_cls: Type[BaseMessage], callback: Optional[Callable[[BaseMessage], Awaitable[None]]] = None, cache_size: Optional[int] = None):
       """
 Subscribe to messages with the specified routing key and message class.
 

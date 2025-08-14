@@ -150,10 +150,6 @@ Handle incoming messages by deserializing them and invoking the callback.
       async with message.process():
          try:
             obj = self._serializer.deserialize(message.body)
-
-            if type(obj) is not self._message_cls:
-               raise TypeError(f"Expected instance of {self._message_cls}, got {type(obj)}")
-
             if self._cache:
                self._cache.append(obj)
 

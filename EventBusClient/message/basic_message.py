@@ -30,7 +30,7 @@ Initialize a BasicMessage with optional content and headers.
       """
       super().__init__()
       self.content = content
-      self.headers = headers if headers is not None else {"uuid": str(uuid.uuid4().hex)}
+      self.headers = headers if headers is not None else {"uuid": uuid.uuid4().hex}
 
    def __str__(self):
       """
