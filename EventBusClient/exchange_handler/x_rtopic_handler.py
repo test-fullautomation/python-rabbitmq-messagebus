@@ -181,8 +181,8 @@ This function will be called with the deserialized message object when a message
          callback=callback,
          serializer=self._serializer
       )
-      await subscriber.start()
-      self._subscribers.append(subscriber)
+      # await subscriber.start()
+      # self._subscribers.append(subscriber)
       cache = await subscriber.start(cache_size=cache_size)
       # optionally remember sub for later unsubscribe
       # self._subs[(topic, msg_cls)] = sub

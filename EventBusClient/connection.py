@@ -40,7 +40,7 @@ class ConnectionManager:
    """
 ConnectionManager: Manages RabbitMQ connections, channels, and exchanges.
    """
-   def __init__(self, loop: Optional[asyncio.AbstractEventLoop] = None):
+   def __init__(self, loop: Optional[asyncio.AbstractEventLoop] = None, auto_reconnect: bool = True):
       """
 ConnectionManager: Initializes the connection manager with an event loop.
 
@@ -57,11 +57,13 @@ ConnectionManager: Initializes the connection manager with an event loop.
       self._channel: Optional[aio_pika.Channel] = None
       self._reconnect_lock = asyncio.Lock()
       self._exchange_handlers = []
+      self._prefetch_count = 10
+      self._auto_reconnect = auto_reconnect
       self._is_reconnecting = False
       self._close_channel_callback = None
       self._close_connection_callback = None
 
-   async def connect(self, host: str, port: int, exchange_name: str, exchange_type: str):
+   async def connect(self, host: str, port: int, prefetch_count: int = 10):
       """
 Establish a robust connection to RabbitMQ and declare the exchange.
 
@@ -79,22 +81,13 @@ Establish a robust connection to RabbitMQ and declare the exchange.
 
   The port number on which the RabbitMQ server is listening.
 
-* ``exchange_name``
+* ``prefetch_count``
 
-  / *Condition*: required / *Type*: str /
+  / *Condition*: optional / *Type*: int /
 
-  The name of the exchange to declare or use.
-
-* ``exchange_type``
-
-  / *Condition*: required / *Type*: str /
-
-  The type of the exchange (e.g., "direct", "topic", "fanout", "x-rtopic").
+  The number of messages to prefetch from the RabbitMQ server. Defaults to 10.
       """
-      # self._exchange_name = exchange_name
-      # self._exchange_type = exchange_type
-      await self._establish_connection(host, port)
-      # await self._declare_exchange()
+      await self._establish_connection(host, port, prefetch_count)
 
    def register_exchange_handler(self, handler):
       """
@@ -125,7 +118,7 @@ Unregister an exchange handler.
       if handler in self._exchange_handlers:
          self._exchange_handlers.remove(handler)
 
-   async def _establish_connection(self, host: str, port: int):
+   async def _establish_connection(self, host: str, port: int, prefetch_count: int = 10):
       """
 Establish a robust connection to RabbitMQ and create a channel.
 
@@ -152,10 +145,12 @@ Establish a robust connection to RabbitMQ and create a channel.
       self._channel = await self._connection.channel()
       self._close_channel_callback = lambda exc, reply_code: asyncio.create_task(self.recreate_channel(exc, reply_code))
       self._channel.close_callbacks.add(self._close_channel_callback)
-      self._close_connection_callback = lambda exc, reply_code: asyncio.create_task(self.reconnect(host, port, exc, reply_code))
-      self._connection.close_callbacks.add(self._close_connection_callback)
+      if self._auto_reconnect:
+         self._close_connection_callback = lambda exc, reply_code: asyncio.create_task(self.reconnect(host, port, exc, reply_code))
+         self._connection.close_callbacks.add(self._close_connection_callback)
       # Optional: QoS tuning
-      await self._channel.set_qos(prefetch_count=10)
+      self._prefetch_count = prefetch_count
+      await self._channel.set_qos(prefetch_count=prefetch_count)
 
    # async def _declare_exchange(self):
    #    """
@@ -204,17 +199,17 @@ Recreate the RabbitMQ channel if it is closed or dropped.
 
 **Arguments:**
 
-   * `exc`
+* `exc`
 
-      / *Condition*: optional / *Type*: Exception /
+  / *Condition*: optional / *Type*: Exception /
 
-      The exception that caused the channel to drop, if any.
+  The exception that caused the channel to drop, if any.
 
-   * `reply_code`
+* `reply_code`
 
-      / *Condition*: optional / *Type*: int /
+  / *Condition*: optional / *Type*: int /
 
-      The reply code associated with the channel drop, if any.
+  The reply code associated with the channel drop, if any.
       """
       if exc:
          logger.error(f"[ConnectionManager] Channel dropped with exception: {exc}, reply_code: {reply_code}")
@@ -226,7 +221,7 @@ Recreate the RabbitMQ channel if it is closed or dropped.
          return
 
       self._channel = await self._connection.channel()
-      await self._channel.set_qos(prefetch_count=10)
+      await self._channel.set_qos(prefetch_count=self._prefetch_count)
       for handler in self._exchange_handlers:
          if hasattr(handler, "setup"):
             await handler.setup(self)
@@ -240,21 +235,21 @@ Reconnect to RabbitMQ in case of connection loss or error.
 
 * ``host``
 
-   / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: str /
 
-   The hostname or IP address of the RabbitMQ server.
+  The hostname or IP address of the RabbitMQ server.
 
 * ``port``
 
-   / *Condition*: required / *Type*: int /
+  / *Condition*: required / *Type*: int /
 
-   The port number on which the RabbitMQ server is listening.
+  The port number on which the RabbitMQ server is listening.
 
 * ``exc``
 
-   / *Condition*: optional / *Type*: Exception /
+  / *Condition*: optional / *Type*: Exception /
 
-   The exception that caused the reconnection attempt, if any. If not provided, it defaults to None.
+  The exception that caused the reconnection attempt, if any. If not provided, it defaults to None.
       """
       async with self._reconnect_lock:
          if self._is_reconnecting:
