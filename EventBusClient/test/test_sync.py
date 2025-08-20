@@ -30,7 +30,7 @@ def producer_process(config_path: str):
     client = EventBusClient.from_config(config_path)
     client.connect_sync()  # host/port/exchange lấy từ config nếu bạn muốn
 
-    # Gửi 5 messages (blocking)
+    # Send 5 messages (blocking)
     for i in range(5):
         msg = TestMessage(f"Message #{i} from producer")
         logging.info(f"Producer: Sending {msg.content}")
