@@ -26,7 +26,7 @@ class TestMessage(BaseMessage):
 # Producer process (SYNC)
 def producer_process(config_path: str):
     logging.info("Producer: Starting up")
-    # Tạo client từ config (khởi tạo cấu hình). Kết nối theo kiểu sync.
+    # Create client from config (initialize configuration). Connect in sync mode.
     client = EventBusClient.from_config(config_path)
     client.connect_sync()  # host/port/exchange are loaded from config if desired
 
