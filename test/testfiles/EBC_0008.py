@@ -55,7 +55,7 @@ async def test(config_folder_path):
 
     try:
         # Create EventBusClient from config file
-        config_file = os.path.join(config_folder_path, 'config.jsonp')
+        config_file = os.path.join(config_folder_path, 'config_topic.jsonp')
         oEventBusClient = await EventBusClient.from_config(config_file)
 
         # Wait for client to be connected before sending message

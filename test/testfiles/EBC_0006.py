@@ -65,7 +65,7 @@ async def test(config_folder_path):
         uppercase_received_messages.append(message.get_value())
 
     try:
-        config_file = os.path.join(config_folder_path, 'config.jsonp')
+        config_file = os.path.join(config_folder_path, 'config_topic.jsonp')
         oEventBusClient = await EventBusClient.from_config(config_file)
 
         await oEventBusClient.on(lowercase_routing_key, SimpleTestMessage, lowercase_callback)
