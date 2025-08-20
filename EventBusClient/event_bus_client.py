@@ -461,7 +461,6 @@ This method is useful for cleaning up resources when the client is no longer nee
       #    self.loop.call_soon_threadsafe(self.loop.stop)
       #    if getattr(self, "_bg_thread", None):
       #       self._bg_thread.join(timeout=timeout)
-      #    self._bg_loop_running = False
 
    def _submit(self, coro, *, timeout: float | None = None):
       """
