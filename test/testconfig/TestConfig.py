@@ -179,3 +179,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = "Can't pickle"
 dictUsecase['EXPECTEDRETURN']    = None
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0011"
+dictUsecase['DESCRIPTION']       = "Send message with single wildcard (*) in routing key to multiple subscribers"
+dictUsecase['EXPECTATION']       = "Message successfully sent and received by all subscribers using wildcard pattern"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0011.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "All 3 subscribers received message using wildcard pattern: Hello, Wildcard Subscribers!"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
