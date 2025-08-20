@@ -176,7 +176,6 @@ Stop the subscriber by canceling the consumer, unbinding the queue from the exch
       # except Exception:
       #    pass
       # finally:
-      #    self._queue = None
 
    async def _on_message(self, message: AbstractIncomingMessage):
       """
