@@ -16,7 +16,7 @@ class TestMessage(BaseMessage):
 
     @classmethod
     def from_data(cls, data):
-        # tuỳ serializer của bạn, có thể không cần
+        # Depending on your serializer, this may not be needed
         return cls(content=data.get("content"))
 
     def get_value(self):
