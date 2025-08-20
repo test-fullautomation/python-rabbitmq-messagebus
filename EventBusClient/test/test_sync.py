@@ -47,7 +47,7 @@ def consumer_process(config_path: str):
     client = EventBusClient.from_config_sync(config_path, start_connection=False)
     client.connect_sync()
 
-    # Subscribe (blocking) -> nhận cache để đọc đồng bộ
+    # Subscribe (blocking) -> receive cache for synchronous reading
     cache = client.on_sync("test.topic", TestMessage, cache_size=200)
     logging.info("Consumer: Subscribed to test.topic")
 
