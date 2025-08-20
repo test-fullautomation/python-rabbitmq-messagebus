@@ -189,11 +189,11 @@ This function will be called with the deserialized message object when a message
       self._subscribers.append(subscriber)
       return cache
 
-   async def teardown(self):
-      """
-Teardown the exchange handler by stopping all subscribers and clearing the list of subscribers.
-      """
-      for subscriber in self._subscribers:
-         await subscriber.stop()
-      self._subscribers.clear()
-      await super().teardown()
+#    async def teardown(self):
+#       """
+# Teardown the exchange handler by stopping all subscribers and clearing the list of subscribers.
+#       """
+#       for subscriber in self._subscribers:
+#          await subscriber.stop()
+#       self._subscribers.clear()
+#       await super().teardown()

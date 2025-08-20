@@ -128,12 +128,54 @@ Start the subscriber by declaring a queue, binding it to the exchange, and consu
       """
 Stop the subscriber by canceling the consumer, unbinding the queue from the exchange, and deleting the queue.
       """
-      if self._queue and self._consumer_tag:
-         await self._queue.cancel(self._consumer_tag)
-         await self._queue.unbind(self._exchange, routing_key=self._routing_key)
-         await self._queue.delete()
-         self._queue = None
+      try:
+         if self._queue and self._consumer_tag:
+            # Cancel consumer first to stop message delivery
+            await self._queue.cancel(self._consumer_tag)
+            self._consumer_tag = None
+
+         # For exclusive+auto_delete queues, unbinding and deletion are optional
+         # but we'll do it for clean shutdown
+         if self._queue:
+            try:
+               await self._queue.unbind(self._exchange, routing_key=self._routing_key)
+            except Exception:
+               pass  # Ignore unbind errors
+
+            try:
+               await self._queue.delete(if_unused=False, if_empty=False)
+            except Exception:
+               pass  # Ignore delete errors
+
+            self._queue = None
+
+      except Exception as e:
+         print(f"[AsyncSubscriber] Error during stop: {e}")
+      finally:
+         # Ensure cleanup even if there are errors
          self._consumer_tag = None
+         self._queue = None
+
+      # try:
+      #    if self._queue and self._consumer_tag:
+      #       # stop deliveries first
+      #       await self._queue.cancel(self._consumer_tag)
+      # except Exception:
+      #    pass
+      # finally:
+      #    self._consumer_tag = None
+      #
+      #    # For exclusive+auto_delete queues this is optional, but safe:
+      # try:
+      #    if self._queue:
+      #       try:
+      #          await self._queue.unbind(self._exchange, routing_key=self._routing_key)
+      #       except Exception:
+      #          pass
+      #       await self._queue.delete(if_unused=False, if_empty=False)
+      # except Exception:
+      #    pass
+      # finally:
 
    async def _on_message(self, message: AbstractIncomingMessage):
       """
