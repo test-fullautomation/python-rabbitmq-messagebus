@@ -193,3 +193,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "All 3 subscribers received message using wildcard pattern: Hello, Wildcard Subscribers!"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0012"
+dictUsecase['DESCRIPTION']       = "Send message with multi-level wildcard (#) in routing key to multiple subscribers"
+dictUsecase['EXPECTATION']       = "Message successfully sent and received by all subscribers using multi-level wildcard pattern"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0012.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "All 4 subscribers received message using multi-level wildcard pattern: Hello, Multi-Level Wildcard Subscribers!"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
