@@ -28,7 +28,7 @@ def producer_process(config_path: str):
     logging.info("Producer: Starting up")
     # Tạo client từ config (khởi tạo cấu hình). Kết nối theo kiểu sync.
     client = EventBusClient.from_config(config_path)
-    client.connect_sync()  # host/port/exchange lấy từ config nếu bạn muốn
+    client.connect_sync()  # host/port/exchange are loaded from config if desired
 
     # Send 5 messages (blocking)
     for i in range(5):
