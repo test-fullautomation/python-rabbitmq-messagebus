@@ -94,11 +94,19 @@ Set up the exchange handler by establishing a channel and declaring the exchange
       """
       connection_manager.register_exchange_handler(self)
 
-   @abstractmethod
    async def teardown(self):
       """
 Tear down the exchange handler by closing the channel and cleaning up resources.
       """
+      for subscriber in self._subscribers:
+         await subscriber.stop()
+         logger.info(f"Unsubscribed {len(self._subscribers)} subscribers.")
+      self._subscribers.clear()
+
+      if self._exchange:
+         await self._exchange.delete()
+         self._exchange = None
+
       if self._connection:
          self._connection.unregister_exchange_handler(self)
 

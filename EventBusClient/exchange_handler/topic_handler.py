@@ -148,14 +148,14 @@ Subscribe to messages on the exchange with the specified routing key.
       self._subscribers.append(subscriber)
       return cache
 
-   async def teardown(self):
-      """
-Teardown the exchange handler by stopping all subscribers and clearing the list of subscribers.
-      """
-      for subscriber in self._subscribers:
-         await subscriber.stop()
-      self._subscribers.clear()
-      await super().teardown()
+#    async def teardown(self):
+#       """
+# Teardown the exchange handler by stopping all subscribers and clearing the list of subscribers.
+#       """
+#       for subscriber in self._subscribers:
+#          await subscriber.stop()
+#       self._subscribers.clear()
+#       await super().teardown()
 
 
 if __name__ == "__main__":
