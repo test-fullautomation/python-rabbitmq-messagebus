@@ -221,3 +221,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "All 5 subscribers received message using mixed wildcard patterns: Hello, Mixed Wildcard Subscribers!"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0014"
+dictUsecase['DESCRIPTION']       = "Test message order preservation in x-rtopic exchange"
+dictUsecase['EXPECTATION']       = "Messages arrive in the same order they are sent using x-rtopic exchange"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0014.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Messages received in correct order using x-rtopic exchange: [1, 2, 3, 4, 5]"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
