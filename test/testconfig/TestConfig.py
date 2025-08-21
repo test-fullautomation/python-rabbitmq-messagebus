@@ -319,3 +319,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "Minimal routing patterns test passed: single word pattern matched single word key"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0021"
+dictUsecase['DESCRIPTION']       = "Test x-rtopic with deep hierarchical routing patterns"
+dictUsecase['EXPECTATION']       = "Deep hierarchical routing patterns should work correctly with x-rtopic exchange"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "EDGECASES"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0021.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Deep hierarchical routing patterns test passed: all 6 subscribers received message with complex pattern 'org.*.dept.*.team.*.project.#'"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
