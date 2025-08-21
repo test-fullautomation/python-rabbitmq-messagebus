@@ -347,3 +347,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "Overlapping routing patterns test passed: 3 overlapping patterns matched 4 subscriber keys correctly"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0023"
+dictUsecase['DESCRIPTION']       = "Test x-rtopic with empty segments in routing patterns"
+dictUsecase['EXPECTATION']       = "Empty segments in routing patterns should be handled correctly with x-rtopic exchange"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "EDGECASES"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0023.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Empty segments routing patterns test passed: 4 patterns with empty segments handled correctly"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
