@@ -23,7 +23,6 @@
 #
 # --------------------------------------------------------------------------------------------------------------
 
-import asyncio
 import os
 import sys
 
@@ -96,8 +95,6 @@ async def test(config_folder_path):
             # Pattern "order.*.messages" should match literal binding "order.test.messages"
             await oEventBusClient.send(publisher_pattern, test_message)
             expected_order.append(i)
-            # Small delay to ensure ordering
-            await asyncio.sleep(0.01)
 
         # Wait for messages to be received in correct sequence using polling utility
         try:
