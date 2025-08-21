@@ -291,3 +291,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = "Routing key too long (max 255 bytes)"
 dictUsecase['EXPECTEDRETURN']    = None
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0019"
+dictUsecase['DESCRIPTION']       = "Test serialization failure with x-rtopic patterns"
+dictUsecase['EXPECTATION']       = "Exception should be raised when message serialization fails with x-rtopic patterns"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0019.py"
+dictUsecase['EXPECTEDEXCEPTION'] = "Can't pickle"
+dictUsecase['EXPECTEDRETURN']    = None
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
