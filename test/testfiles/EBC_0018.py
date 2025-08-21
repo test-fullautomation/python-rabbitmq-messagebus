@@ -16,13 +16,13 @@
 #
 # **************************************************************************************************************
 #
-# EBC_0008.py
+# EBC_0018.py
 #
-# Test case for EBC_0008: Use invalid wildcard combinations in routing key
+# Test case for EBC_0018: Send message with routing key exceeding maximum length
+# using XRTopicExchangeHandler (x-rtopic exchange)
 #
 # --------------------------------------------------------------------------------------------------------------
 
-import asyncio
 import os
 import sys
 
@@ -35,9 +35,14 @@ from EventBusClient.event_bus_client import EventBusClient
 
 async def test(config_folder_path):
     """
-    Test case EBC_0008: Use invalid wildcard combinations in routing key.
-    This is a BadCase test that verifies proper error handling when using invalid wildcard
-    in routing keys that should cause exceptions.
+    Test case EBC_0018: Send message with routing key exceeding maximum length.
+    This is a BadCase test that verifies proper error handling when using routing keys
+    that exceed the maximum allowed length of 255 bytes for RabbitMQ in the x-rtopic exchange.
+
+    TEST LOGIC FOR X-RTOPIC EXCHANGE (BADCASE):
+    In x-rtopic exchange, routing keys are treated as patterns for message sending.
+    RabbitMQ has a maximum routing key length of 255 bytes. When a routing key exceeds
+    this limit, it should raise an appropriate exception.
 
     Args:
         config_folder_path: Path to the folder containing config files
@@ -47,32 +52,32 @@ async def test(config_folder_path):
     """
 
     oEventBusClient = None
-    test_message_content = "Test message with invalid wildcard routing key"
+    test_message_content = "Test message with excessively long routing key for x-rtopic exchange"
 
-    # Test with None routing key - this should cause the expected TypeError
-    # "object of type 'NoneType' has no len()" when the system tries to process the routing key
-    invalid_routing_key = None
+    # Create a routing key that exceeds the maximum length (255 characters)
+    # RabbitMQ has a maximum routing key length of 255 bytes
+    # We'll create a key with 300+ characters to ensure it exceeds the limit
+    long_routing_key = "x.rtopic.very.long.routing.key.pattern." + "x" * 300  # Total length > 255 chars
 
     try:
-        # Create EventBusClient from config file
-        config_file = os.path.join(config_folder_path, 'config_topic.jsonp')
+        # Create EventBusClient from config file (uses XRTopicExchangeHandler)
+        config_file = os.path.join(config_folder_path, 'config_rtopic.jsonp')
         oEventBusClient = await EventBusClient.from_config(config_file)
 
         # Wait for client to be connected before sending message
         await wait_for_client_connected(oEventBusClient)
 
-        # Try to send message with None routing key (should raise exception)
-        # This represents an invalid wildcard that should fail
+        # Try to send message with excessively long routing key (should raise exception)
         test_message = SimpleTestMessage(test_message_content)
-        await oEventBusClient.send(invalid_routing_key, test_message)
+        await oEventBusClient.send(long_routing_key, test_message)
 
         # If we reach here, no exception was raised (unexpected)
-        result = f"Unexpected success: Message sent with invalid wildcard routing key '{invalid_routing_key}'"
+        result = f"Unexpected success: Message sent with routing key of length {len(long_routing_key)} in x-rtopic exchange"
         return result, oEventBusClient
 
     except Exception as e:
         # Don't handle the exception here - let it propagate to the test framework
-        # The test framework expects the exception "object of type 'NoneType' has no len()"
+        # The test framework expects the exception "Routing key too long (max 255 bytes)"
         # But first ensure cleanup if possible
         if oEventBusClient:
             try:

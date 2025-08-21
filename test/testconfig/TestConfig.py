@@ -179,3 +179,185 @@ dictUsecase['EXPECTEDEXCEPTION'] = "Can't pickle"
 dictUsecase['EXPECTEDRETURN']    = None
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0011"
+dictUsecase['DESCRIPTION']       = "Send message with single wildcard (*) in routing key to multiple subscribers"
+dictUsecase['EXPECTATION']       = "Message successfully sent and received by all subscribers using wildcard pattern"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0011.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "All 3 subscribers received message using wildcard pattern: Hello, Wildcard Subscribers!"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0012"
+dictUsecase['DESCRIPTION']       = "Send message with multi-level wildcard (#) in routing key to multiple subscribers"
+dictUsecase['EXPECTATION']       = "Message successfully sent and received by all subscribers using multi-level wildcard pattern"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0012.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "All 4 subscribers received message using multi-level wildcard pattern: Hello, Multi-Level Wildcard Subscribers!"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0013"
+dictUsecase['DESCRIPTION']       = "Test mixed wildcard patterns in single routing key"
+dictUsecase['EXPECTATION']       = "Message successfully sent and received by all subscribers using mixed wildcard patterns (* and #) in single routing key"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0013.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "All 5 subscribers received message using mixed wildcard patterns: Hello, Mixed Wildcard Subscribers!"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0014"
+dictUsecase['DESCRIPTION']       = "Test message order preservation in x-rtopic exchange"
+dictUsecase['EXPECTATION']       = "Messages arrive in the same order they are sent using x-rtopic exchange"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0014.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Messages received in correct order using x-rtopic exchange: [1, 2, 3, 4, 5]"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0015"
+dictUsecase['DESCRIPTION']       = "Test multiple publishers with different routing patterns"
+dictUsecase['EXPECTATION']       = "Multiple publishers using different routing patterns can send to appropriate subscribers using x-rtopic exchange"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0015.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "All subscribers received expected messages from multiple publishers with different patterns"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0016"
+dictUsecase['DESCRIPTION']       = "Test case sensitivity in x-rtopic routing patterns"
+dictUsecase['EXPECTATION']       = "Case sensitivity should be respected in x-rtopic pattern matching"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0016.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Case sensitivity test passed: uppercase subscriber received message, lowercase did not"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0017"
+dictUsecase['DESCRIPTION']       = "Test routing pattern with null or None values"
+dictUsecase['EXPECTATION']       = "Exception should be raised when using null/None values in routing patterns"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0017.py"
+dictUsecase['EXPECTEDEXCEPTION'] = "object of type 'NoneType' has no len()"
+dictUsecase['EXPECTEDRETURN']    = None
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0018"
+dictUsecase['DESCRIPTION']       = "Send message with routing key exceeding maximum length"
+dictUsecase['EXPECTATION']       = "Exception should be raised when using routing key exceeding maximum length"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0018.py"
+dictUsecase['EXPECTEDEXCEPTION'] = "Routing key too long (max 255 bytes)"
+dictUsecase['EXPECTEDRETURN']    = None
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0019"
+dictUsecase['DESCRIPTION']       = "Test serialization failure with x-rtopic patterns"
+dictUsecase['EXPECTATION']       = "Exception should be raised when message serialization fails with x-rtopic patterns"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0019.py"
+dictUsecase['EXPECTEDEXCEPTION'] = "Can't pickle"
+dictUsecase['EXPECTEDRETURN']    = None
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0020"
+dictUsecase['DESCRIPTION']       = "Test x-rtopic with minimal routing patterns"
+dictUsecase['EXPECTATION']       = "Minimal routing patterns should work correctly with x-rtopic exchange"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "EDGECASES"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0020.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Minimal routing patterns test passed: single word pattern matched single word key"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0021"
+dictUsecase['DESCRIPTION']       = "Test x-rtopic with deep hierarchical routing patterns"
+dictUsecase['EXPECTATION']       = "Deep hierarchical routing patterns should work correctly with x-rtopic exchange"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "EDGECASES"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0021.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Deep hierarchical routing patterns test passed: all 6 subscribers received message with complex pattern 'org.*.dept.*.team.*.project.#'"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0022"
+dictUsecase['DESCRIPTION']       = "Test x-rtopic with overlapping routing patterns"
+dictUsecase['EXPECTATION']       = "Overlapping routing patterns should work correctly with x-rtopic exchange"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "EDGECASES"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0022.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Overlapping routing patterns test passed: 3 overlapping patterns matched 4 subscriber keys correctly"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0023"
+dictUsecase['DESCRIPTION']       = "Test x-rtopic with empty segments in routing patterns"
+dictUsecase['EXPECTATION']       = "Empty segments in routing patterns should be handled correctly with x-rtopic exchange"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "EDGECASES"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0023.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Empty segments routing patterns test passed: 4 patterns with empty segments handled correctly"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
