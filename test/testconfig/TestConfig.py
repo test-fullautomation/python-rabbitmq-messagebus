@@ -277,3 +277,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = "object of type 'NoneType' has no len()"
 dictUsecase['EXPECTEDRETURN']    = None
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0018"
+dictUsecase['DESCRIPTION']       = "Send message with routing key exceeding maximum length"
+dictUsecase['EXPECTATION']       = "Exception should be raised when using routing key exceeding maximum length"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0018.py"
+dictUsecase['EXPECTEDEXCEPTION'] = "Routing key too long (max 255 bytes)"
+dictUsecase['EXPECTEDRETURN']    = None
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
