@@ -305,3 +305,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = "Can't pickle"
 dictUsecase['EXPECTEDRETURN']    = None
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0020"
+dictUsecase['DESCRIPTION']       = "Test x-rtopic with minimal routing patterns"
+dictUsecase['EXPECTATION']       = "Minimal routing patterns should work correctly with x-rtopic exchange"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "EDGECASES"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0020.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Minimal routing patterns test passed: single word pattern matched single word key"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
