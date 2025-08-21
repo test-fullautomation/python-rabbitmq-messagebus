@@ -235,3 +235,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "Messages received in correct order using x-rtopic exchange: [1, 2, 3, 4, 5]"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0015"
+dictUsecase['DESCRIPTION']       = "Test multiple publishers with different routing patterns"
+dictUsecase['EXPECTATION']       = "Multiple publishers using different routing patterns can send to appropriate subscribers using x-rtopic exchange"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0015.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "All subscribers received expected messages from multiple publishers with different patterns"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
