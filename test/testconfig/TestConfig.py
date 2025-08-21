@@ -249,3 +249,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "All subscribers received expected messages from multiple publishers with different patterns"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0016"
+dictUsecase['DESCRIPTION']       = "Test case sensitivity in x-rtopic routing patterns"
+dictUsecase['EXPECTATION']       = "Case sensitivity should be respected in x-rtopic pattern matching"
+dictUsecase['SECTION']           = "XRTopicExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0016.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Case sensitivity test passed: uppercase subscriber received message, lowercase did not"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
