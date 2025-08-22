@@ -1,7 +1,7 @@
 {
   "plugins_path": "./plugins",
   "host": "localhost",
-  "port": 1234,
+  "port": 5672,
   "serializer": "PickleSerializer",
   "exchange_handler": "TopicExchangeHandler",
   "auto_reconnect": true,
