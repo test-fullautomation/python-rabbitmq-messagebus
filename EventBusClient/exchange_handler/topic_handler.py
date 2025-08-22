@@ -1,4 +1,4 @@
-#  Copyright 2020-2023 Robert Bosch GmbH
+#  Copyright 2020-2025 Robert Bosch GmbH
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -32,7 +32,6 @@ from typing import Callable, Type, Optional
 from EventBusClient.exchange_handler.base import ExchangeHandler
 from EventBusClient.publisher import AsyncPublisher
 from EventBusClient.subscriber import AsyncSubscriber
-# from serializer.base_serializer import Serializer
 from EventBusClient.message.base_message import BaseMessage
 from EventBusClient.connection import ConnectionManager
 

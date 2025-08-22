@@ -1,0 +1,9 @@
+2025-08-22 17:08:13,966 [MainThread] [INFO ]  Create event bus successfully from configurations:
+  plugins_path: ./plugins
+  host: localhost
+  port: 1234
+  serializer: PickleSerializer
+  exchange_handler: TopicExchangeHandler
+  auto_reconnect: True
+  qos_prefetch: 10
+

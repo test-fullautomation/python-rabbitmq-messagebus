@@ -1,4 +1,4 @@
-#  Copyright 2020-2023 Robert Bosch GmbH
+#  Copyright 2020-2025 Robert Bosch GmbH
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -60,14 +60,38 @@ Raises ValueError if validation fails.
       self.schema = schema
 
    def validate(self, config: dict):
-      for key, value_type in self.schema.items():
+      """
+Validate the configuration against the schema.
+
+**Arguments:**
+
+* ``config``
+
+  / *Condition*: required / *Type*: dict /
+
+  Configuration data to validate.
+      """
+      required_keys = ["serializer", "exchange_handler"]
+      for key in required_keys:
          if key not in config:
             raise ValueError(f"Missing required key: {key}")
-         if not isinstance(config[key], value_type):
-            raise ValueError(f"Key '{key}' must be of type {value_type.__name__}, got {type(config[key]).__name__}")
-         if key == "port":
-            if not (1024 <= config[key] <= 65535):
-               raise ValueError("Port must be between 1024 and 65535")
+
+      for key, value_type in self.schema.items():
+         if key in config:
+            if not isinstance(config[key], value_type):
+               raise ValueError(f"Key '{key}' must be of type {value_type.__name__}, got {type(config[key]).__name__}")
+            if key == "port":
+               if not (1024 <= config[key] <= 65535):
+                  raise ValueError("Port must be between 1024 and 65535")
+            if key == "plugins_path":
+               path = config[key]
+               paths = path if isinstance(path, (list, tuple)) else [path]
+               for p in paths:
+                  # if not isinstance(p, str) or not os.path.exists(os.path.abspath(p)):
+                  print(os.path.join(os.path.dirname(os.path.abspath(__file__)), p))
+                  if not isinstance(p, str) or not os.path.exists(
+                          os.path.join(os.path.dirname(os.path.abspath(__file__)), p) if not os.path.isabs(p) else p):
+                     raise ValueError(f"plugins_path '{p}' is not a valid path")
 
       extra_keys = set(config.keys()) - set(self.schema.keys())
       if extra_keys:
@@ -85,7 +109,7 @@ any classes that match the expected base types (e.g., `Serializer`, `ExchangeHan
 and `BaseMessage`). It is designed to facilitate the dynamic discovery and use of
 plugins in the application.
    """
-   def __init__(self, base_path: str = None):
+   def __init__(self, base_path: str | os.PathLike | list[str | os.PathLike] | None = None):
       """
 PluginLoader: Dynamically loads serializers, exchange handlers, and messages.
 
@@ -93,12 +117,21 @@ PluginLoader: Dynamically loads serializers, exchange handlers, and messages.
 
 * ``base_path``
 
-  / *Condition*: optional / *Type*: str /
+  / *Condition*: optional / *Type*: str, os\.PathLike, or list of these /
 
-  Base path to search for plugins. Defaults to the directory of this file.
+  Base path(s) to search for plugins. Defaults to the directory of this file.
       """
-      self.base_path = base_path or os.path.dirname(os.path.abspath(__file__))
-
+      # self.base_path = base_path or os.path.dirname(os.path.abspath(__file__))
+      self.base_path = []
+      if base_path is not None:
+         paths = base_path if isinstance(base_path, (list, tuple)) else [base_path]
+         plugin_dir = os.path.dirname(os.path.abspath(__file__))
+         for p in paths:
+            abs_path = os.fspath(p)
+            if not os.path.isabs(abs_path):
+               abs_path = os.path.join(plugin_dir, abs_path)
+            self.base_path.append(os.path.abspath(abs_path))
+      self.base_path.append(os.path.dirname(os.path.abspath(__file__)))
       self.serializer_dict: Dict[str, Type[Serializer]] = {}
       self.exchange_handler_dict: Dict[str, Type[ExchangeHandler]] = {}
       self.message_dict: Dict[str, Type[BaseMessage]] = {}
@@ -110,12 +143,23 @@ PluginLoader: Dynamically loads serializers, exchange handlers, and messages.
       """
 Load all Python modules from built-in folders and plugins.
       """
-      search_paths = [
-         os.path.join(self.base_path, "serializer"),
-         os.path.join(self.base_path, "message"),
-         os.path.join(self.base_path, "exchange_handler"),
-         os.path.join(self.base_path, "plugins")
-      ]
+      search_paths = []
+      for base in self.base_path:
+         if os.path.isdir(base):
+            for item in os.listdir(base):
+               item_path = os.path.join(base, item)
+               if os.path.isdir(item_path):
+                  for sub in ["serializer", "message", "exchange_handler"]:
+                     sub_path = os.path.join(item_path, sub)
+                     if os.path.isdir(sub_path):
+                        search_paths.append(sub_path)
+               # Add the base directory itsel
+               search_paths.append(item_path)
+         # Also add the direct subfolders for backward compatibility
+         for sub in ["serializer", "message", "exchange_handler"]:
+            direct_sub_path = os.path.join(base, sub)
+            if os.path.isdir(direct_sub_path):
+               search_paths.append(direct_sub_path)
 
       # Add search paths to sys.path if not already there
       for path in search_paths:
@@ -170,6 +214,10 @@ Get a serializer class by its name.
 
   Serializer class or None if not found.
       """
+      if name not in self.serializer_dict:
+         available = ", ".join(list(self.serializer_dict.keys()))
+         raise ValueError(f"Unknown serializer: {name}. Please select one of: {available}")
+
       return self.serializer_dict.get(name)
 
    def get_exchange_handler(self, name: str) -> Type[ExchangeHandler]:
@@ -190,6 +238,10 @@ Get an exchange handler class by its name.
 
   Exchange handler class or None if not found.
       """
+      if name not in self.exchange_handler_dict:
+         available = ", ".join(list(self.exchange_handler_dict.keys()))
+         raise ValueError(f"Unknown exchange handler type: {name}. Please select one of: {available}")
+
       return self.exchange_handler_dict.get(name)
 
    def get_message(self, name: str) -> Type[BaseMessage]:
@@ -212,7 +264,8 @@ Get a message class by its name.
       """
       return self.message_dict.get(name)
 
-   def load_config(self, config_path: str) -> DotDict | None:
+   @staticmethod
+   def load_config(config_path: str) -> DotDict | None:
       """
 Load configuration from a JSONP file and validate it against the schema.
 

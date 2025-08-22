@@ -1,4 +1,4 @@
-#  Copyright 2020-2023 Robert Bosch GmbH
+#  Copyright 2020-2025 Robert Bosch GmbH
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ from .exchange_handler.base import ExchangeHandler
 from .message.base_message import BaseMessage
 from .message.basic_message import BasicMessage
 from .connection import ConnectionManager
-from .plugin_loader import PluginLoader
+from .plugin_loader import PluginLoader, CONFIG_SCHEMA
 from .serializer.base_serializer import Serializer
 from .qlogger import QLogger
 from .startup_policy import StartupPolicy, NoWait
@@ -119,8 +119,9 @@ Create an EventBusClient instance from a configuration file.
 
   Path to the configuration file in JSONP format. This file should contain the necessary configuration for the event bus client, including exchange handler and serializer settings.
       """
+      config = PluginLoader.load_config(config_path)
+
       plugin_loader = PluginLoader()
-      config = plugin_loader.load_config(config_path)
 
       if not "logfile" in config:
          config.logfile = None
@@ -142,6 +143,23 @@ Create an EventBusClient instance from a configuration file.
                    port=config.get("port", 5672),
                    prefetch_count=config.get("prefetch_count", 10))
 
+      client._logger_handler = QLogger().set_handler(config)
+      default_values = {
+         "plugins_path": "./plugins",
+         "host": "localhost",
+         "port": 5672,
+         "auto_reconnect": True,
+         "qos_prefetch": 10
+      }
+      notice = "Create event bus successfully from configurations:\n"
+      for k in CONFIG_SCHEMA:
+         if k in config:
+            notice += f"  {k}: {config[k]}\n"
+         else:
+            notice += f"  {k}: {default_values[k]} (default)\n"
+
+      logger.info(notice)
+
       if start_connection:
          await client.connect(
             host=config.get("host", "localhost"),
@@ -149,10 +167,9 @@ Create an EventBusClient instance from a configuration file.
             prefetch_count=config.get("prefetch_count", 10)
          )
 
-      client._logger_handler = QLogger().set_handler(config)
       return client
 
-   async def connect(self, host=None, port=None, prefetch_count: int = None):
+   async def connect(self, host=None, port=None, prefetch_count: int = None, **kwargs):
       """
 Connect to the event bus server and set up the exchange handler.
 
@@ -179,7 +196,7 @@ Connect to the event bus server and set up the exchange handler.
       self.host = host if host is not None else self.host
       self.port = port if port is not None else self.port
       self.prefetch_count = prefetch_count if prefetch_count is not None else self.prefetch_count
-      await self.connection.connect(self.host, self.port, self.prefetch_count)
+      await self.connection.connect(self.host, self.port, self.prefetch_count, **kwargs)
       await self.exchange_handler.setup(self.connection)
       self._connected = True
       await self._startup_policy.wait_until_ready(self)
