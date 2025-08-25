@@ -26,7 +26,7 @@ for %%f in (*.py) do (
         echo Shortname: !shortname!
         if /I "!shortname!"=="%~1" (
             set "pyfile=%%~nf.py"
-            echo selected !pyfile! 222
+            echo selected !pyfile!
             goto :found
         )
     )
