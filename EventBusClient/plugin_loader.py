@@ -153,7 +153,7 @@ Load all Python modules from built-in folders and plugins.
                      sub_path = os.path.join(item_path, sub)
                      if os.path.isdir(sub_path):
                         search_paths.append(sub_path)
-               # Add the base directory itsel
+               # Add the base directory itself
                search_paths.append(item_path)
          # Also add the direct subfolders for backward compatibility
          for sub in ["serializer", "message", "exchange_handler"]:
