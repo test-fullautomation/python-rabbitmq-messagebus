@@ -88,7 +88,7 @@ Validate the configuration against the schema.
                paths = path if isinstance(path, (list, tuple)) else [path]
                for p in paths:
                   # if not isinstance(p, str) or not os.path.exists(os.path.abspath(p)):
-                  print(os.path.join(os.path.dirname(os.path.abspath(__file__)), p))
+                  
                   if not isinstance(p, str) or not os.path.exists(
                           os.path.join(os.path.dirname(os.path.abspath(__file__)), p) if not os.path.isabs(p) else p):
                      raise ValueError(f"plugins_path '{p}' is not a valid path")
