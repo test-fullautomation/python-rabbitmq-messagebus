@@ -132,5 +132,5 @@ if __name__ == "__main__":
             logging.basicConfig(level=logging.INFO)
             asyncio.run(consumer_process("../config/config.jsonp"))
     else:
-        print("USAGE: python basic_async_producer_consumer_sample.py [producer|consumer]")
+        print("USAGE: python basic_async_producer_consumer_sample.py [producer|consumer]", file=sys.stderr)
         sys.exit(1)
