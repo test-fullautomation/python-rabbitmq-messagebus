@@ -1,4 +1,4 @@
-#  Copyright 2020-2023 Robert Bosch GmbH
+#  Copyright 2020-2025 Robert Bosch GmbH
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -103,9 +103,9 @@ Tear down the exchange handler by closing the channel and cleaning up resources.
          logger.info(f"Unsubscribed {len(self._subscribers)} subscribers.")
       self._subscribers.clear()
 
-      if self._exchange:
-         await self._exchange.delete()
-         self._exchange = None
+      # if self._exchange:
+      #    await self._exchange.delete()
+      #    self._exchange = None
 
       if self._connection:
          self._connection.unregister_exchange_handler(self)

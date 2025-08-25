@@ -1,4 +1,4 @@
-#  Copyright 2020-2023 Robert Bosch GmbH
+#  Copyright 2020-2025 Robert Bosch GmbH
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -63,7 +63,11 @@ ConnectionManager: Initializes the connection manager with an event loop.
       self._close_channel_callback = None
       self._close_connection_callback = None
 
-   async def connect(self, host: str, port: int, prefetch_count: int = 10):
+   async def connect(self,
+                     host: str,
+                     port: int,
+                     prefetch_count: int = 10,
+                     **kwargs):
       """
 Establish a robust connection to RabbitMQ and declare the exchange.
 
@@ -87,7 +91,7 @@ Establish a robust connection to RabbitMQ and declare the exchange.
 
   The number of messages to prefetch from the RabbitMQ server. Defaults to 10.
       """
-      await self._establish_connection(host, port, prefetch_count)
+      await self._establish_connection(host, port, prefetch_count, **kwargs)
 
    def register_exchange_handler(self, handler):
       """
@@ -118,7 +122,7 @@ Unregister an exchange handler.
       if handler in self._exchange_handlers:
          self._exchange_handlers.remove(handler)
 
-   async def _establish_connection(self, host: str, port: int, prefetch_count: int = 10):
+   async def _establish_connection(self, host: str, port: int, prefetch_count: int = 10, **kwargs):
       """
 Establish a robust connection to RabbitMQ and create a channel.
 
@@ -139,7 +143,8 @@ Establish a robust connection to RabbitMQ and create a channel.
       self._connection = await aio_pika.connect_robust(
          host=host,
          port=port,
-         loop=self._loop
+         loop=self._loop,
+         **kwargs
       )
 
       self._channel = await self._connection.channel()

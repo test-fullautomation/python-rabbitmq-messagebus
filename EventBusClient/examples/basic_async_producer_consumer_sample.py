@@ -1,4 +1,34 @@
-#!/usr/bin/env python
+#  Copyright 2020-2025 Robert Bosch GmbH
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+# *******************************************************************************
+#
+# File: basic_async_producer_consumer_sample.py
+#
+# Initially created by Nguyen Huynh Tri Cuong (MS/EMC51) / August 2025.
+#
+# Description:
+#
+#   Basic example of an asynchronous producer and consumer using EventBusClient.
+#   This script demonstrates how to set up a producer that sends messages
+#   and a consumer that receives them using multiprocessing.
+#
+# History:
+#
+# 12.08.2025 / V 1.0.0 / Nguyen Huynh Tri Cuong
+# - Initialize
+#
+# *******************************************************************************
 import asyncio
 import logging
 import sys
@@ -6,7 +36,6 @@ import time
 from multiprocessing import Process
 from EventBusClient.event_bus_client import EventBusClient
 from EventBusClient.message.base_message import BaseMessage
-
 
 # Simple message class for our test
 class TestMessage(BaseMessage):
@@ -54,6 +83,12 @@ async def consumer_process(config_path):
     try:
         # Run for 10 seconds to receive all messages
         await asyncio.sleep(1000)
+    except asyncio.CancelledError:
+        logging.info("Consumer: CancelledError caught, shutting down")
+    except Exception as e:
+        logging.error(f"Consumer: Exception occurred - {e}")
+        await client.close()
+        raise e
     finally:
         logging.info("Consumer: Shutting down")
         await client.close()
@@ -97,5 +132,5 @@ if __name__ == "__main__":
             logging.basicConfig(level=logging.INFO)
             asyncio.run(consumer_process("../config/config.jsonp"))
     else:
-        # Run both processes
-        main()
+        print("USAGE: python basic_async_producer_consumer_sample.py [producer|consumer]", file=sys.stderr)
+        sys.exit(1)

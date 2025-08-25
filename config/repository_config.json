@@ -14,6 +14,6 @@
    "INTENDEDAUDIENCE" : "Intended Audience :: Developers",
    "TOPIC" : "Topic :: Software Development",
    "INSTALLREQUIRES" : ["pydotdict"],
-   "PACKAGEDATA" : ["*.pdf"],
+   "PACKAGEDATA" : ["*.bat", "*.jsonp", "*.template", "*.pdf"],
    "PACKAGEDOC" : "./packagedoc"
 }

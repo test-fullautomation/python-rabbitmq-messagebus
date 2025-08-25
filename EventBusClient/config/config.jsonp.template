@@ -1,0 +1,39 @@
+{
+  // plugins_path: Path to the directory containing plugin modules.
+  "plugins_path": "./plugins",
+
+  // host: Hostname or IP address for the server connection.
+  "host": "localhost",
+
+  // port: Port number for the server connection.
+  "port": 5672,
+
+  // serializer: Serialization method for message data (e.g., PickleSerializer).
+  "serializer": "PickleSerializer",
+
+  // exchange_handler: Handler type for message exchange (e.g., TopicExchangeHandler).
+  "exchange_handler": "TopicExchangeHandler",
+
+  // auto_reconnect: Automatically reconnect if the connection is lost (true/false).
+  "auto_reconnect": true,
+
+  // qos_prefetch: Number of messages to prefetch for Quality of Service.
+  "qos_prefetch": 10
+}
+
+/*
+How to use:
+1. Copy this template to your project as `config.jsonp`.
+2. Adjust each configuration value to match your environment and requirements.
+3. Save the file and restart your application to apply changes.
+
+Description:
+- plugins_path [optional]: Path to plugins directory.
+  Default: `./plugins` (directory `plugins` in the same folder as `event_bus_client.py`).
+- host [optional]: Server hostname or IP. Default: "localhost".
+- port [optional]: Server port. Default: 5672.
+- serializer [mandatory]: Serialization method.
+- exchange_handler [mandatory]: Exchange handler type.
+- auto_reconnect [optional]: Enable auto-reconnect. Default: true.
+- qos_prefetch [optional]: Prefetch message count for QoS. Default: 10.
+*/

@@ -200,7 +200,9 @@ setuptools.setup(
                 str(oRepositoryConfig.Get('PACKAGENAME')) + ".exchange_handler",
                 str(oRepositoryConfig.Get('PACKAGENAME')) + ".message",
                 str(oRepositoryConfig.Get('PACKAGENAME')) + ".serializer",
-                str(oRepositoryConfig.Get('PACKAGENAME')) + ".test"],
+                str(oRepositoryConfig.Get('PACKAGENAME')) + ".plugins",
+                str(oRepositoryConfig.Get('PACKAGENAME')) + ".examples"],
+    include_package_data=True,
     classifiers = [
         str(oRepositoryConfig.Get('PROGRAMMINGLANGUAGE')),
         str(oRepositoryConfig.Get('LICENCE')),
