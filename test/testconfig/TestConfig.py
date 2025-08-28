@@ -375,3 +375,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "BasicMessage successfully sent and received: Test BasicMessage Content"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0025"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage with x-rtopic reverse routing logic"
+dictUsecase['EXPECTATION']       = "Message delivered using reverse topic logic where subscriber uses literal key and publisher uses pattern"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0025.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage with x-rtopic reverse routing successful: Test x-rtopic reverse routing content"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
