@@ -403,3 +403,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "BasicMessage equality comparison test passed: All equality tests successful"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0027"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage creation from dictionary representation"
+dictUsecase['EXPECTATION']       = "BasicMessage should be correctly created from dictionary representation and maintain data integrity"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0027.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage dictionary creation test passed: All dictionary conversion and creation tests successful"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
