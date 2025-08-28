@@ -361,3 +361,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "Empty segments routing patterns test passed: 4 patterns with empty segments handled correctly"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0024"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage with topic exchange"
+dictUsecase['EXPECTATION']       = "BasicMessage successfully sent and received with correct content using topic exchange"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0024.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage successfully sent and received: Test BasicMessage Content"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
