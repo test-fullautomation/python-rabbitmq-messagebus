@@ -389,3 +389,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "BasicMessage with x-rtopic reverse routing successful: Test x-rtopic reverse routing content"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0026"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage equality comparison between two instances"
+dictUsecase['EXPECTATION']       = "BasicMessage equality comparison should correctly identify equal and non-equal instances"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0026.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage equality comparison test passed: All equality tests successful"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
