@@ -446,3 +446,18 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "BasicMessage with empty content and auto-generated UUID header test passed"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0030"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage string representations using str() and repr() methods"
+dictUsecase['EXPECTATION']       = "BasicMessage should provide correct string representations through str() and repr() methods"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "EDGECASES"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0030.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage string representation test passed: All str() and repr() tests successful"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
