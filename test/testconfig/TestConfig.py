@@ -461,3 +461,18 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "BasicMessage string representation test passed: All str() and repr() tests successful"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0031"
+dictUsecase['DESCRIPTION']       = "Test ControlMessage creation from data dictionary"
+dictUsecase['EXPECTATION']       = "ControlMessage created with all fields correctly set from data dictionary"
+dictUsecase['SECTION']           = "ControlMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0031.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "ControlMessage from_data test passed: All creation and validation tests successful"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
