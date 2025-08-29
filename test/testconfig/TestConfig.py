@@ -417,3 +417,17 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "BasicMessage dictionary creation test passed: All dictionary conversion and creation tests successful"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0028"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage inequality with different content or headers"
+dictUsecase['EXPECTATION']       = "BasicMessage inequality comparison should correctly identify non-equal instances with different content or headers"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0028.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage inequality comparison test passed: All inequality tests successful"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
