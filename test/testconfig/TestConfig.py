@@ -431,3 +431,18 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "BasicMessage inequality comparison test passed: All inequality tests successful"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0029"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage with empty content and no headers"
+dictUsecase['EXPECTATION']       = "Message created successfully with auto-generated UUID header"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0029.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage with empty content and auto-generated UUID header test passed"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
