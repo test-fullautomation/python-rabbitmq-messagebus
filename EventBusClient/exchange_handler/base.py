@@ -79,6 +79,20 @@ ExchangeHandler: Initializes the exchange handler with a name, serializer, and e
       self._connection = None
       self._subscribers: list[AsyncSubscriber] = []
 
+   def reset_loop(self, loop: asyncio.AbstractEventLoop = None):
+      """
+Reset the event loop used by the exchange handler.
+
+**Arguments:**
+
+* ``loop``
+
+  / *Condition*: optional / *Type*: asyncio.AbstractEventLoop /
+
+  The new event loop to use. If not provided, the current event loop will be used.
+      """
+      self._loop = loop or asyncio.get_event_loop()
+
    @abstractmethod
    async def setup(self, connection_manager):
       """

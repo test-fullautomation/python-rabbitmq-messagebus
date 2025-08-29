@@ -383,3 +383,11 @@ Set handler for logger.
          except:
             pass
       return None
+
+   def get_handler(self):
+      """
+Get the handler of the logger.
+      """
+      if self.logger and self.logger.hasHandlers():
+         return self.logger.handlers[0]
+      return None

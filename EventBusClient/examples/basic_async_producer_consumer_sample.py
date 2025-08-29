@@ -54,13 +54,17 @@ class TestMessage(BaseMessage):
 # Producer process function
 async def producer_process(config_path):
     logging.info("Producer: Starting up")
-    client = await EventBusClient.from_config(config_path)
+    try:
+        client = await EventBusClient.from_config(config_path)
+    except Exception as e:
+        logging.error(f"Producer: Failed to initialize EventBusClient - {e}")
+        return
 
     # Send 5 messages
     for i in range(5):
         msg = TestMessage(f"Message #{i} from producer")
         logging.info(f"Producer: Sending {msg.content}")
-        await client.send("test.topic", msg)
+        await client.send("test.topic", msg, headers={"index": i})
         await asyncio.sleep(1)
 
     logging.info("Producer: Shutting down")
@@ -70,10 +74,14 @@ async def producer_process(config_path):
 # Consumer process function
 async def consumer_process(config_path):
     logging.info("Consumer: Starting up")
-    client = await EventBusClient.from_config(config_path)
+    try:
+        client = await EventBusClient.from_config(config_path)
+    except Exception as e:
+        logging.error(f"Consumer: Failed to initialize EventBusClient - {e}")
+        return
 
-    async def message_handler(message):
-        logging.info(f"Consumer: Received {message.content}")
+    async def message_handler(message, header):
+        logging.info(f"Consumer: Received {message.content}. Headers: {header}")
 
     # Subscribe to the test topic
     await client.on("test.topic", TestMessage, message_handler)
