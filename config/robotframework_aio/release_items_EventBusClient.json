@@ -59,8 +59,8 @@
 "
 **Test**
 
-* Verify EventBus with TopicExchange and XRTopicExchange
-* Verify integration with BasicMessage and ControlMessage
+* Added tests for the exchange handlers ``XRTopicExchangeHandler`` and ``XRTopicExchangeHandler``
+* Added tests for the message types ``BasicMessage`` and ``ControlMessage``
 "
                                       ]
                  }
