@@ -361,3 +361,193 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "Empty segments routing patterns test passed: 4 patterns with empty segments handled correctly"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0024"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage with topic exchange"
+dictUsecase['EXPECTATION']       = "BasicMessage successfully sent and received with correct content using topic exchange"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0024.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage successfully sent and received: Test BasicMessage Content"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0025"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage with x-rtopic reverse routing logic"
+dictUsecase['EXPECTATION']       = "Message delivered using reverse topic logic where subscriber uses literal key and publisher uses pattern"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0025.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage with x-rtopic reverse routing successful: Test x-rtopic reverse routing content"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0026"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage equality comparison between two instances"
+dictUsecase['EXPECTATION']       = "BasicMessage equality comparison should correctly identify equal and non-equal instances"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0026.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage equality comparison test passed: All equality tests successful"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0027"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage creation from dictionary representation"
+dictUsecase['EXPECTATION']       = "BasicMessage should be correctly created from dictionary representation and maintain data integrity"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0027.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage dictionary creation test passed: All dictionary conversion and creation tests successful"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0028"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage inequality with different content or headers"
+dictUsecase['EXPECTATION']       = "BasicMessage inequality comparison should correctly identify non-equal instances with different content or headers"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0028.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage inequality comparison test passed: All inequality tests successful"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0029"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage with empty content and no headers"
+dictUsecase['EXPECTATION']       = "Message created successfully with auto-generated UUID header"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0029.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage with empty content and auto-generated UUID header test passed"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0030"
+dictUsecase['DESCRIPTION']       = "Test BasicMessage string representations using str() and repr() methods"
+dictUsecase['EXPECTATION']       = "BasicMessage should provide correct string representations through str() and repr() methods"
+dictUsecase['SECTION']           = "BasicMessage"
+dictUsecase['SUBSECTION']        = "EDGECASES"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0030.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "BasicMessage string representation test passed: All str() and repr() tests successful"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0031"
+dictUsecase['DESCRIPTION']       = "Test ControlMessage creation from data dictionary"
+dictUsecase['EXPECTATION']       = "ControlMessage created with all fields correctly set from data dictionary"
+dictUsecase['SECTION']           = "ControlMessage"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0031.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "ControlMessage from_data test passed: All creation and validation tests successful"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0032"
+dictUsecase['DESCRIPTION']       = "Test ControlMessage with invalid roles data type"
+dictUsecase['EXPECTATION']       = "Exception should be raised when ControlMessage is created with invalid roles data type (non-list)"
+dictUsecase['SECTION']           = "ControlMessage"
+dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0032.py"
+dictUsecase['EXPECTEDEXCEPTION'] = "roles must be a list[str] or None, got str"
+dictUsecase['EXPECTEDRETURN']    = None
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0033"
+dictUsecase['DESCRIPTION']       = "Test ControlMessage with invalid kind data type"
+dictUsecase['EXPECTATION']       = "Exception should be raised when ControlMessage is created with invalid kind data type (non-string)"
+dictUsecase['SECTION']           = "ControlMessage"
+dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0033.py"
+dictUsecase['EXPECTEDEXCEPTION'] = "kind must be a string or None, got int"
+dictUsecase['EXPECTEDRETURN']    = None
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0034"
+dictUsecase['DESCRIPTION']       = "Test ControlMessage with invalid instance_id data type"
+dictUsecase['EXPECTATION']       = "Exception should be raised when ControlMessage is created with invalid instance_id data type (non-string)"
+dictUsecase['SECTION']           = "ControlMessage"
+dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0034.py"
+dictUsecase['EXPECTEDEXCEPTION'] = "instance_id must be a string or None, got int"
+dictUsecase['EXPECTEDRETURN']    = None
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0035"
+dictUsecase['DESCRIPTION']       = "Test ControlMessage with invalid ts (timestamp)"
+dictUsecase['EXPECTATION']       = "Exception should be raised when ControlMessage is created with invalid ts data type (non-numeric)"
+dictUsecase['SECTION']           = "ControlMessage"
+dictUsecase['SUBSECTION']        = "BADCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0035.py"
+dictUsecase['EXPECTEDEXCEPTION'] = "ts must be a number (int or float) or None, got str"
+dictUsecase['EXPECTEDRETURN']    = None
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0036"
+dictUsecase['DESCRIPTION']       = "EDGECASE: Test ControlMessage with unusual timestamp values"
+dictUsecase['EXPECTATION']       = "ControlMessage should correctly handle edge case timestamp values including zero, negative, very large, and precise float values"
+dictUsecase['SECTION']           = "ControlMessage"
+dictUsecase['SUBSECTION']        = "EDGECASES"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0036.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "ControlMessage unusual timestamp edge cases test passed: 9 edge cases handled correctly (Zero timestamp (Unix epoch), Negative timestamp, Very large timestamp, Precise float timestamp, Integer timestamp, Tiny positive timestamp, None timestamp, from_data with negative float timestamp, get_value preserves unusual timestamps)"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase

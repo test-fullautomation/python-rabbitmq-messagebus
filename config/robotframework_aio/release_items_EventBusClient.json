@@ -55,6 +55,12 @@
 **Documentation**
 
 `EventBusClient.pdf <https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/EventBusClient/EventBusClient.pdf>`_
+",
+"
+**Test**
+
+* Added tests for the exchange handlers ``XRTopicExchangeHandler`` and ``XRTopicExchangeHandler``
+* Added tests for the message types ``BasicMessage`` and ``ControlMessage``
 "
                                       ]
                  }
