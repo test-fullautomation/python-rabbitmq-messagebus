@@ -32,7 +32,7 @@ import logging
 import asyncio
 import threading
 from concurrent.futures import TimeoutError as _FutTimeout
-from typing import Callable, Awaitable, Optional, Type
+from typing import Callable, Awaitable, Optional, Type, Union
 from .exchange_handler.base import ExchangeHandler
 from .message.base_message import BaseMessage
 from .message.basic_message import BasicMessage
@@ -120,11 +120,14 @@ Create an EventBusClient instance from a configuration file.
   Path to the configuration file in JSONP format. This file should contain the necessary configuration for the event bus client, including exchange handler and serializer settings.
       """
       config = PluginLoader.load_config(config_path)
-
-      plugin_loader = PluginLoader()
+      logger_handler = None
+      if "logfile" in config and config.logfile:
+         logger_handler = QLogger().set_handler(config)
 
       if not "logfile" in config:
          config.logfile = None
+
+      plugin_loader = PluginLoader()
 
       # Dynamic load components
       handler_cls: Type[ExchangeHandler] = plugin_loader.get_exchange_handler(config.exchange_handler)
@@ -143,7 +146,11 @@ Create an EventBusClient instance from a configuration file.
                    port=config.get("port", 5672),
                    prefetch_count=config.get("prefetch_count", 10))
 
-      client._logger_handler = QLogger().set_handler(config)
+      if not logger_handler:
+         client._logger_handler = QLogger().set_handler(config)
+      else:
+         client._logger_handler = logger_handler
+
       default_values = {
          "plugins_path": "./plugins",
          "host": "localhost",
@@ -193,15 +200,19 @@ Connect to the event bus server and set up the exchange handler.
 
     The number of messages to prefetch from the server. This controls how many messages can be sent to the client before they are acknowledged. Defaults to None.
       """
-      self.host = host if host is not None else self.host
-      self.port = port if port is not None else self.port
-      self.prefetch_count = prefetch_count if prefetch_count is not None else self.prefetch_count
-      await self.connection.connect(self.host, self.port, self.prefetch_count, **kwargs)
-      await self.exchange_handler.setup(self.connection)
-      self._connected = True
-      await self._startup_policy.wait_until_ready(self)
+      try:
+         self.host = host if host is not None else self.host
+         self.port = port if port is not None else self.port
+         self.prefetch_count = prefetch_count if prefetch_count is not None else self.prefetch_count
+         await self.connection.connect(self.host, self.port, self.prefetch_count, **kwargs)
+         await self.exchange_handler.setup(self.connection)
+         self._connected = True
+         await self._startup_policy.wait_until_ready(self)
+      except Exception as e:
+         logger.error(f"Failed to connect: {e}")
+         raise
 
-   async def send(self, routing_key: str, message: BaseMessage, headers: dict = None, threadsafe=False):
+   async def send(self, routing_key: Union[str, list], message: BaseMessage, headers: dict = None, threadsafe=False):
       """
 Send a message to the event bus with the specified routing key.
 
@@ -209,9 +220,9 @@ Send a message to the event bus with the specified routing key.
 
 * ``routing_key``
 
-  / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: Union[str, list] /
 
-  The routing key used to route the message to the appropriate subscribers.
+  The routing key used to route the message to the appropriate subscribers. It can be a single string or a list of strings.
 
 * ``message``
 
@@ -233,9 +244,14 @@ Send a message to the event bus with the specified routing key.
       """
       if not self._connected:
          raise RuntimeError("EventBusClient is not connected")
-      await self.exchange_handler.publish(message, routing_key, headers, threadsafe=threadsafe)
+      # await self.exchange_handler.publish(message, routing_key, headers, threadsafe=threadsafe)
+      if isinstance(routing_key, list):
+         for rk in routing_key:
+            await self.exchange_handler.publish(message, rk, headers, threadsafe=threadsafe)
+      else:
+         await self.exchange_handler.publish(message, routing_key, headers, threadsafe=threadsafe)
 
-   async def off(self, routing_key: str, callback: Optional[Callable[[BaseMessage], Awaitable[None]]] = None):
+   async def off(self, routing_key: Union[str, list], callback: Optional[Callable[[BaseMessage], Awaitable[None]]] = None):
       """
 Unsubscribe from messages with the specified routing key.
 
@@ -243,9 +259,9 @@ Unsubscribe from messages with the specified routing key.
 
 * ``routing_key``
 
-  / *Condition*: required / *Type*: str /
+  / *Condition*: required / *Type*: Union[str, list] /
 
-  The routing key to unsubscribe from.
+  The routing key to unsubscribe from. It can be a single string or a list of strings.
 
 * ``callback``
 
@@ -255,9 +271,18 @@ Unsubscribe from messages with the specified routing key.
       """
       if not self._connected:
          raise RuntimeError("EventBusClient is not connected")
-      await self.exchange_handler.unsubscribe(routing_key, callback)
+      # await self.exchange_handler.unsubscribe(routing_key, callback)
+      if isinstance(routing_key, list):
+         for rk in routing_key:
+            await self.exchange_handler.unsubscribe(rk, callback)
+      else:
+         await self.exchange_handler.unsubscribe(routing_key, callback)
 
-   async def on(self, routing_key: str, message_cls: Type[BaseMessage], callback: Optional[Callable[[BaseMessage], Awaitable[None]]] = None, cache_size: Optional[int] = None):
+   async def on(self,
+                routing_key: str,
+                message_cls: Type[BaseMessage],
+                callback: Optional[Union[Callable[[BaseMessage, dict], Awaitable[None]], list[Callable[[BaseMessage, dict], Awaitable[None]]]]] = None,
+                cache_size: Optional[int] = None):
       """
 Subscribe to messages with the specified routing key and message class.
 
@@ -505,7 +530,11 @@ Submit an async coroutine to the background loop and wait for result (blocking).
 
    # ---------- Sync wrappers over existing async APIs ----------
    @classmethod
-   def from_config_sync(cls, path: str, **kwargs) -> "EventBusClient":
+   def from_config_sync(cls,
+                        config_path: str,
+                        startup_policy: Optional[StartupPolicy] = None,
+                        zone_id: Optional[str] = None,
+                        alias: Optional[str] = None) -> EventBusClient:
       """
 Create an EventBusClient instance from a configuration file synchronously.
 
@@ -526,7 +555,7 @@ Create an EventBusClient instance from a configuration file synchronously.
       loop = asyncio.new_event_loop()
       try:
          asyncio.set_event_loop(loop)
-         client = loop.run_until_complete(cls.from_config(path, **kwargs))
+         client = loop.run_until_complete(cls.from_config(config_path, startup_policy, zone_id, alias, start_connection=False))
          return client
       finally:
          try:
@@ -549,8 +578,13 @@ Blocking connect that spins a background loop if needed.
 
   The hostname of the event bus server. Defaults to "localhost".
       """
-      self.start_background_loop()
-      return self._submit(self.connect(host=host, port=port, prefetch_count=prefetch_count), timeout=timeout)
+      try:
+         self.start_background_loop()
+         self.exchange_handler.reset_loop(self.loop)
+         return self._submit(self.connect(host=host, port=port, prefetch_count=prefetch_count), timeout=timeout)
+      except Exception as e:
+         logger.error(f"Failed to connect synchronously: {e}")
+         raise Exception("Failed to connect synchronously")
 
    def send_sync(self, routing_key: str, message, headers: dict | None = None,
                  *, threadsafe: bool = False, timeout: float | None = 10.0) -> None:

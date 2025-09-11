@@ -28,6 +28,9 @@
 #
 # *******************************************************************************
 import asyncio
+import aiormq
+# import sys
+# sys.tracebacklimit=0
 # import logging
 from typing import Optional
 import aio_pika
@@ -140,12 +143,49 @@ Establish a robust connection to RabbitMQ and create a channel.
 
   The port number on which the RabbitMQ server is listening.
       """
-      self._connection = await aio_pika.connect_robust(
-         host=host,
-         port=port,
-         loop=self._loop,
-         **kwargs
-      )
+      # self._connection = await aio_pika.connect_robust(
+      #    host=host,
+      #    port=port,
+      #    loop=self._loop,
+      #    **kwargs
+      # )
+      attempts = 5
+      timeout: float = 5.0
+      backoff_base: float = 0.6
+      backoff_factor: float = 2.0
+      for i in range(1, attempts + 1):
+         try:
+            self._connection = await asyncio.wait_for(
+               aio_pika.connect_robust(
+                  host=host,
+                  port=port,
+                  loop=self._loop,
+                  **kwargs
+               ),
+               timeout=timeout,
+            )
+         except asyncio.TimeoutError as e:
+            last_exc = e
+            logger.warning("Connect timeout (%ss) to %s (try %d/%d)",
+                            timeout, host, i, attempts)
+         except (aiormq.exceptions.AMQPConnectionError,
+                 ConnectionRefusedError,
+                 OSError) as e:
+            last_exc = e
+            logger.warning("Connect failed to %s (try %d/%d): %s",
+                            host, i, attempts, repr(e))
+         else:
+            break
+
+         if i < attempts:
+            delay = backoff_base * (backoff_factor ** (i - 1))
+            delay += (asyncio.get_running_loop().time() % 0.3)
+            await asyncio.sleep(delay)
+
+      if not self._connection or self._connection.is_closed:
+         logger.error("Could not connect to RabbitMQ at %s:%d after %d attempts",
+                        host, port, attempts)
+         raise last_exc
 
       self._channel = await self._connection.channel()
       self._close_channel_callback = lambda exc, reply_code: asyncio.create_task(self.recreate_channel(exc, reply_code))

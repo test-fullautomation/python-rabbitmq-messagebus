@@ -40,6 +40,16 @@ class SubscriptionCache(Generic[T]):
         self._cv = threading.Condition()
         self._maxlen = maxlen
 
+    def register_callback(self, callback: Callable[[T], None]) -> None:
+        """Register a callback to be called for each new item."""
+        def thread_func():
+            while True:
+                item = self.get()
+                callback(item)
+        thread = threading.Thread(target=thread_func, daemon=True)
+        thread.start()
+
+
     # ---- producer side (called by your consumer callback)
     def append(self, item: T) -> None:
         with self._cv:
@@ -57,6 +67,16 @@ class SubscriptionCache(Generic[T]):
                     raise TimeoutError("cache.get timed out")
                 self._cv.wait(timeout=remaining)
             return self._buf.popleft()
+
+    def pop(self, timeout: Optional[float] = None) -> T:
+        return self.get(timeout)
+
+    def pop_nothrow(self) -> Optional[T]:
+        """Pop from head of cache, only if not empty."""
+        with self._cv:
+            if len(self._buf) > 0:
+                return self._buf.popleft()
+        return None
 
     def wait_for(self, predicate: Callable[[T], bool], timeout: Optional[float] = None) -> T:
         """Block until an item matches predicate, return it (and remove it)."""

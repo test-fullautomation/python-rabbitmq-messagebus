@@ -71,8 +71,12 @@ def producer_process(config_path: str):
 # Consumer process (SYNC)
 def consumer_process(config_path: str):
     logging.info("Consumer: Starting up")
-    client = EventBusClient.from_config_sync(config_path, start_connection=False)
-    client.connect_sync()
+    client = EventBusClient.from_config_sync(config_path)
+    try:
+        client.connect_sync(timeout=40)
+    except Exception as e:
+        logging.error(f"Consumer: Failed to connect - {e}")
+        return
 
     # Subscribe (blocking) -> receive cache for synchronous reading
     cache = client.on_sync("ipc.test.topic.test_zone.test_alias", TestMessage, cache_size=200)

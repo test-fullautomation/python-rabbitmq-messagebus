@@ -29,7 +29,7 @@
 # *******************************************************************************
 import asyncio
 import aio_pika
-from typing import Any, Callable, Optional, Type
+from typing import Any, Callable, Optional, Type, MutableMapping
 from aio_pika.abc import AbstractIncomingMessage
 from EventBusClient.serializer.base_serializer import Serializer
 from EventBusClient.serializer.pickle_serializer import PickleSerializer
@@ -47,7 +47,7 @@ AsyncSubscriber: Subscribes to messages from an exchange using aio_pika.
       exchange: aio_pika.abc.AbstractExchange,
       routing_key: str,
       message_cls: Type[BaseMessage],
-      callback: Callable[[BaseMessage], None] = None,
+      callback: Callable[[BaseMessage, MutableMapping[str, Any]], None] | list[Callable[[BaseMessage, MutableMapping[str, Any]], None]] = None,
       serializer: Serializer = None,
       cache_size_default: int = 200
    ):
@@ -95,7 +95,7 @@ AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing ke
       self._channel = channel
       self._exchange = exchange
       self._routing_key = routing_key
-      self._callback = callback
+      self._callback = callback if isinstance(callback, list) else [callback] if callback else []
       self._message_cls = message_cls
       self._serializer = serializer or PickleSerializer()
 
@@ -199,10 +199,12 @@ Handle incoming messages by deserializing them and invoking the callback.
                raise TypeError(f"Expected {self._message_cls}, got {type(obj)}")
 
             if self._callback:
-               if asyncio.iscoroutinefunction(self._callback):
-                  await self._callback(obj)
-               else:
-                  self._callback(obj)
+               for cb in self._callback:
+                  if asyncio.iscoroutinefunction(cb):
+                     await cb(obj, dict(message.headers))
+                  else:
+                     cb(obj, message.headers)
+
          except Exception as e:
             print(f"[AsyncSubscriber] Error handling message: {e}")
 

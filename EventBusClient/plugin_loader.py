@@ -31,8 +31,9 @@ import os
 import sys
 import pkgutil
 import importlib
-from typing import Dict, Type
+from typing import Dict, Type, Optional, Union
 from JsonPreprocessor.CJsonPreprocessor import CJsonPreprocessor
+from EventBusClient.qlogger import QLogger
 from .serializer.base_serializer import Serializer
 from .exchange_handler.base import ExchangeHandler
 from .message.base_message import BaseMessage
@@ -40,6 +41,7 @@ from .utils import Utils
 from pydotdict import DotDict
 # from exchange_handler.topic_handler import TopicExchangeHandler
 
+logger = QLogger().get_logger("event_bus_client")
 
 CONFIG_SCHEMA = {
     "plugins_path": str,
@@ -109,7 +111,7 @@ any classes that match the expected base types (e.g., `Serializer`, `ExchangeHan
 and `BaseMessage`). It is designed to facilitate the dynamic discovery and use of
 plugins in the application.
    """
-   def __init__(self, base_path: str | os.PathLike | list[str | os.PathLike] | None = None):
+   def __init__(self, base_path: Optional[Union[str, os.PathLike, list[Union[str, os.PathLike]]]] = None):
       """
 PluginLoader: Dynamically loads serializers, exchange handlers, and messages.
 
@@ -121,7 +123,6 @@ PluginLoader: Dynamically loads serializers, exchange handlers, and messages.
 
   Base path(s) to search for plugins. Defaults to the directory of this file.
       """
-      # self.base_path = base_path or os.path.dirname(os.path.abspath(__file__))
       self.base_path = []
       if base_path is not None:
          paths = base_path if isinstance(base_path, (list, tuple)) else [base_path]
