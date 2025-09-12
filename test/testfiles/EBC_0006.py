@@ -56,11 +56,11 @@ async def test(config_folder_path):
     lowercase_message_content = "lowercase message"
     uppercase_message_content = "uppercase message"
 
-    async def lowercase_callback(message):
+    async def lowercase_callback(message, headers):
         """Callback function for lowercase routing key."""
         lowercase_received_messages.append(message.get_value())
 
-    async def uppercase_callback(message):
+    async def uppercase_callback(message, headers):
         """Callback function for uppercase routing key."""
         uppercase_received_messages.append(message.get_value())
 

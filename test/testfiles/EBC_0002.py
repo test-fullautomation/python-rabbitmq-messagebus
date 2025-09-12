@@ -50,7 +50,7 @@ async def test(config_folder_path):
     routing_key = "test.ordering.messages"
     test_message_count = 5
 
-    async def message_callback(message):
+    async def message_callback(message, headers):
         """Callback function to handle received messages and track order."""
         received_messages.append(message.get_value())
 

@@ -120,28 +120,28 @@ async def test(config_folder_path):
     }
 
     # Callback functions for each subscriber
-    async def normal_key_callback(message):
+    async def normal_key_callback(message, headers):
         subscriber_messages['normal_key'].append(message.get_value())
 
-    async def double_dot_key_callback(message):
+    async def double_dot_key_callback(message, headers):
         subscriber_messages['double_dot_key'].append(message.get_value())
 
-    async def leading_dot_key_callback(message):
+    async def leading_dot_key_callback(message, headers):
         subscriber_messages['leading_dot_key'].append(message.get_value())
 
-    async def trailing_dot_key_callback(message):
+    async def trailing_dot_key_callback(message, headers):
         subscriber_messages['trailing_dot_key'].append(message.get_value())
 
-    async def multi_dot_key_callback(message):
+    async def multi_dot_key_callback(message, headers):
         subscriber_messages['multi_dot_key'].append(message.get_value())
 
-    async def different_key_callback(message):
+    async def different_key_callback(message, headers):
         subscriber_messages['different_key'].append(message.get_value())
 
-    async def single_dot_key_callback(message):
+    async def single_dot_key_callback(message, headers):
         subscriber_messages['single_dot_key'].append(message.get_value())
 
-    async def double_dot_only_key_callback(message):
+    async def double_dot_only_key_callback(message, headers):
         subscriber_messages['double_dot_only_key'].append(message.get_value())
 
     callbacks = {

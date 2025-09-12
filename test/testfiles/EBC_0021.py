@@ -94,27 +94,27 @@ async def test(config_folder_path):
     complex_routing_pattern = "org.*.dept.*.team.*.project.#"
 
     # Callback functions for each subscriber
-    async def engineering_callback(message):
+    async def engineering_callback(message, headers):
         """Callback for engineering subscriber"""
         subscriber_messages['engineering'].append(message.get_value())
 
-    async def marketing_callback(message):
+    async def marketing_callback(message, headers):
         """Callback for marketing subscriber"""
         subscriber_messages['marketing'].append(message.get_value())
 
-    async def finance_callback(message):
+    async def finance_callback(message, headers):
         """Callback for finance subscriber"""
         subscriber_messages['finance'].append(message.get_value())
 
-    async def hr_callback(message):
+    async def hr_callback(message, headers):
         """Callback for hr subscriber"""
         subscriber_messages['hr'].append(message.get_value())
 
-    async def operations_callback(message):
+    async def operations_callback(message, headers):
         """Callback for operations subscriber"""
         subscriber_messages['operations'].append(message.get_value())
 
-    async def research_callback(message):
+    async def research_callback(message, headers):
         """Callback for research subscriber"""
         subscriber_messages['research'].append(message.get_value())
 

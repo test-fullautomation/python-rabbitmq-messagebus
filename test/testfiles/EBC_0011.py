@@ -79,15 +79,15 @@ async def test(config_folder_path):
     publisher_pattern = "events.*.login"        # Pattern that matches all three subscriber keys
 
     # Callback functions for each subscriber
-    async def subscriber1_callback(message):
+    async def subscriber1_callback(message, headers):
         """Callback for subscriber 1 with key: events.user.login"""
         subscriber1_messages.append(message.get_value())
 
-    async def subscriber2_callback(message):
+    async def subscriber2_callback(message, headers):
         """Callback for subscriber 2 with key: events.admin.login"""
         subscriber2_messages.append(message.get_value())
 
-    async def subscriber3_callback(message):
+    async def subscriber3_callback(message, headers):
         """Callback for subscriber 3 with key: events.guest.login"""
         subscriber3_messages.append(message.get_value())
 

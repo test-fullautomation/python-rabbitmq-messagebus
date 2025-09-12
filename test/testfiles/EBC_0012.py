@@ -83,19 +83,19 @@ async def test(config_folder_path):
     publisher_pattern = "logs.#"                                    # Pattern that matches all subscriber keys
 
     # Callback functions for each subscriber
-    async def subscriber1_callback(message):
+    async def subscriber1_callback(message, headers):
         """Callback for subscriber 1 with key: logs.error"""
         subscriber1_messages.append(message.get_value())
 
-    async def subscriber2_callback(message):
+    async def subscriber2_callback(message, headers):
         """Callback for subscriber 2 with key: logs.warning.database"""
         subscriber2_messages.append(message.get_value())
 
-    async def subscriber3_callback(message):
+    async def subscriber3_callback(message, headers):
         """Callback for subscriber 3 with key: logs.info.system.auth"""
         subscriber3_messages.append(message.get_value())
 
-    async def subscriber4_callback(message):
+    async def subscriber4_callback(message, headers):
         """Callback for subscriber 4 with key: logs.debug.network.connection.timeout"""
         subscriber4_messages.append(message.get_value())
 
