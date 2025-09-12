@@ -50,7 +50,7 @@ async def test(config_folder_path):
     test_message_content = "Hello, World!"
     routing_key = "test.message.routing"
 
-    async def message_callback(message):
+    async def message_callback(message, headers):
         """Callback function to handle received messages."""
         received_messages.append(message.get_value())
 

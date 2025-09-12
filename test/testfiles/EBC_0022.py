@@ -109,19 +109,19 @@ async def test(config_folder_path):
     }
 
     # Callback functions for each subscriber
-    async def service_user_create_callback(message):
+    async def service_user_create_callback(message, headers):
         subscriber_messages['service_user_create'].append(message.get_value())
 
-    async def service_user_update_callback(message):
+    async def service_user_update_callback(message, headers):
         subscriber_messages['service_user_update'].append(message.get_value())
 
-    async def service_order_create_callback(message):
+    async def service_order_create_callback(message, headers):
         subscriber_messages['service_order_create'].append(message.get_value())
 
-    async def service_notification_send_callback(message):
+    async def service_notification_send_callback(message, headers):
         subscriber_messages['service_notification_send'].append(message.get_value())
 
-    async def api_user_delete_callback(message):
+    async def api_user_delete_callback(message, headers):
         subscriber_messages['api_user_delete'].append(message.get_value())
 
     callbacks = {

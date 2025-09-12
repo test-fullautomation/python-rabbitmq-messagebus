@@ -56,15 +56,15 @@ async def test(config_folder_path):
     routing_key = "test.broadcast.routing"
     expected_subscriber_count = 3
 
-    async def subscriber1_callback(message):
+    async def subscriber1_callback(message, headers):
         """Callback function for subscriber 1."""
         subscriber1_messages.append(message.get_value())
 
-    async def subscriber2_callback(message):
+    async def subscriber2_callback(message, headers):
         """Callback function for subscriber 2."""
         subscriber2_messages.append(message.get_value())
 
-    async def subscriber3_callback(message):
+    async def subscriber3_callback(message, headers):
         """Callback function for subscriber 3."""
         subscriber3_messages.append(message.get_value())
 

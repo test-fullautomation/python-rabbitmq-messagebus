@@ -90,19 +90,19 @@ async def test(config_folder_path):
     publisher3_message = "System event from Publisher 3"
 
     # Callback functions for each subscriber
-    async def email_subscriber_callback(message):
+    async def email_subscriber_callback(message, headers):
         """Callback for email notification subscriber"""
         email_subscriber_messages.append(message.get_value())
 
-    async def sms_subscriber_callback(message):
+    async def sms_subscriber_callback(message, headers):
         """Callback for SMS notification subscriber"""
         sms_subscriber_messages.append(message.get_value())
 
-    async def system_subscriber_callback(message):
+    async def system_subscriber_callback(message, headers):
         """Callback for system event subscriber"""
         system_subscriber_messages.append(message.get_value())
 
-    async def login_subscriber_callback(message):
+    async def login_subscriber_callback(message, headers):
         """Callback for login event subscriber"""
         login_subscriber_messages.append(message.get_value())
 

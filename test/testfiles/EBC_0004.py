@@ -50,7 +50,7 @@ async def test(config_folder_path):
     publisher_count = 3
     test_message_contents = [f"Publisher {i} message" for i in range(1, publisher_count + 1)]
 
-    async def message_callback(message):
+    async def message_callback(message, headers):
         received_messages.append(message.get_value())
 
     try:

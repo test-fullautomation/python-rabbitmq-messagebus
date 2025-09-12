@@ -66,11 +66,11 @@ async def test(config_folder_path):
     hash_subscriber_pattern = "logs.#"
 
     # Callback functions for each wildcard subscriber
-    async def star_wildcard_callback(message):
+    async def star_wildcard_callback(message, headers):
         """Callback for * wildcard routing pattern."""
         star_wildcard_messages.append(message.get_value())
 
-    async def hash_wildcard_callback(message):
+    async def hash_wildcard_callback(message, headers):
         """Callback for # wildcard routing pattern."""
         hash_wildcard_messages.append(message.get_value())
 

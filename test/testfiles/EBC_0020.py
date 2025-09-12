@@ -70,11 +70,11 @@ async def test(config_folder_path):
     routing_key = "test"                      # Single word routing key (exact match)
 
     # Callback functions for subscribers
-    async def matching_subscriber_callback(message):
+    async def matching_subscriber_callback(message, headers):
         """Callback for subscriber that should receive the message"""
         matching_subscriber_messages.append(message.get_value())
 
-    async def non_matching_subscriber_callback(message):
+    async def non_matching_subscriber_callback(message, headers):
         """Callback for subscriber that should NOT receive the message"""
         non_matching_subscriber_messages.append(message.get_value())
 

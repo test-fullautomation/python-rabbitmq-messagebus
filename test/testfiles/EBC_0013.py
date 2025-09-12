@@ -88,23 +88,23 @@ async def test(config_folder_path):
     publisher_mixed_pattern = "events.*.system.#"    # Mixed pattern: * for one word, # for zero or more words
 
     # Callback functions for each subscriber
-    async def subscriber1_callback(message):
+    async def subscriber1_callback(message, headers):
         """Callback for subscriber 1 with key: events.user.system"""
         subscriber1_messages.append(message.get_value())
 
-    async def subscriber2_callback(message):
+    async def subscriber2_callback(message, headers):
         """Callback for subscriber 2 with key: events.admin.system.auth"""
         subscriber2_messages.append(message.get_value())
 
-    async def subscriber3_callback(message):
+    async def subscriber3_callback(message, headers):
         """Callback for subscriber 3 with key: events.guest.system.monitoring.alerts"""
         subscriber3_messages.append(message.get_value())
 
-    async def subscriber4_callback(message):
+    async def subscriber4_callback(message, headers):
         """Callback for subscriber 4 with key: events.service.system.health.check.status"""
         subscriber4_messages.append(message.get_value())
 
-    async def subscriber5_callback(message):
+    async def subscriber5_callback(message, headers):
         """Callback for subscriber 5 with key: events.api.system.performance"""
         subscriber5_messages.append(message.get_value())
 

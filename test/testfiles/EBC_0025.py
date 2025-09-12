@@ -63,7 +63,7 @@ async def test(config_folder_path):
     literal_routing_key = "device.sensor.temperature"  # Subscriber uses this literal key
     pattern_routing_key = "device.sensor.*"            # Publisher uses this pattern
 
-    async def message_callback(message):
+    async def message_callback(message, headers):
         """Callback function to handle received BasicMessage."""
         received_messages.append(message.content)
 

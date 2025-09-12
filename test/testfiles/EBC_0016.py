@@ -80,15 +80,15 @@ async def test(config_folder_path):
     lowercase_pattern = "events.user.login"           # Exact lowercase pattern
 
     # Callback functions for each subscriber
-    async def uppercase_subscriber_callback(message):
+    async def uppercase_subscriber_callback(message, headers):
         """Callback for uppercase subscriber with key: EVENTS.USER.LOGIN"""
         uppercase_subscriber_messages.append(message.get_value())
 
-    async def lowercase_subscriber_callback(message):
+    async def lowercase_subscriber_callback(message, headers):
         """Callback for lowercase subscriber with key: events.user.login"""
         lowercase_subscriber_messages.append(message.get_value())
 
-    async def mixedcase_subscriber_callback(message):
+    async def mixedcase_subscriber_callback(message, headers):
         """Callback for mixed case subscriber with key: Events.User.Login"""
         mixedcase_subscriber_messages.append(message.get_value())
 
