@@ -34,6 +34,7 @@ from aio_pika.abc import AbstractIncomingMessage
 from EventBusClient.serializer.base_serializer import Serializer
 from EventBusClient.serializer.pickle_serializer import PickleSerializer
 from EventBusClient.message.base_message import BaseMessage
+from EventBusClient import LOGGER
 from .subscription_cache import SubscriptionCache
 
 
@@ -192,7 +193,10 @@ Handle incoming messages by deserializing them and invoking the callback.
       async with message.process():
          try:
             obj = self._serializer.deserialize(message.body)
-            if self._cache:
+            LOGGER.info(f"[AsyncSubscriber] Received message: {obj} with headers: {message.headers}")
+            LOGGER.info(f"[AsyncSubscriber] Cache id: {id(self._cache)}. Cache: {self._cache}")
+            if self._cache is not None:
+               LOGGER.info(f"[AsyncSubscriber] Caching message: {obj}. Cache id: {id(self._cache)}")
                self._cache.append(obj)
 
             if not isinstance(obj, self._message_cls):
@@ -206,7 +210,7 @@ Handle incoming messages by deserializing them and invoking the callback.
                      cb(obj, message.headers)
 
          except Exception as e:
-            print(f"[AsyncSubscriber] Error handling message: {e}")
+            LOGGER.info(f"[AsyncSubscriber] Error handling message: {e}")
 
    @property
    def routing_key(self):

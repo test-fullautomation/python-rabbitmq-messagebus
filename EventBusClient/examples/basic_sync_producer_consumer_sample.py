@@ -54,7 +54,7 @@ class TestMessage(BaseMessage):
 def producer_process(config_path: str):
     logging.info("Producer: Starting up")
     # Create client from config (initialize configuration). Connect in sync mode.
-    client = EventBusClient.from_config_sync(config_path, start_connection=False)
+    client = EventBusClient.from_config_sync(config_path)
     client.connect_sync()  # host/port/exchange are loaded from config if desired
 
     # Send 5 messages (blocking)

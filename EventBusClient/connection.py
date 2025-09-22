@@ -34,10 +34,11 @@ import aiormq
 # import logging
 from typing import Optional
 import aio_pika
-from .qlogger import QLogger
+# from .qlogger import QLogger
+from EventBusClient import LOGGER
 
 # logger = logging.getLogger(__name__)
-logger = QLogger().get_logger("event_bus_client")
+# logger = QLogger().get_logger("event_bus_client")
 
 class ConnectionManager:
    """
@@ -65,6 +66,18 @@ ConnectionManager: Initializes the connection manager with an event loop.
       self._is_reconnecting = False
       self._close_channel_callback = None
       self._close_connection_callback = None
+
+   def is_connected(self) -> bool:
+      """
+Check if the connection to RabbitMQ is established.
+
+**Returns:**
+
+  / *Type*: bool /
+
+  True if connected, False otherwise.
+      """
+      return self._connection is not None and not self._connection.is_closed
 
    async def connect(self,
                      host: str,
@@ -166,13 +179,13 @@ Establish a robust connection to RabbitMQ and create a channel.
             )
          except asyncio.TimeoutError as e:
             last_exc = e
-            logger.warning("Connect timeout (%ss) to %s (try %d/%d)",
+            LOGGER.warning("Connect timeout (%ss) to %s (try %d/%d)",
                             timeout, host, i, attempts)
          except (aiormq.exceptions.AMQPConnectionError,
                  ConnectionRefusedError,
                  OSError) as e:
             last_exc = e
-            logger.warning("Connect failed to %s (try %d/%d): %s",
+            LOGGER.warning("Connect failed to %s (try %d/%d): %s",
                             host, i, attempts, repr(e))
          else:
             break
@@ -183,7 +196,7 @@ Establish a robust connection to RabbitMQ and create a channel.
             await asyncio.sleep(delay)
 
       if not self._connection or self._connection.is_closed:
-         logger.error("Could not connect to RabbitMQ at %s:%d after %d attempts",
+         LOGGER.error("Could not connect to RabbitMQ at %s:%d after %d attempts",
                         host, port, attempts)
          raise last_exc
 
@@ -257,12 +270,12 @@ Recreate the RabbitMQ channel if it is closed or dropped.
   The reply code associated with the channel drop, if any.
       """
       if exc:
-         logger.error(f"[ConnectionManager] Channel dropped with exception: {exc}, reply_code: {reply_code}")
+         LOGGER.error(f"[ConnectionManager] Channel dropped with exception: {exc}, reply_code: {reply_code}")
       else:
-         logger.info(f"[ConnectionManager] Channel dropped, recreating... (reply_code: {reply_code})")
+         LOGGER.info(f"[ConnectionManager] Channel dropped, recreating... (reply_code: {reply_code})")
 
       if not self._connection or self._connection.is_closed:
-         logger.info("[ConnectionManager] Connection is closed, cannot recreate channel until reconnected.")
+         LOGGER.info("[ConnectionManager] Connection is closed, cannot recreate channel until reconnected.")
          return
 
       self._channel = await self._connection.channel()
@@ -270,7 +283,7 @@ Recreate the RabbitMQ channel if it is closed or dropped.
       for handler in self._exchange_handlers:
          if hasattr(handler, "setup"):
             await handler.setup(self)
-      logger.info("[ConnectionManager] Channel recreated successfully.")
+      LOGGER.info("[ConnectionManager] Channel recreated successfully.")
 
    async def reconnect(self, host: str, port: int, exc: Exception = None, reply_code: int = 0):
       """
@@ -303,17 +316,17 @@ Reconnect to RabbitMQ in case of connection loss or error.
          try:
             if exc:
                if isinstance(exc, aio_pika.exceptions.AMQPConnectionError):
-                  logger.error(f"[ConnectionManager] AMQPConnectionError: {exc}, reply_code: {reply_code}")
+                  LOGGER.error(f"[ConnectionManager] AMQPConnectionError: {exc}, reply_code: {reply_code}")
                elif isinstance(exc, asyncio.TimeoutError):
-                  logger.error(f"[ConnectionManager] TimeoutError: {exc}, reply_code: {reply_code}")
+                  LOGGER.error(f"[ConnectionManager] TimeoutError: {exc}, reply_code: {reply_code}")
                elif isinstance(exc, ConnectionRefusedError):
-                  logger.error(f"[ConnectionManager] ConnectionRefusedError: {exc}, reply_code: {reply_code}")
+                  LOGGER.error(f"[ConnectionManager] ConnectionRefusedError: {exc}, reply_code: {reply_code}")
                else:
-                  logger.error(f"[ConnectionManager] Unknown exception: {exc}, reply_code: {reply_code}")
+                  LOGGER.error(f"[ConnectionManager] Unknown exception: {exc}, reply_code: {reply_code}")
             else:
-               logger.info(f"[ConnectionManager] Connection closed, reconnecting... (reply_code: {reply_code})")
+               LOGGER.info(f"[ConnectionManager] Connection closed, reconnecting... (reply_code: {reply_code})")
 
-            logger.info("[ConnectionManager] Reconnecting...")
+            LOGGER.info("[ConnectionManager] Reconnecting...")
             if self._close_channel_callback and self._channel:
                self._channel.close_callbacks.discard(self._close_channel_callback)
             if self._channel and not self._channel.is_closed:
@@ -325,8 +338,8 @@ Reconnect to RabbitMQ in case of connection loss or error.
             for handler in self._exchange_handlers:
                if hasattr(handler, "setup"):
                   await handler.setup(self)
-            logger.info("[ConnectionManager] Reconnected successfully.")
+            LOGGER.info("[ConnectionManager] Reconnected successfully.")
          except Exception as e:
-            logger.info(f"[ConnectionManager] Reconnect failed: {e}")
+            LOGGER.info(f"[ConnectionManager] Reconnect failed: {e}")
          finally:
             self._is_reconnecting = False

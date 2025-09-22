@@ -35,7 +35,10 @@ from EventBusClient.serializer.base_serializer import Serializer
 from EventBusClient.message.base_message import BaseMessage
 from EventBusClient.connection import ConnectionManager
 from typing import Callable, Type, Optional
+# from EventBusClient.qlogger import QLogger
+from EventBusClient import LOGGER
 
+# logger = QLogger().get_logger("event_bus_client")
 
 class XRTopicExchangeHandler(ExchangeHandler):
    """
@@ -132,11 +135,14 @@ This is useful in multi-threaded applications where the event bus client may be 
       """
       # await self._publisher.publish(message, routing_key, headers)
       if threadsafe:
+         LOGGER.info(f"Publishing message to routing key: {routing_key} in a thread-safe manner")
          future = asyncio.run_coroutine_threadsafe(
             self._publisher.publish(message, routing_key, headers),
             loop=self._loop
          )
-         return await asyncio.wrap_future(future)  # Await result safely
+         result = await asyncio.wrap_future(future)  # Await result safely
+         LOGGER.info(f"Publish completed for routing key: {routing_key}")
+         return result
       else:
          await self._publisher.publish(message, routing_key, headers)
          return None
@@ -187,6 +193,7 @@ This function will be called with the deserialized message object when a message
       # optionally remember sub for later unsubscribe
       # self._subs[(topic, msg_cls)] = sub
       self._subscribers.append(subscriber)
+      LOGGER.info(f"Subscribed to routing key: {routing_key} with message class: {message_cls.__name__}")
       return cache
 
 #    async def teardown(self):

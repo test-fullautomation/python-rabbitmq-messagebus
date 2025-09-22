@@ -78,6 +78,22 @@ class SubscriptionCache(Generic[T]):
                 return self._buf.popleft()
         return None
 
+    def peek_nothrow(self) -> Optional[T]:
+        """Peek at the head of the cache, only if not empty."""
+        with self._cv:
+            return self._buf[0] if self._buf else None
+
+    def peek(self, timeout: Optional[float] = None) -> T:
+        """Block until any item arrives; return it (FIFO) without removing."""
+        end = None if timeout is None else (time.time() + timeout)
+        with self._cv:
+            while not self._buf:
+                remaining = None if end is None else end - time.time()
+                if remaining is not None and remaining <= 0:
+                    raise TimeoutError("cache.peek timed out")
+                self._cv.wait(timeout=remaining)
+            return self._buf[0]
+
     def wait_for(self, predicate: Callable[[T], bool], timeout: Optional[float] = None) -> T:
         """Block until an item matches predicate, return it (and remove it)."""
         end = None if timeout is None else (time.time() + timeout)
@@ -119,6 +135,10 @@ class SubscriptionCache(Generic[T]):
     def __len__(self) -> int:
         with self._cv:
             return len(self._buf)
+
+    def __iter__(self):
+        with self._cv:
+            return iter(list(self._buf))
 
     # ---- async convenience wrappers (run blocking ops in a thread)
     async def aget(self, timeout: Optional[float] = None) -> T:
