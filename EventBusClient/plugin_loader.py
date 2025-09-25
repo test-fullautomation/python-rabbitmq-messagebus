@@ -119,7 +119,7 @@ PluginLoader: Dynamically loads serializers, exchange handlers, and messages.
 
 * ``base_path``
 
-  / *Condition*: optional / *Type*: str, os\.PathLike, or list of these /
+  / *Condition*: optional / *Type*: str, os.PathLike, or list of these /
 
   Base path(s) to search for plugins. Defaults to the directory of this file.
       """

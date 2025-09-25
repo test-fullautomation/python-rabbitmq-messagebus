@@ -29,6 +29,7 @@
 # *******************************************************************************
 import asyncio
 import aiormq
+import contextlib
 # import sys
 # sys.tracebacklimit=0
 # import logging
@@ -56,7 +57,7 @@ ConnectionManager: Initializes the connection manager with an event loop.
 
   The event loop to use for asynchronous operations. If not provided, the current event loop is used.
       """
-      self._loop = loop or asyncio.get_event_loop()
+      self._loop = loop # or asyncio.get_event_loop()
       self._connection: Optional[aio_pika.RobustConnection] = None
       self._channel: Optional[aio_pika.Channel] = None
       self._reconnect_lock = asyncio.Lock()
@@ -78,6 +79,9 @@ Check if the connection to RabbitMQ is established.
   True if connected, False otherwise.
       """
       return self._connection is not None and not self._connection.is_closed
+
+   def reset_loop(self, loop: asyncio.AbstractEventLoop):
+      self._loop = loop
 
    async def connect(self,
                      host: str,
@@ -168,11 +172,12 @@ Establish a robust connection to RabbitMQ and create a channel.
       backoff_factor: float = 2.0
       for i in range(1, attempts + 1):
          try:
+            loop = self._loop or asyncio.get_running_loop()
             self._connection = await asyncio.wait_for(
                aio_pika.connect_robust(
                   host=host,
                   port=port,
-                  loop=self._loop,
+                  loop=loop,
                   **kwargs
                ),
                timeout=timeout,
@@ -250,6 +255,20 @@ Gracefully close the connection and channel.
 
       if self._connection and not self._connection.is_closed:
          await self._connection.close()
+
+      if self._channel and not self._channel.is_closed:
+         await self._channel.close()
+
+      if self._connection and not self._connection.is_closed:
+         try:
+            await self._connection.close(no_wait=False)
+         except TypeError:
+            await self._connection.close()
+
+         closing = getattr(self._connection, "closing", None)
+         if closing:
+            with contextlib.suppress(Exception):
+               await asyncio.wait_for(closing, timeout=3)
 
    async def recreate_channel(self, exc: Exception = None, reply_code: int = 0):
       """

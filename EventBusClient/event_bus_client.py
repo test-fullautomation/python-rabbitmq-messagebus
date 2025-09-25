@@ -33,11 +33,15 @@ import asyncio
 import threading
 from concurrent.futures import TimeoutError as _FutTimeout
 from typing import Callable, Awaitable, Optional, Type, Union
+
+import JsonPreprocessor
+from JsonPreprocessor import CJsonPreprocessor
+
 from .exchange_handler.base import ExchangeHandler
 from .message.base_message import BaseMessage
 from .message.basic_message import BasicMessage
 from .connection import ConnectionManager
-from .plugin_loader import PluginLoader, CONFIG_SCHEMA
+from .plugin_loader import PluginLoader, CONFIG_SCHEMA, ConfigValidator
 from .serializer.base_serializer import Serializer
 from .qlogger import QLogger
 from .startup_policy import StartupPolicy, NoWait
@@ -46,6 +50,20 @@ from EventBusClient import LOGGER, LOGGER_NAME
 
 # logger = QLogger().get_logger("event_bus_client")
 # logger = logging.getLogger(__name__)
+
+def get_running_loop_or_none() -> Optional[asyncio.AbstractEventLoop]:
+   try:
+      return asyncio.get_running_loop()
+   except RuntimeError:
+      # "no running event loop" in this thread
+      return None
+
+
+def is_on_loop(loop: asyncio.AbstractEventLoop) -> bool:
+   try:
+      return asyncio.get_running_loop() is loop
+   except RuntimeError:
+      return False
 
 class EventBusClient:
    """
@@ -100,8 +118,8 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
       self._startup_policy = startup_policy or NoWait()
       self.rendezvous = Rendezvous(self)
 
-      self.loop = loop or asyncio.get_event_loop()
-      self.connection = ConnectionManager(loop=self.loop, auto_reconnect=auto_reconnect)
+      self.loop = loop # or asyncio.get_event_loop()
+      self.connection = ConnectionManager(loop=None, auto_reconnect=auto_reconnect)
       self.exchange_handler = exchange_handler
       self.prefetch_count = prefetch_count
       self.serializer = serializer
@@ -143,7 +161,8 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
 
    @classmethod
    async def from_config(cls,
-                         config_path: str,
+                         config_source: Optional[Union[str, dict]] = None,
+                         config_path: Optional[str] = None,
                          startup_policy: Optional[StartupPolicy] = None,
                          zone_id: Optional[str] = None,
                          alias: Optional[str] = None,
@@ -169,7 +188,22 @@ Create an EventBusClient instance from a configuration file.
          "loglevel": "INFO",
          "logger_name": "event_bus_client"
       }
-      config = PluginLoader.load_config(config_path)
+      # LOGGER.info(f"Loading EventBusClient configuration from {'path: ' + config_path if config_path else 'source'}")
+      if (config_path is None and config_source is None) or (config_path is not None and config_source is not None):
+         raise ValueError(f"Exactly one of config_path or config_source must be provided. config_path: {config_path}")
+
+      if config_path is not None:
+         config = PluginLoader.load_config(config_path)
+      elif config_source is not None:
+         if isinstance(config_source, str):
+            config = CJsonPreprocessor().jsonLoads(config_source)
+         elif isinstance(config_source, dict):
+            config = config_source
+         else:
+            raise ValueError("config_source must be a str, dict, or JSONpREPROCESSOR object")
+
+         ConfigValidator(CONFIG_SCHEMA).validate(config)
+
       # Setup logger
       if "logger_name" not in config or not config.logger_name:
          config.logger_name = default_values["logger_name"]
@@ -250,6 +284,9 @@ Connect to the event bus server and set up the exchange handler.
     The number of messages to prefetch from the server. This controls how many messages can be sent to the client before they are acknowledged. Defaults to None.
       """
       try:
+         self.loop = asyncio.get_running_loop()
+         self.connection.reset_loop(self.loop)
+         self.exchange_handler.reset_loop(self.loop)
          self.host = host if host is not None else self.host
          self.port = port if port is not None else self.port
          self.prefetch_count = prefetch_count if prefetch_count is not None else self.prefetch_count
@@ -586,6 +623,13 @@ Submit an async coroutine to the background loop and wait for result (blocking).
          # So always start our own loop for sync API.
          LOGGER.info("Starting background loop for sync operation")
          self.start_background_loop()
+      LOGGER.info("caller_thread=%s loop_is_same=%s",
+                  threading.current_thread().name,
+                  (get_running_loop_or_none() is self.loop))
+      if get_running_loop_or_none() is self.loop:
+         import traceback
+         stack = traceback.format_stack(limit=6)
+         LOGGER.info("Stack (last 4 calls):\n%s", "".join(stack))
 
       LOGGER.info("Background loop is running, submitting coroutine")
       if not self.loop.is_running():
@@ -603,7 +647,8 @@ Submit an async coroutine to the background loop and wait for result (blocking).
    # ---------- Sync wrappers over existing async APIs ----------
    @classmethod
    def from_config_sync(cls,
-                        config_path: str,
+                        config_source: Optional[Union[str, dict]] = None,
+                        config_path: Optional[str] = None,
                         startup_policy: Optional[StartupPolicy] = None,
                         zone_id: Optional[str] = None,
                         alias: Optional[str] = None) -> EventBusClient:
@@ -627,7 +672,7 @@ Create an EventBusClient instance from a configuration file synchronously.
       loop = asyncio.new_event_loop()
       try:
          asyncio.set_event_loop(loop)
-         client = loop.run_until_complete(cls.from_config(config_path, startup_policy, zone_id, alias, start_connection=False))
+         client = loop.run_until_complete(cls.from_config(config_source, config_path, startup_policy, zone_id, alias, start_connection=False))
          return client
       finally:
          try:
@@ -653,6 +698,7 @@ Blocking connect that spins a background loop if needed.
       try:
          self.start_background_loop()
          self.exchange_handler.reset_loop(self.loop)
+         self.connection.reset_loop(self.loop)
          return self._submit(self.connect(host=host, port=port, prefetch_count=prefetch_count), timeout=timeout)
       except Exception as e:
          LOGGER.error(f"Failed to connect synchronously: {e}")
