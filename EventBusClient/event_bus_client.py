@@ -115,7 +115,7 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
             logger_config.logger_name = "event_bus_client"
 
          EventBusClient.LOGGER_NAME = logger_config.logger_name
-         if not "logfile" in logger_config:
+         if "logfile" not in logger_config:
             logger_config.logfile = None
          self._logger_handler = QLogger().set_handler(logger_config)
 
