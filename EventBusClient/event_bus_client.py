@@ -279,7 +279,7 @@ Create an EventBusClient instance from a configuration file.
          elif isinstance(config_source, dict):
             config = config_source
          else:
-            raise ValueError("config_source must be a str, dict, or JSONpREPROCESSOR object")
+            raise ValueError("config_source must be a str, dict, or JsonPreprocessor object")
 
          ConfigValidator(CONFIG_SCHEMA).validate(config)
 
