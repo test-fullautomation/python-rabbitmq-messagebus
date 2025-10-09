@@ -31,12 +31,13 @@ from __future__ import annotations
 import logging
 import asyncio
 import threading
-from concurrent.futures import TimeoutError as _FutTimeout
+from concurrent.futures import TimeoutError as _FutTimeout, ThreadPoolExecutor
 from typing import Callable, Awaitable, Optional, Type, Union
 
 import JsonPreprocessor
 from JsonPreprocessor import CJsonPreprocessor
 
+from EventBusClient.subscription_cache import SubscriptionCache
 from .exchange_handler.base import ExchangeHandler
 from .message.base_message import BaseMessage
 from .message.basic_message import BasicMessage
@@ -44,9 +45,10 @@ from .connection import ConnectionManager
 from .plugin_loader import PluginLoader, CONFIG_SCHEMA, ConfigValidator
 from .serializer.base_serializer import Serializer
 from .qlogger import QLogger
-from .startup_policy import StartupPolicy, NoWait
+from .startup_policy import StartupPolicy, NoWait, PolicyChain, build_policy_from_config
 from .rendezvous import Rendezvous
 from EventBusClient import LOGGER, LOGGER_NAME
+from .wait_mode import WaitMode
 
 # logger = QLogger().get_logger("event_bus_client")
 # logger = logging.getLogger(__name__)
@@ -81,7 +83,9 @@ EventBusClient: Client for interacting with the event bus system.
       auto_reconnect: bool = True,
       host: str = "localhost",
       port: int = 5672,
-      logger_config: dict = None
+      logger_config: dict = None,
+      startup_policies: list[StartupPolicy] | None = None,
+      **kwargs
    ):
       """
 EventBusClient: Initializes the event bus client with an exchange handler and serializer.
@@ -115,7 +119,11 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
             logger_config.logfile = None
          self._logger_handler = QLogger().set_handler(logger_config)
 
-      self._startup_policy = startup_policy or NoWait()
+      if startup_policies:
+         self._startup_policy = PolicyChain(startup_policies)
+      else:
+         self._startup_policy = startup_policy
+      # self._startup_policy = startup_policy or NoWait()
       self.rendezvous = Rendezvous(self)
 
       self.loop = loop # or asyncio.get_event_loop()
@@ -129,6 +137,77 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
       self.host = host
       self.port = port
       self._connected = False
+
+      # General-cache policy
+      self.general_cache_policy: str = kwargs.get("general_cache_policy",
+                                                           "off")  # "off" | "on_connect" | "on_demand"
+      self.general_routing_keys = kwargs.get("general_routing_keys",
+                                                      ["general"])
+      self.general_message_cls = kwargs.get("general_message_cls", BaseMessage)
+      self.general_cache = None
+      self._wait_exec = None  # lazy ThreadPoolExecutor for async=True legacy waits
+
+   async def _ensure_general_listener(self) -> None:
+      if self.general_cache is not None:
+         return
+
+      self.general_cache = await self.exchange_handler.subscribe(routing_key=self.general_routing_keys , message_cls=self.general_message_cls, callback=None)
+
+   async def enable_general_cache(self, *, routing_keys, message_cls) -> None:
+      self.general_cache_policy = "on_connect"
+      self.general_routing_keys = routing_keys # if isinstance(routing_keys, (list, tuple)) else [routing_keys]
+      self.general_message_cls = message_cls
+      # idempotent; will no-op if already running
+      await self._ensure_general_listener()
+
+   def _wait_exec(self) -> ThreadPoolExecutor:
+      if self.__dict__.get("_wait_exec") is None:
+         self._wait_exec = ThreadPoolExecutor(max_workers=4)
+      return self._wait_exec
+
+   def wait_on_general_topic_for_one(
+           self, msg, *, timeout: float = 30.0, interval: float = 0.1, asynchronous: bool = False
+   ):
+      if not self.general_cache:
+         # lazy start if policy allows (captures from now on)
+         if self.general_cache_policy in ("on_demand", "off"):
+            self._submit(self._ensure_general_listener())
+         else:
+            raise RuntimeError("General cache not available")
+      cache: SubscriptionCache = self.general_cache
+      if not asynchronous:
+         return cache.wait_for_one(msg, timeout=timeout)
+      return self._wait_exec().submit(cache.wait_for_one, msg, timeout)
+
+   def wait_on_general_topic_for_many(
+           self, msgs, *, mode: int = WaitMode.ALL_IN_GIVEN_ORDER.value, timeout: float = 30.0, interval: float = 0.1,
+           asynchronous: bool = False
+   ):
+      if not self.general_cache:
+         if self.general_cache_policy in ("on_demand", "off"):
+            self._submit(self._ensure_general_listener())
+         else:
+            raise RuntimeError("General cache not available")
+      cache: SubscriptionCache = self.general_cache
+      if not asynchronous:
+         return cache.wait_for_many(msgs, mode=WaitMode(mode), timeout=timeout)
+      return self._wait_exec().submit(cache.wait_for_many, msgs, WaitMode(mode), timeout)
+
+   def wait_on_cache_for_one(
+           self, cache: SubscriptionCache, msg, *, timeout: float = 30.0, interval: float = 0.1,
+           asynchronous: bool = False
+   ):
+      if not asynchronous:
+         return cache.wait_for_one(msg, timeout=timeout)
+      return self._wait_exec().submit(cache.wait_for_one, msg, timeout)
+
+   def wait_on_cache_for_many(
+           self, cache: SubscriptionCache, msgs, *, mode: int = WaitMode.ALL_IN_GIVEN_ORDER.value,
+           timeout: float = 30.0, interval: float = 0.1, asynchronous: bool = False
+   ):
+      if not asynchronous:
+         return cache.wait_for_many(msgs, mode=WaitMode(mode), timeout=timeout)
+      return self._wait_exec().submit(cache.wait_for_many, msgs, WaitMode(mode), timeout)
 
    @staticmethod
    def constructor_params_from_config(config_path: str,
@@ -293,7 +372,14 @@ Connect to the event bus server and set up the exchange handler.
          await self.connection.connect(self.host, self.port, self.prefetch_count, **kwargs)
          await self.exchange_handler.setup(self.connection)
          self._connected = True
-         await self._startup_policy.wait_until_ready(self)
+         # await self._startup_policy.wait_until_ready(self)
+         cfg = kwargs.get("config_dict")  # or wherever you stash the parsed JSON
+         if cfg and "event_bus" in cfg and not self._startup_policy:
+            self._startup_policy = build_policy_from_config(cfg["event_bus"])
+
+         # run policies (if any)
+         if self._startup_policy:
+            await self._startup_policy.wait_until_ready(self)
       except Exception as e:
          LOGGER.error(f"Failed to connect: {e}")
          raise
