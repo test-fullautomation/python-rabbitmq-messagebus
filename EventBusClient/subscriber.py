@@ -29,11 +29,14 @@
 # *******************************************************************************
 import asyncio
 import aio_pika
-from typing import Any, Callable, Optional, Type, MutableMapping
+import threading
+import inspect
+from typing import Any, Callable, Optional, Type, MutableMapping, Awaitable
 from aio_pika.abc import AbstractIncomingMessage
 from EventBusClient.serializer.base_serializer import Serializer
 from EventBusClient.serializer.pickle_serializer import PickleSerializer
 from EventBusClient.message.base_message import BaseMessage
+from EventBusClient import LOGGER
 from .subscription_cache import SubscriptionCache
 
 
@@ -49,7 +52,8 @@ AsyncSubscriber: Subscribes to messages from an exchange using aio_pika.
       message_cls: Type[BaseMessage],
       callback: Callable[[BaseMessage, MutableMapping[str, Any]], None] | list[Callable[[BaseMessage, MutableMapping[str, Any]], None]] = None,
       serializer: Serializer = None,
-      cache_size_default: int = 200
+      cache_size_default: int = 200,
+      callback_isolation: str = "threaded",  # "direct" | "threaded"
    ):
       """
 AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing key, message class, callback, and optional serializer.
@@ -104,6 +108,13 @@ AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing ke
       self._cache: Optional[SubscriptionCache[Any]] = None
       self._cache_default = cache_size_default
 
+      self._callback_isolation = callback_isolation
+
+      # Dedicated callback loop/thread (used only if isolation="threaded")
+      self._cb_loop: Optional[asyncio.AbstractEventLoop] = None
+      self._cb_thread: Optional[threading.Thread] = None
+      self._cb_ready = threading.Event()
+
    @property
    def cache(self) -> SubscriptionCache[Any]:
       if self._cache is None:
@@ -121,6 +132,8 @@ Start the subscriber by declaring a queue, binding it to the exchange, and consu
       )
       self._cache = SubscriptionCache(maxlen=cache_size or self._cache_default)
       await self._queue.bind(self._exchange, routing_key=self._routing_key)
+      if self._callback_isolation == "threaded":
+         self._start_callback_loop()
       self._consumer_tag = await self._queue.consume(self._on_message)
       return self._cache
 
@@ -148,6 +161,10 @@ Stop the subscriber by canceling the consumer, unbinding the queue from the exch
                pass  # Ignore delete errors
 
             self._queue = None
+
+         # Stop isolated callback loop
+         if self._callback_isolation == "threaded":
+            self._stop_callback_loop()
 
       except Exception as e:
          print(f"[AsyncSubscriber] Error during stop: {e}")
@@ -192,21 +209,134 @@ Handle incoming messages by deserializing them and invoking the callback.
       async with message.process():
          try:
             obj = self._serializer.deserialize(message.body)
-            if self._cache:
+            LOGGER.info(f"[AsyncSubscriber] Received message: {obj} with headers: {message.headers}")
+            LOGGER.info(f"[AsyncSubscriber] Cache id: {id(self._cache)}. Cache: {self._cache}")
+            if self._cache is not None:
+               LOGGER.info(f"[AsyncSubscriber] Caching message: {obj}. Cache id: {id(self._cache)}")
                self._cache.append(obj)
 
             if not isinstance(obj, self._message_cls):
                raise TypeError(f"Expected {self._message_cls}, got {type(obj)}")
 
             if self._callback:
-               for cb in self._callback:
-                  if asyncio.iscoroutinefunction(cb):
-                     await cb(obj, dict(message.headers))
-                  else:
-                     cb(obj, message.headers)
+               # for cb in self._callback:
+               #    if asyncio.iscoroutinefunction(cb):
+               #       await cb(obj, dict(message.headers))
+               #    else:
+               #       cb(obj, message.headers)
+               self._schedule_handlers(obj, dict(message.headers))
 
          except Exception as e:
-            print(f"[AsyncSubscriber] Error handling message: {e}")
+            LOGGER.info(f"[AsyncSubscriber] Error handling message: {e}")
+
+   def _schedule_handlers(self, message: BaseMessage, headers: dict) -> None:
+      """
+      Schedule all handlers without awaiting them. Used when ack_after_handler=False.
+      """
+      if not self._callback:
+         return
+
+      loop = asyncio.get_running_loop()
+
+      for h in self._callback:
+         if self._callback_isolation == "threaded":
+            if inspect.iscoroutinefunction(h):
+               # async handler on dedicated callback loop (safe if it calls send_sync)
+               fut = asyncio.run_coroutine_threadsafe(h(message, headers), self._cb_loop)  # type: ignore[arg-type]
+               # ensure exceptions are observed (avoid "exception was never retrieved")
+               fut.add_done_callback(lambda f: f.exception())
+            else:
+               # sync handler on a worker thread (not blocking bus loop)
+               loop.run_in_executor(None, h, message, headers)
+         else:
+            # direct mode: run on bus loop
+            if inspect.iscoroutinefunction(h):
+               loop.create_task(h(message, headers))
+            else:
+               loop.run_in_executor(None, h, message, headers)
+
+   async def _invoke_handlers(self, message: BaseMessage, headers: dict) -> bool:
+      """
+      Await all handlers (used when ack_after_handler=True).
+      Returns True if ALL handlers complete successfully.
+      """
+      if not self._callback:
+         return True
+
+      async def _one(h):
+         if self._callback_isolation == "threaded":
+            if inspect.iscoroutinefunction(h):
+               fut = asyncio.run_coroutine_threadsafe(h(message, headers), self._cb_loop)  # type: ignore[arg-type]
+               # propagate any exception to this loop
+               return await asyncio.wrap_future(fut)
+            else:
+               loop = asyncio.get_running_loop()
+               return await loop.run_in_executor(None, h, message, headers)
+         else:
+            if inspect.iscoroutinefunction(h):
+               return await h(message, headers)
+            else:
+               loop = asyncio.get_running_loop()
+               return await loop.run_in_executor(None, h, message, headers)
+
+      if self._handler_mode == "sequential":
+         ok = True
+         for h in self._callback:
+            try:
+               await _one(h)
+            except Exception:
+               LOGGER.exception("Handler failed (sequential): routing_key=%s", self.routing_key)
+               ok = False
+         return ok
+
+      # parallel (default)
+      tasks = [asyncio.create_task(_one(h)) for h in self._callback]
+      results = await asyncio.gather(*tasks, return_exceptions=True)
+      all_ok = True
+      for r in results:
+         if isinstance(r, Exception):
+            all_ok = False
+      if not all_ok:
+         LOGGER.debug("One or more handlers failed (parallel) for routing_key=%s", self.routing_key)
+      return all_ok
+
+   # --------------------- callback loop management ---------------------
+
+   def _start_callback_loop(self) -> None:
+      if self._cb_loop:
+         return
+
+      def _runner():
+         loop = asyncio.new_event_loop()
+         asyncio.set_event_loop(loop)
+         self._cb_loop = loop
+         self._cb_ready.set()
+         try:
+            loop.run_forever()
+         finally:
+            # best-effort drain
+            try:
+               pending = [t for t in asyncio.all_tasks(loop) if not t.done()]
+               for t in pending:
+                  t.cancel()
+               if pending:
+                  loop.run_until_complete(asyncio.gather(*pending, return_exceptions=True))
+               loop.run_until_complete(loop.shutdown_asyncgens())
+            finally:
+               loop.close()
+
+      self._cb_thread = threading.Thread(target=_runner, name="CallbackLoop", daemon=True)
+      self._cb_thread.start()
+      self._cb_ready.wait(timeout=3.0)
+
+   def _stop_callback_loop(self) -> None:
+      if self._cb_loop and self._cb_loop.is_running():
+         self._cb_loop.call_soon_threadsafe(self._cb_loop.stop)
+      if self._cb_thread:
+         self._cb_thread.join(timeout=3.0)
+      self._cb_loop = None
+      self._cb_thread = None
+      self._cb_ready.clear()
 
    @property
    def routing_key(self):

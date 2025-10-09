@@ -4,3 +4,11 @@
 # from .subscriber import AsyncSubscriber
 # from .message import BaseMessage, Header
 # from .serializer.base import Serializer
+from .qlogger import QLogger
+
+LOGGER_NAME = "console"
+
+def get_logger():
+    return QLogger().get_logger(LOGGER_NAME)
+
+LOGGER = get_logger()

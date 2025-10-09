@@ -28,6 +28,8 @@
 #
 # *******************************************************************************
 import asyncio
+import time
+from numpy import uint32
 from EventBusClient.exchange_handler.base import ExchangeHandler
 from EventBusClient.publisher import AsyncPublisher
 from EventBusClient.subscriber import AsyncSubscriber
@@ -35,7 +37,10 @@ from EventBusClient.serializer.base_serializer import Serializer
 from EventBusClient.message.base_message import BaseMessage
 from EventBusClient.connection import ConnectionManager
 from typing import Callable, Type, Optional
+# from EventBusClient.qlogger import QLogger
+from EventBusClient import LOGGER
 
+# logger = QLogger().get_logger("event_bus_client")
 
 class XRTopicExchangeHandler(ExchangeHandler):
    """
@@ -43,6 +48,8 @@ XRTopicExchangeHandler: Handles x-rtopic exchanges for routing messages based on
    """
    _NAME = "XR Topic Exchange Handler"
    _EXCHANGE_TYPE = "x-rtopic"
+   __seq = uint32(0)
+
    def __init__(self, name: str = None, serializer: Serializer = None, loop: asyncio.AbstractEventLoop = None):
       """
 XRTopicExchangeHandler: Initializes the exchange handler with a serializer and event loop.
@@ -131,15 +138,30 @@ Publish a message to the exchange with the specified routing key.
 This is useful in multi-threaded applications where the event bus client may be accessed from multiple threads.
       """
       # await self._publisher.publish(message, routing_key, headers)
+      self.__seq += 1
+      if hasattr(message, "header"):
+         hasattr(message.header, "seq") and setattr(message.header, "seq", self.__seq)
+         hasattr(message.header, "timestamp") and setattr(message.header, "timestamp", time.time())
+
       if threadsafe:
-         future = asyncio.run_coroutine_threadsafe(
-            self._publisher.publish(message, routing_key, headers),
-            loop=self._loop
-         )
-         return await asyncio.wrap_future(future)  # Await result safely
-      else:
-         await self._publisher.publish(message, routing_key, headers)
-         return None
+         try:
+            running = asyncio.get_running_loop()
+         except RuntimeError:
+            running = None
+
+         if running is not self._loop:
+            LOGGER.info(f"Publishing message to routing key: {routing_key} in a thread-safe manner")
+            future = asyncio.run_coroutine_threadsafe(
+               self._publisher.publish(message, routing_key, headers),
+               loop=self._loop
+            )
+            result = await asyncio.wrap_future(future)  # Await result safely
+            LOGGER.info(f"Publish completed for routing key: {routing_key}")
+            return result
+
+      await self._publisher.publish(message, routing_key, headers)
+      LOGGER.info(f"Publish directly completed for routing key: {routing_key}")
+      return None
 
    async def subscribe(
       self,
@@ -187,6 +209,7 @@ This function will be called with the deserialized message object when a message
       # optionally remember sub for later unsubscribe
       # self._subs[(topic, msg_cls)] = sub
       self._subscribers.append(subscriber)
+      LOGGER.info(f"Subscribed to routing key: {routing_key} with message class: {message_cls.__name__}")
       return cache
 
 #    async def teardown(self):

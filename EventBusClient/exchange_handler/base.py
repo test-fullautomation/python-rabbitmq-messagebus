@@ -34,10 +34,11 @@ from EventBusClient.message.base_message import BaseMessage
 from EventBusClient.publisher import AsyncPublisher
 from EventBusClient.subscriber import AsyncSubscriber
 from typing import Type, Optional
-from EventBusClient.qlogger import QLogger
+# from EventBusClient.qlogger import QLogger
+from EventBusClient import LOGGER
 
 # logger = logging.getLogger(__name__)
-logger = QLogger().get_logger("event_bus_client")
+# logger = QLogger().get_logger("event_bus_client")
 
 class ExchangeHandler(ABC):
    _EXCHANGE_TYPE = "ExchangeHandler"
@@ -114,7 +115,7 @@ Tear down the exchange handler by closing the channel and cleaning up resources.
       """
       for subscriber in self._subscribers:
          await subscriber.stop()
-         logger.info(f"Unsubscribed {len(self._subscribers)} subscribers.")
+         LOGGER.info(f"Unsubscribed {len(self._subscribers)} subscribers.")
       self._subscribers.clear()
 
       # if self._exchange:
@@ -152,10 +153,10 @@ Unsubscribe a callback from a specific routing key.
          if subscriber.routing_key == routing_key and subscriber.callback == callback:
             await subscriber.stop()
             self._subscribers.remove(subscriber)
-            logger.info(f"Unsubscribed callback from routing key: {routing_key}")
+            LOGGER.info(f"Unsubscribed callback from routing key: {routing_key}")
             break
       else:
-         logger.warning(f"No subscriber found for routing key: {routing_key} with the given callback.")
+         LOGGER.warning(f"No subscriber found for routing key: {routing_key} with the given callback.")
 
    async def handle_channel_close(self, exc: Exception = None):
       """
@@ -169,10 +170,10 @@ Handle channel closure by attempting to re-create the channel.
 
   The exception that caused the channel to close, if any. If not provided, it defaults to None.
       """
-      logger.info(f"[ConnectionManager] Channel closed. Exception: {exc} \nAttempting to re-create channel...")
+      LOGGER.info(f"[ConnectionManager] Channel closed. Exception: {exc} \nAttempting to re-create channel...")
       if self._connection and not self._connection.is_closed:
          self._channel = await self.setup(self._connection)
          self._channel.close_callbacks.add(
             lambda expt: asyncio.create_task(self.handle_channel_close(expt)))
          await self._channel.set_qos(prefetch_count=10)
-         logger.info("[ConnectionManager] Channel re-created successfully.")
+         LOGGER.info("[ConnectionManager] Channel re-created successfully.")

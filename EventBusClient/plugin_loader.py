@@ -33,15 +33,12 @@ import pkgutil
 import importlib
 from typing import Dict, Type, Optional, Union
 from JsonPreprocessor.CJsonPreprocessor import CJsonPreprocessor
-from EventBusClient.qlogger import QLogger
 from .serializer.base_serializer import Serializer
 from .exchange_handler.base import ExchangeHandler
 from .message.base_message import BaseMessage
 from .utils import Utils
 from pydotdict import DotDict
-# from exchange_handler.topic_handler import TopicExchangeHandler
-
-logger = QLogger().get_logger("event_bus_client")
+from EventBusClient import LOGGER
 
 CONFIG_SCHEMA = {
     "plugins_path": str,
@@ -50,7 +47,10 @@ CONFIG_SCHEMA = {
     "serializer": str,
     "exchange_handler": str,
     "auto_reconnect": bool,
-    "qos_prefetch": int
+    "qos_prefetch": int,
+    "logfile": str,
+    "loglevel": str,
+    "logger_name": str
 }
 
 class ConfigValidator:
@@ -119,7 +119,7 @@ PluginLoader: Dynamically loads serializers, exchange handlers, and messages.
 
 * ``base_path``
 
-  / *Condition*: optional / *Type*: str, os\.PathLike, or list of these /
+  / *Condition*: optional / *Type*: str, os.PathLike, or list of these /
 
   Base path(s) to search for plugins. Defaults to the directory of this file.
       """

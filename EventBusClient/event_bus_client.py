@@ -31,20 +31,41 @@ from __future__ import annotations
 import logging
 import asyncio
 import threading
-from concurrent.futures import TimeoutError as _FutTimeout
+from concurrent.futures import TimeoutError as _FutTimeout, ThreadPoolExecutor
 from typing import Callable, Awaitable, Optional, Type, Union
+
+import JsonPreprocessor
+from JsonPreprocessor import CJsonPreprocessor
+
+from EventBusClient.subscription_cache import SubscriptionCache
 from .exchange_handler.base import ExchangeHandler
 from .message.base_message import BaseMessage
 from .message.basic_message import BasicMessage
 from .connection import ConnectionManager
-from .plugin_loader import PluginLoader, CONFIG_SCHEMA
+from .plugin_loader import PluginLoader, CONFIG_SCHEMA, ConfigValidator
 from .serializer.base_serializer import Serializer
 from .qlogger import QLogger
-from .startup_policy import StartupPolicy, NoWait
+from .startup_policy import StartupPolicy, NoWait, PolicyChain, build_policy_from_config
 from .rendezvous import Rendezvous
+from EventBusClient import LOGGER, LOGGER_NAME
+from .wait_mode import WaitMode
 
-logger = QLogger().get_logger("event_bus_client")
+# logger = QLogger().get_logger("event_bus_client")
 # logger = logging.getLogger(__name__)
+
+def get_running_loop_or_none() -> Optional[asyncio.AbstractEventLoop]:
+   try:
+      return asyncio.get_running_loop()
+   except RuntimeError:
+      # "no running event loop" in this thread
+      return None
+
+
+def is_on_loop(loop: asyncio.AbstractEventLoop) -> bool:
+   try:
+      return asyncio.get_running_loop() is loop
+   except RuntimeError:
+      return False
 
 class EventBusClient:
    """
@@ -61,7 +82,10 @@ EventBusClient: Client for interacting with the event bus system.
       prefetch_count: int = 10,
       auto_reconnect: bool = True,
       host: str = "localhost",
-      port: int = 5672
+      port: int = 5672,
+      logger_config: dict = None,
+      startup_policies: list[StartupPolicy] | None = None,
+      **kwargs
    ):
       """
 EventBusClient: Initializes the event bus client with an exchange handler and serializer.
@@ -86,11 +110,24 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
 
   The event loop to use for asynchronous operations. If not provided, the current event loop will be used.
       """
-      self._startup_policy = startup_policy or NoWait()
+      if logger_config:
+         if "logger_name" not in logger_config or not logger_config.logger_name:
+            logger_config.logger_name = "event_bus_client"
+
+         EventBusClient.LOGGER_NAME = logger_config.logger_name
+         if "logfile" not in logger_config:
+            logger_config.logfile = None
+         self._logger_handler = QLogger().set_handler(logger_config)
+
+      if startup_policies:
+         self._startup_policy = PolicyChain(startup_policies)
+      else:
+         self._startup_policy = startup_policy
+      # self._startup_policy = startup_policy or NoWait()
       self.rendezvous = Rendezvous(self)
 
-      self.loop = loop or asyncio.get_event_loop()
-      self.connection = ConnectionManager(loop=self.loop, auto_reconnect=auto_reconnect)
+      self.loop = loop # or asyncio.get_event_loop()
+      self.connection = ConnectionManager(loop=None, auto_reconnect=auto_reconnect)
       self.exchange_handler = exchange_handler
       self.prefetch_count = prefetch_count
       self.serializer = serializer
@@ -101,9 +138,110 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
       self.port = port
       self._connected = False
 
+      # General-cache policy
+      self.general_cache_policy: str = kwargs.get("general_cache_policy",
+                                                           "off")  # "off" | "on_connect" | "on_demand"
+      self.general_routing_keys = kwargs.get("general_routing_keys",
+                                                      ["general"])
+      self.general_message_cls = kwargs.get("general_message_cls", BaseMessage)
+      self.general_cache = None
+      self._wait_exec = None  # lazy ThreadPoolExecutor for async=True legacy waits
+
+   async def _ensure_general_listener(self) -> None:
+      if self.general_cache is not None:
+         return
+
+      self.general_cache = await self.exchange_handler.subscribe(routing_key=self.general_routing_keys , message_cls=self.general_message_cls, callback=None)
+
+   async def enable_general_cache(self, *, routing_keys, message_cls) -> None:
+      self.general_cache_policy = "on_connect"
+      self.general_routing_keys = routing_keys # if isinstance(routing_keys, (list, tuple)) else [routing_keys]
+      self.general_message_cls = message_cls
+      # idempotent; will no-op if already running
+      await self._ensure_general_listener()
+
+   def _wait_exec(self) -> ThreadPoolExecutor:
+      if self.__dict__.get("_wait_exec") is None:
+         self._wait_exec = ThreadPoolExecutor(max_workers=4)
+      return self._wait_exec
+
+   def wait_on_general_topic_for_one(
+           self, msg, *, timeout: float = 30.0, interval: float = 0.1, asynchronous: bool = False
+   ):
+      if not self.general_cache:
+         # lazy start if policy allows (captures from now on)
+         if self.general_cache_policy in ("on_demand", "off"):
+            self._submit(self._ensure_general_listener())
+         else:
+            raise RuntimeError("General cache not available")
+      cache: SubscriptionCache = self.general_cache
+      if not asynchronous:
+         return cache.wait_for_one(msg, timeout=timeout)
+      return self._wait_exec().submit(cache.wait_for_one, msg, timeout)
+
+   def wait_on_general_topic_for_many(
+           self, msgs, *, mode: int = WaitMode.ALL_IN_GIVEN_ORDER.value, timeout: float = 30.0, interval: float = 0.1,
+           asynchronous: bool = False
+   ):
+      if not self.general_cache:
+         if self.general_cache_policy in ("on_demand", "off"):
+            self._submit(self._ensure_general_listener())
+         else:
+            raise RuntimeError("General cache not available")
+      cache: SubscriptionCache = self.general_cache
+      if not asynchronous:
+         return cache.wait_for_many(msgs, mode=WaitMode(mode), timeout=timeout)
+      return self._wait_exec().submit(cache.wait_for_many, msgs, WaitMode(mode), timeout)
+
+   def wait_on_cache_for_one(
+           self, cache: SubscriptionCache, msg, *, timeout: float = 30.0, interval: float = 0.1,
+           asynchronous: bool = False
+   ):
+      if not asynchronous:
+         return cache.wait_for_one(msg, timeout=timeout)
+      return self._wait_exec().submit(cache.wait_for_one, msg, timeout)
+
+   def wait_on_cache_for_many(
+           self, cache: SubscriptionCache, msgs, *, mode: int = WaitMode.ALL_IN_GIVEN_ORDER.value,
+           timeout: float = 30.0, interval: float = 0.1, asynchronous: bool = False
+   ):
+      if not asynchronous:
+         return cache.wait_for_many(msgs, mode=WaitMode(mode), timeout=timeout)
+      return self._wait_exec().submit(cache.wait_for_many, msgs, WaitMode(mode), timeout)
+
+   @staticmethod
+   def constructor_params_from_config(config_path: str,
+                                      startup_policy: Optional[StartupPolicy] = None,
+                                      zone_id: Optional[str] = None,
+                                      alias: Optional[str] = None) -> tuple:
+      """
+      Returns a tuple of parameters for the EventBusClient constructor, loaded from config and provided arguments.
+      """
+      config = PluginLoader.load_config(config_path)
+      plugin_loader = PluginLoader()
+      handler_cls: Type[ExchangeHandler] = plugin_loader.get_exchange_handler(config.exchange_handler)
+      serializer_cls: Type[Serializer] = plugin_loader.get_serializer(config.serializer)
+      serializer = serializer_cls()
+      handler = handler_cls(serializer=serializer)
+      auto_reconnect = config.get("auto_reconnect", True)
+      return (
+         handler,
+         serializer,
+         None,  # loop
+         zone_id,
+         alias,
+         startup_policy,
+         config.get("qos_prefetch", 10),
+         auto_reconnect,
+         config.get("host", "localhost"),
+         config.get("port", 5672),
+         config
+      )
+
    @classmethod
    async def from_config(cls,
-                         config_path: str,
+                         config_source: Optional[Union[str, dict]] = None,
+                         config_path: Optional[str] = None,
                          startup_policy: Optional[StartupPolicy] = None,
                          zone_id: Optional[str] = None,
                          alias: Optional[str] = None,
@@ -119,7 +257,37 @@ Create an EventBusClient instance from a configuration file.
 
   Path to the configuration file in JSONP format. This file should contain the necessary configuration for the event bus client, including exchange handler and serializer settings.
       """
-      config = PluginLoader.load_config(config_path)
+      default_values = {
+         "plugins_path": "./plugins",
+         "host": "localhost",
+         "port": 5672,
+         "auto_reconnect": True,
+         "qos_prefetch": 10,
+         "logfile": None,
+         "loglevel": "INFO",
+         "logger_name": "event_bus_client"
+      }
+      # LOGGER.info(f"Loading EventBusClient configuration from {'path: ' + config_path if config_path else 'source'}")
+      if (config_path is None and config_source is None) or (config_path is not None and config_source is not None):
+         raise ValueError(f"Exactly one of config_path or config_source must be provided. config_path: {config_path}")
+
+      if config_path is not None:
+         config = PluginLoader.load_config(config_path)
+      elif config_source is not None:
+         if isinstance(config_source, str):
+            config = CJsonPreprocessor().jsonLoads(config_source)
+         elif isinstance(config_source, dict):
+            config = config_source
+         else:
+            raise ValueError("config_source must be a str, dict, or JsonPreprocessor object")
+
+         ConfigValidator(CONFIG_SCHEMA).validate(config)
+
+      # Setup logger
+      if "logger_name" not in config or not config.logger_name:
+         config.logger_name = default_values["logger_name"]
+
+      EventBusClient.LOGGER_NAME = config.logger_name
       logger_handler = None
       if "logfile" in config and config.logfile:
          logger_handler = QLogger().set_handler(config)
@@ -144,20 +312,14 @@ Create an EventBusClient instance from a configuration file.
                    alias=alias,
                    host=config.get("host", "localhost"),
                    port=config.get("port", 5672),
-                   prefetch_count=config.get("prefetch_count", 10))
+                   prefetch_count=config.get("qos_prefetch", 10))
 
       if not logger_handler:
          client._logger_handler = QLogger().set_handler(config)
       else:
          client._logger_handler = logger_handler
 
-      default_values = {
-         "plugins_path": "./plugins",
-         "host": "localhost",
-         "port": 5672,
-         "auto_reconnect": True,
-         "qos_prefetch": 10
-      }
+
       notice = "Create event bus successfully from configurations:\n"
       for k in CONFIG_SCHEMA:
          if k in config:
@@ -165,7 +327,7 @@ Create an EventBusClient instance from a configuration file.
          else:
             notice += f"  {k}: {default_values[k]} (default)\n"
 
-      logger.info(notice)
+      LOGGER.info(notice)
 
       if start_connection:
          await client.connect(
@@ -201,15 +363,25 @@ Connect to the event bus server and set up the exchange handler.
     The number of messages to prefetch from the server. This controls how many messages can be sent to the client before they are acknowledged. Defaults to None.
       """
       try:
+         self.loop = asyncio.get_running_loop()
+         self.connection.reset_loop(self.loop)
+         self.exchange_handler.reset_loop(self.loop)
          self.host = host if host is not None else self.host
          self.port = port if port is not None else self.port
          self.prefetch_count = prefetch_count if prefetch_count is not None else self.prefetch_count
          await self.connection.connect(self.host, self.port, self.prefetch_count, **kwargs)
          await self.exchange_handler.setup(self.connection)
          self._connected = True
-         await self._startup_policy.wait_until_ready(self)
+         # await self._startup_policy.wait_until_ready(self)
+         cfg = kwargs.get("config_dict")  # or wherever you stash the parsed JSON
+         if cfg and "event_bus" in cfg and not self._startup_policy:
+            self._startup_policy = build_policy_from_config(cfg["event_bus"])
+
+         # run policies (if any)
+         if self._startup_policy:
+            await self._startup_policy.wait_until_ready(self)
       except Exception as e:
-         logger.error(f"Failed to connect: {e}")
+         LOGGER.error(f"Failed to connect: {e}")
          raise
 
    async def send(self, routing_key: Union[str, list], message: BaseMessage, headers: dict = None, threadsafe=False):
@@ -245,11 +417,14 @@ Send a message to the event bus with the specified routing key.
       if not self._connected:
          raise RuntimeError("EventBusClient is not connected")
       # await self.exchange_handler.publish(message, routing_key, headers, threadsafe=threadsafe)
+      LOGGER.info(f"[async def send] Sending message with routing key '{routing_key}': {message}")
       if isinstance(routing_key, list):
          for rk in routing_key:
             await self.exchange_handler.publish(message, rk, headers, threadsafe=threadsafe)
       else:
          await self.exchange_handler.publish(message, routing_key, headers, threadsafe=threadsafe)
+
+      LOGGER.info(f"[async def send] Sent message with routing key '{routing_key}': {message}")
 
    async def off(self, routing_key: Union[str, list], callback: Optional[Callable[[BaseMessage], Awaitable[None]]] = None):
       """
@@ -353,7 +528,19 @@ Close the connection to the event bus and clean up resources.
          await self.connection.close()
          self._connected = False
       except BaseException as e:
-         logger.info(f"Error during close: {e}")
+         LOGGER.info(f"Error during close: {e}")
+
+   def is_connected(self) -> bool:
+      """
+Check if the client is currently connected to the event bus.
+
+**Returns:**
+
+  / *Type*: bool /
+
+  True if the client is connected, False otherwise.
+      """
+      return self._connected and self.connection.is_connected()
 
    def build_routing_key(self, *path: str) -> str:
       """
@@ -516,13 +703,28 @@ Submit an async coroutine to the background loop and wait for result (blocking).
 
   The maximum time to wait for the background loop to stop. Defaults to 3.0 seconds.
       """
+      LOGGER.info(f"Submitting coroutine {coro} to background loop with timeout {timeout}")
       if not getattr(self, "_bg_loop_running", False):
          # If user already provided a running loop elsewhere, we cannot block current thread.
          # So always start our own loop for sync API.
+         LOGGER.info("Starting background loop for sync operation")
          self.start_background_loop()
+      LOGGER.info("caller_thread=%s loop_is_same=%s",
+                  threading.current_thread().name,
+                  (get_running_loop_or_none() is self.loop))
+      if get_running_loop_or_none() is self.loop:
+         import traceback
+         stack = traceback.format_stack(limit=6)
+         LOGGER.info("Stack (last 4 calls):\n%s", "".join(stack))
 
+      LOGGER.info("Background loop is running, submitting coroutine")
+      if not self.loop.is_running():
+         LOGGER.error("Event loop is not running")
+      if hasattr(self, "_bg_thread") and not self._bg_thread.is_alive():
+         LOGGER.error("Background thread is not alive")
       fut = asyncio.run_coroutine_threadsafe(coro, self.loop)
       try:
+         LOGGER.info("Waiting for coroutine result")
          return fut.result(timeout=timeout)
       except _FutTimeout as e:
          fut.cancel()
@@ -531,7 +733,8 @@ Submit an async coroutine to the background loop and wait for result (blocking).
    # ---------- Sync wrappers over existing async APIs ----------
    @classmethod
    def from_config_sync(cls,
-                        config_path: str,
+                        config_source: Optional[Union[str, dict]] = None,
+                        config_path: Optional[str] = None,
                         startup_policy: Optional[StartupPolicy] = None,
                         zone_id: Optional[str] = None,
                         alias: Optional[str] = None) -> EventBusClient:
@@ -555,7 +758,7 @@ Create an EventBusClient instance from a configuration file synchronously.
       loop = asyncio.new_event_loop()
       try:
          asyncio.set_event_loop(loop)
-         client = loop.run_until_complete(cls.from_config(config_path, startup_policy, zone_id, alias, start_connection=False))
+         client = loop.run_until_complete(cls.from_config(config_source, config_path, startup_policy, zone_id, alias, start_connection=False))
          return client
       finally:
          try:
@@ -581,9 +784,10 @@ Blocking connect that spins a background loop if needed.
       try:
          self.start_background_loop()
          self.exchange_handler.reset_loop(self.loop)
+         self.connection.reset_loop(self.loop)
          return self._submit(self.connect(host=host, port=port, prefetch_count=prefetch_count), timeout=timeout)
       except Exception as e:
-         logger.error(f"Failed to connect synchronously: {e}")
+         LOGGER.error(f"Failed to connect synchronously: {e}")
          raise Exception("Failed to connect synchronously")
 
    def send_sync(self, routing_key: str, message, headers: dict | None = None,
@@ -623,6 +827,7 @@ Blocking send wrapper.
 
   This method does not return any value. It sends the message to the event bus and returns immediately.
       """
+      LOGGER.info(f"Sending message with routing key '{routing_key}': {message}")
       return self._submit(self.send(routing_key, message, headers=headers, threadsafe=threadsafe), timeout=timeout)
 
    def on_sync(self, routing_key: str, message_cls, callback=None, *,
@@ -661,6 +866,7 @@ Blocking subscribe wrapper. Returns SubscriptionCache to use with get()/wait_for
 
   A SubscriptionCache object that allows you to manage the subscription and access received messages.
       """
+      LOGGER.info(f"Subscribing to routing key '{routing_key}' with message class '{message_cls.__name__}'")
       return self._submit(
          self.on(routing_key, message_cls, callback, cache_size=cache_size),
          timeout=timeout
@@ -765,5 +971,5 @@ async def main():
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    logger.info("EventBusClient is ready to use.")
+    LOGGER.info("EventBusClient is ready to use.")
     asyncio.run(main())

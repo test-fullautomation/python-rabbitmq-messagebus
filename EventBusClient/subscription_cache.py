@@ -30,7 +30,8 @@
 from __future__ import annotations
 import time, asyncio, threading
 from collections import deque
-from typing import Deque, Generic, Iterable, List, Optional, TypeVar, Callable
+from typing import Deque, Generic, Iterable, List, Optional, TypeVar, Callable, Any
+from .wait_mode import WaitMode
 
 T = TypeVar("T")
 
@@ -78,6 +79,22 @@ class SubscriptionCache(Generic[T]):
                 return self._buf.popleft()
         return None
 
+    def peek_nothrow(self) -> Optional[T]:
+        """Peek at the head of the cache, only if not empty."""
+        with self._cv:
+            return self._buf[0] if self._buf else None
+
+    def peek(self, timeout: Optional[float] = None) -> T:
+        """Block until any item arrives; return it (FIFO) without removing."""
+        end = None if timeout is None else (time.time() + timeout)
+        with self._cv:
+            while not self._buf:
+                remaining = None if end is None else end - time.time()
+                if remaining is not None and remaining <= 0:
+                    raise TimeoutError("cache.peek timed out")
+                self._cv.wait(timeout=remaining)
+            return self._buf[0]
+
     def wait_for(self, predicate: Callable[[T], bool], timeout: Optional[float] = None) -> T:
         """Block until an item matches predicate, return it (and remove it)."""
         end = None if timeout is None else (time.time() + timeout)
@@ -120,6 +137,10 @@ class SubscriptionCache(Generic[T]):
         with self._cv:
             return len(self._buf)
 
+    def __iter__(self):
+        with self._cv:
+            return iter(list(self._buf))
+
     # ---- async convenience wrappers (run blocking ops in a thread)
     async def aget(self, timeout: Optional[float] = None) -> T:
         loop = asyncio.get_running_loop()
@@ -128,3 +149,51 @@ class SubscriptionCache(Generic[T]):
     async def await_for(self, predicate: Callable[[T], bool], timeout: Optional[float] = None) -> T:
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self.wait_for, predicate, timeout)
+
+    def wait_for_one(self, target: Any, *, timeout: float = 30.0) -> bool:
+        end = time.time() + timeout
+        with self._cv:
+            while True:
+                idx = next((i for i, m in enumerate(self._buf) if m == target), -1)
+                if idx >= 0:
+                    for _ in range(idx):
+                        self._buf.popleft()
+                    self._buf.popleft()
+                    return True
+                remaining = end - time.time()
+                if remaining <= 0:
+                    return False
+                self._cv.wait(remaining)
+
+    def wait_for_many(self, targets: List[Any], *, mode: WaitMode, timeout: float = 30.0) -> List[int]:
+        end = time.time() + timeout
+        seen: List[int] = []
+        next_idx = 0
+        checked = [False] * len(targets)
+
+        with self._cv:
+            while True:
+                while self._buf:
+                    msg = self._buf.popleft()
+                    if mode is WaitMode.ALL_IN_GIVEN_ORDER:
+                        if next_idx < len(targets) and msg == targets[next_idx]:
+                            seen.append(next_idx)
+                            next_idx += 1
+                            if next_idx >= len(targets):
+                                return seen
+                    elif mode is WaitMode.ALL_IN_RANDOM_ORDER:
+                        k = next((i for i, m in enumerate(targets) if (not checked[i]) and m == msg), -1)
+                        if k >= 0:
+                            checked[k] = True
+                            seen.append(k)
+                            if all(checked):
+                                return seen
+                    else:  # ANY_OF_GIVEN_MSGS
+                        k = next((i for i, m in enumerate(targets) if m == msg), -1)
+                        if k >= 0:
+                            return [k]
+                remaining = end - time.time()
+                if remaining <= 0:
+                    # For ORDER mode, timeout means not all seen → empty result to match old API
+                    return [] if mode is WaitMode.ALL_IN_GIVEN_ORDER and len(seen) < len(targets) else seen
+                self._cv.wait(remaining)
