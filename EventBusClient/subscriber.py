@@ -290,7 +290,7 @@ Handle incoming messages by deserializing them and invoking the callback.
          return ok
 
       # parallel (default)
-      tasks = [asyncio.create_task(_one(h)) for h in self._handlers]
+      tasks = [asyncio.create_task(_one(h)) for h in self._callback]
       results = await asyncio.gather(*tasks, return_exceptions=True)
       all_ok = True
       for r in results:
