@@ -33,10 +33,7 @@ import asyncio
 import threading
 from concurrent.futures import TimeoutError as _FutTimeout, ThreadPoolExecutor
 from typing import Callable, Awaitable, Optional, Type, Union
-
-import JsonPreprocessor
 from JsonPreprocessor import CJsonPreprocessor
-
 from EventBusClient.subscription_cache import SubscriptionCache
 from .exchange_handler.base import ExchangeHandler
 from .message.base_message import BaseMessage
@@ -148,12 +145,32 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
       self._wait_exec = None  # lazy ThreadPoolExecutor for async=True legacy waits
 
    async def _ensure_general_listener(self) -> None:
+      """
+Ensure the general listener is running (idempotent).
+      """
       if self.general_cache is not None:
          return
 
       self.general_cache = await self.exchange_handler.subscribe(routing_key=self.general_routing_keys , message_cls=self.general_message_cls, callback=None)
 
    async def enable_general_cache(self, *, routing_keys, message_cls) -> None:
+      """
+Enable the general cache with the specified routing keys and message class.
+
+**Arguments:**
+
+* ``routing_keys``
+
+  / *Condition*: required / *Type*: Union[str, list] /
+
+  The routing keys to subscribe to for the general cache. Can be a single string or a list of strings.
+
+* ``message_cls``
+
+  / *Condition*: required / *Type*: Type[BaseMessage] /
+
+  The class of messages to subscribe to for the general cache. Must be a subclass of BaseMessage.
+      """
       self.general_cache_policy = "on_connect"
       self.general_routing_keys = routing_keys # if isinstance(routing_keys, (list, tuple)) else [routing_keys]
       self.general_message_cls = message_cls
@@ -161,6 +178,9 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
       await self._ensure_general_listener()
 
    def _wait_exec(self) -> ThreadPoolExecutor:
+      """
+
+      """
       if self.__dict__.get("_wait_exec") is None:
          self._wait_exec = ThreadPoolExecutor(max_workers=4)
       return self._wait_exec
@@ -168,6 +188,41 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
    def wait_on_general_topic_for_one(
            self, msg, *, timeout: float = 30.0, interval: float = 0.1, asynchronous: bool = False
    ):
+      """
+Wait for a specific message on the general topic.
+
+**Arguments:**
+
+* ``msg``
+
+  / *Condition*: required / *Type*: Any /
+
+  The message to wait for. This can be any object that can be compared for equality.
+
+* ``timeout``
+
+  / *Condition*: optional / *Type*: float / *Default*: 30.0 /
+
+  The maximum time to wait for the message, in seconds. Defaults to 30.0 seconds.
+
+* ``interval``
+
+  / *Condition*: optional / *Type*: float / *Default*: 0.1 /
+
+  **Note:** This parameter is accepted for compatibility with older interfaces but is not used in the current implementation.
+
+* ``asynchronous``
+
+  / *Condition*: optional / *Type*: bool / *Default*: False /
+
+  If True, the wait will be performed asynchronously using a ThreadPoolExecutor. Defaults to False.
+
+**Returns:**
+
+  / *Type*: bool /
+
+  True if the message was received within the timeout period, False otherwise.
+      """
       if not self.general_cache:
          # lazy start if policy allows (captures from now on)
          if self.general_cache_policy in ("on_demand", "off"):
@@ -183,6 +238,55 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
            self, msgs, *, mode: int = WaitMode.ALL_IN_GIVEN_ORDER.value, timeout: float = 30.0, interval: float = 0.1,
            asynchronous: bool = False
    ):
+      """
+Wait for multiple specific messages on the general topic.
+
+**Arguments:**
+
+* ``msgs``
+
+  / *Condition*: required / *Type*: List[Any] /
+
+  The list of messages to wait for. Each message can be any object that can be compared for equality.
+
+* ``mode``
+
+  / *Condition*: optional / *Type*: int / *Default*: WaitMode.ALL_IN_GIVEN_ORDER.value /
+
+  The mode for waiting:
+
+  - WaitMode.ALL_IN_GIVEN_ORDER: Wait for all messages in the order they are provided.
+
+  - WaitMode.ALL_IN_RANDOM_ORDER: Wait for all messages in any order.
+
+  - WaitMode.ANY: Wait for any one of the messages.
+
+  Defaults to WaitMode.ALL_IN_GIVEN_ORDER.value.
+
+* ``timeout``
+
+  / *Condition*: optional / *Type*: float / *Default*: 30.0 /
+
+  The maximum time to wait for the messages, in seconds. Defaults to 30.0 seconds.
+
+* ``interval``
+
+  / *Condition*: optional / *Type*: float / *Default*: 0.1 /
+
+  **Note:** This parameter is accepted for compatibility with older interfaces but is not used in the current implementation.
+
+* ``asynchronous``
+
+  / *Condition*: optional / *Type*: bool / *Default*: False /
+
+  If True, the wait will be performed asynchronously using a ThreadPoolExecutor. Defaults to False.
+
+**Returns:**
+
+  / *Type*: List[int] /
+
+  A list of indices of the messages that were received, based on the specified mode.
+      """
       if not self.general_cache:
          if self.general_cache_policy in ("on_demand", "off"):
             self._submit(self._ensure_general_listener())
@@ -197,6 +301,47 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
            self, cache: SubscriptionCache, msg, *, timeout: float = 30.0, interval: float = 0.1,
            asynchronous: bool = False
    ):
+      """
+Wait for a specific message in the given subscription cache.
+
+**Arguments:**
+
+* ``cache``
+
+  / *Condition*: required / *Type*: SubscriptionCache /
+
+  The subscription cache to wait on. This should be an instance of SubscriptionCache.
+
+* ``msg``
+
+  / *Condition*: required / *Type*: Any /
+
+  The message to wait for. This can be any object that can be compared for equality.
+
+* ``timeout``
+
+  / *Condition*: optional / *Type*: float / *Default*: 30.0 /
+
+  The maximum time to wait for the message, in seconds. Defaults to 30.0 seconds.
+
+* ``interval``
+
+  / *Condition*: optional / *Type*: float / *Default*: 0.1 /
+
+  **Note:** This parameter is accepted for compatibility with older interfaces but is not used in the current implementation.
+
+* ``asynchronous``
+
+  / *Condition*: optional / *Type*: bool / *Default*: False /
+
+  If True, the wait will be performed asynchronously using a ThreadPoolExecutor. Defaults to False.
+
+**Returns:**
+
+  / *Type*: bool /
+
+  True if the message was received within the timeout period, False otherwise.
+      """
       if not asynchronous:
          return cache.wait_for_one(msg, timeout=timeout)
       return self._wait_exec().submit(cache.wait_for_one, msg, timeout)
@@ -205,6 +350,61 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
            self, cache: SubscriptionCache, msgs, *, mode: int = WaitMode.ALL_IN_GIVEN_ORDER.value,
            timeout: float = 30.0, interval: float = 0.1, asynchronous: bool = False
    ):
+      """
+Wait for multiple specific messages in the given subscription cache.
+
+**Arguments:**
+
+* ``cache``
+
+  / *Condition*: required / *Type*: SubscriptionCache /
+
+  The subscription cache to wait on. This should be an instance of SubscriptionCache.
+
+* ``msgs``
+
+  / *Condition*: required / *Type*: List[Any] /
+
+  The list of messages to wait for. Each message can be any object that can be compared for equality.
+
+* ``mode``
+
+  / *Condition*: optional / *Type*: int / *Default*: WaitMode.ALL_IN_GIVEN_ORDER.value /
+
+  The mode for waiting:
+
+  - WaitMode.ALL_IN_GIVEN_ORDER: Wait for all messages in the order they are provided.
+
+  - WaitMode.ALL_IN_RANDOM_ORDER: Wait for all messages in any order.
+
+  - WaitMode.ANY: Wait for any one of the messages.
+
+  Defaults to WaitMode.ALL_IN_GIVEN_ORDER.value.
+
+* ``timeout``
+
+  / *Condition*: optional / *Type*: float / *Default*: 30.0 /
+
+  The maximum time to wait for the messages, in seconds. Defaults to 30.0 seconds.
+
+* ``interval``
+
+  / *Condition*: optional / *Type*: float / *Default*: 0.1 /
+
+  **Note:** This parameter is accepted for compatibility with older interfaces but is not used in the current implementation.
+
+* ``asynchronous``
+
+  / *Condition*: optional / *Type*: bool / *Default*: False /
+
+  If True, the wait will be performed asynchronously using a ThreadPoolExecutor. Defaults to False.
+
+**Returns:**
+
+  / *Type*: List[int] /
+
+  A list of indices of the messages that were received, based on the specified mode.
+      """
       if not asynchronous:
          return cache.wait_for_many(msgs, mode=WaitMode(mode), timeout=timeout)
       return self._wait_exec().submit(cache.wait_for_many, msgs, WaitMode(mode), timeout)
@@ -215,7 +415,55 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
                                       zone_id: Optional[str] = None,
                                       alias: Optional[str] = None) -> tuple:
       """
-      Returns a tuple of parameters for the EventBusClient constructor, loaded from config and provided arguments.
+Returns a tuple of parameters for the EventBusClient constructor, loaded from config and provided arguments.
+
+**Arguments:**
+
+* ``config_path``
+
+  / *Condition*: required / *Type*: str /
+
+  Path to the configuration file in JSONP format. This file should contain the necessary configuration for the event bus client, including exchange handler and serializer settings.
+
+* ``startup_policy``
+
+  / *Condition*: optional / *Type*: StartupPolicy / *Default*: None /
+
+  The startup policy to use for the client. If not provided, no startup policy will be used.
+
+* ``zone_id``
+
+  / *Condition*: optional / *Type*: str / *Default*: None /
+
+  The zone ID for the client. If not provided, no zone ID will be used.
+
+* ``alias``
+
+  / *Condition*: optional / *Type*: str / *Default*: None /
+
+  The alias for the client. If not provided, no alias will be used.
+
+**Returns:**
+
+  / *Type*: tuple /
+
+  A tuple containing the following elements in order:
+
+    - exchange_handler: An instance of ExchangeHandler loaded from the configuration.
+
+    - serializer: An instance of Serializer loaded from the configuration.
+
+    - loop: None (the event loop will be set later).
+
+    - zone_id: The provided zone_id argument.
+
+    - alias: The provided alias argument.
+
+    - startup_policy: The provided startup_policy argument.
+
+    - prefetch_count: The prefetch count loaded from the configuration (default is 10 if not specified).
+
+    - auto_reconnect: The auto_reconnect setting loaded from the configuration (default is True if not specified).
       """
       config = PluginLoader.load_config(config_path)
       plugin_loader = PluginLoader()
@@ -240,12 +488,12 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
 
    @classmethod
    async def from_config(cls,
-                         config_source: Optional[Union[str, dict]] = None,
                          config_path: Optional[str] = None,
                          startup_policy: Optional[StartupPolicy] = None,
                          zone_id: Optional[str] = None,
                          alias: Optional[str] = None,
-                         start_connection: bool = True) -> EventBusClient:
+                         start_connection: bool = True,
+                         config_source: Optional[Union[str, dict]] = None) -> EventBusClient:
       """
 Create an EventBusClient instance from a configuration file.
 
@@ -256,6 +504,42 @@ Create an EventBusClient instance from a configuration file.
   / *Condition*: required / *Type*: str /
 
   Path to the configuration file in JSONP format. This file should contain the necessary configuration for the event bus client, including exchange handler and serializer settings.
+
+* ``config_source``
+
+  / *Condition*: required / *Type*: Union[str, dict] /
+
+  Configuration source as a JSON string or dictionary. This can be used instead of config_path to provide configuration directly.
+
+* ``startup_policy``
+
+  / *Condition*: optional / *Type*: StartupPolicy / *Default*: None /
+
+  The startup policy to use for the client. If not provided, no startup policy will be used.
+
+* ``zone_id``
+
+  / *Condition*: optional / *Type*: str / *Default*: None /
+
+  The zone ID for the client. If not provided, no zone ID will be used.
+
+* ``alias``
+
+  / *Condition*: optional / *Type*: str / *Default*: None /
+
+  The alias for the client. If not provided, no alias will be used.
+
+* ``start_connection``
+
+  / *Condition*: optional / *Type*: bool / *Default*: True /
+
+  If True, the client will automatically connect to the event bus server after creation. Defaults to True.
+
+**Returns:**
+
+  / *Type*: EventBusClient /
+
+  An instance of EventBusClient configured according to the provided configuration file or source.
       """
       default_values = {
          "plugins_path": "./plugins",
@@ -733,11 +1017,11 @@ Submit an async coroutine to the background loop and wait for result (blocking).
    # ---------- Sync wrappers over existing async APIs ----------
    @classmethod
    def from_config_sync(cls,
-                        config_source: Optional[Union[str, dict]] = None,
                         config_path: Optional[str] = None,
                         startup_policy: Optional[StartupPolicy] = None,
                         zone_id: Optional[str] = None,
-                        alias: Optional[str] = None) -> EventBusClient:
+                        alias: Optional[str] = None,
+                        config_source: Optional[Union[str, dict]] = None) -> EventBusClient:
       """
 Create an EventBusClient instance from a configuration file synchronously.
 
@@ -758,7 +1042,7 @@ Create an EventBusClient instance from a configuration file synchronously.
       loop = asyncio.new_event_loop()
       try:
          asyncio.set_event_loop(loop)
-         client = loop.run_until_complete(cls.from_config(config_source, config_path, startup_policy, zone_id, alias, start_connection=False))
+         client = loop.run_until_complete(cls.from_config(config_path, startup_policy, zone_id, alias, start_connection=False, config_source=config_source))
          return client
       finally:
          try:
@@ -780,6 +1064,24 @@ Blocking connect that spins a background loop if needed.
   / *Condition*: optional / *Type*: str / *Default*: "localhost" /
 
   The hostname of the event bus server. Defaults to "localhost".
+
+* ``port``
+
+  / *Condition*: optional / *Type*: int / *Default*: 5672 /
+
+  The port number of the event bus server. Defaults to 5672.
+
+* ``prefetch_count``
+
+  / *Condition*: optional / *Type*: int / *Default*: 10 /
+
+  The number of messages to prefetch from the server. This controls how many messages can be sent to the client before they are acknowledged. Defaults to 10.
+
+* ``timeout``
+
+  / *Condition*: optional / *Type*: float / *Default*: 30.0 /
+
+  The maximum time to wait for the connection to be established. Defaults to 30.0 seconds.
       """
       try:
          self.start_background_loop()
@@ -947,9 +1249,9 @@ If you don’t have an async `close()`, this just stops the loop.
 
 * ``timeout``
 
-   / *Condition*: optional / *Type*: float / *Default*: 10.0 /
+  / *Condition*: optional / *Type*: float / *Default*: 10.0 /
 
-   The maximum time to wait for the close operation to complete. Defaults to 10.0 seconds.
+  The maximum time to wait for the close operation to complete. Defaults to 10.0 seconds.
       """
       if hasattr(self, "close") and callable(getattr(self, "close")):
          try:

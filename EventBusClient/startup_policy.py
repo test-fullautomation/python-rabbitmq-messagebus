@@ -29,15 +29,14 @@
 # *******************************************************************************
 from __future__ import annotations
 import asyncio
-import importlib
-import pydoc
 from typing import Protocol, Optional, Dict, Iterable, Union, Sequence, Any, Type
 from importlib import import_module
 import pydoc
 from .message.base_message import BaseMessage
 
+# pylint: disable=W0611
 if False:  # type checking helpers
-    from .event_bus_client import EventBusClient  # pylint: disable=W0611
+    from .event_bus_client import EventBusClient
 
 ControllerAlias = Union[str, Iterable[str]]
 SYSTEM_UP_WAIT_TIME = 60
@@ -51,9 +50,18 @@ def _is_controller_alias(alias: Optional[str], controller_alias: ControllerAlias
     return any(a == x.strip().lower() for x in controller_alias)
 
 class StartupPolicy(Protocol):
+    """
+A startup policy can delay or block the completion of EventBusClient.start()
+until certain conditions are met.
+This can be used to implement rendezvous patterns, fixed delays, or
+other custom logic.
+    """
     async def wait_until_ready(self, bus: "EventBusClient") -> None: ...
 
 class NoWait:
+    """
+No waiting, start immediately.
+    """
     async def wait_until_ready(self, bus: "EventBusClient") -> None:
         # Never block startup
         return
@@ -66,9 +74,9 @@ class FixedDelay:
 
 class HandshakeBarrier:
     """
-    Wait until at least N consumers announce ready for the given roles/topics.
-    Example:
-        HandshakeBarrier({"telemetry.*": 1, "orders.created": 2}, timeout=5.0)
+Wait until at least N consumers announce ready for the given roles/topics.
+Example:
+   HandshakeBarrier({"telemetry.*": 1, "orders.created": 2}, timeout=5.0)
     """
     def __init__(self, requirements: Dict[str, int], timeout: float = 5.0) -> None:
         self.requirements = dict(requirements)
@@ -97,9 +105,6 @@ class PanelControlLegacyByAlias:
             await asyncio.sleep(self.wait_time)
             if hasattr(bus, "system_up") and getattr(bus, "system_up") is False:
                 setattr(bus, "system_up", True)
-
-
-
 
 def _locate(path: str) -> Any | None:
     # pydoc.locate handles many dotted-path cases
@@ -164,8 +169,6 @@ def resolve_message_cls(
         f"Cannot resolve message class '{value}'. "
         "Use a full dotted path or register the short name."
     )
-
-
 
 class GeneralCacheStartupPolicy:
     """

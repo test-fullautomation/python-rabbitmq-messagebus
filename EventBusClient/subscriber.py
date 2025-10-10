@@ -117,6 +117,15 @@ AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing ke
 
    @property
    def cache(self) -> SubscriptionCache[Any]:
+      """
+Get the subscription cache, initializing it if necessary.
+
+**Returns:**
+
+  / *Type*: SubscriptionCache /
+
+  The subscription cache instance.
+      """
       if self._cache is None:
          self._cache = SubscriptionCache(maxlen=self._cache_default)
       return self._cache
@@ -124,6 +133,20 @@ AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing ke
    async def start(self, cache_size: Optional[int] = None):
       """
 Start the subscriber by declaring a queue, binding it to the exchange, and consuming messages.
+
+**Arguments:**
+
+* ``cache_size``
+
+  / *Condition*: optional / *Type*: Optional[int] /
+
+  The maximum size of the subscription cache. If not provided, defaults to the instance's default cache size.
+
+**Returns:**
+
+  / *Type*: SubscriptionCache /
+
+  The subscription cache instance.
       """
       self._queue = await self._channel.declare_queue(
          name="",
@@ -231,7 +254,27 @@ Handle incoming messages by deserializing them and invoking the callback.
 
    def _schedule_handlers(self, message: BaseMessage, headers: dict) -> None:
       """
-      Schedule all handlers without awaiting them. Used when ack_after_handler=False.
+Schedule all handlers without awaiting them. Used when ack_after_handler=False.
+
+**Arguments:**
+
+* ``message``
+
+  / *Condition*: required / *Type*: BaseMessage /
+
+  The message to be processed by the handlers.
+
+* ``headers``
+
+  / *Condition*: required / *Type*: dict /
+
+  Additional headers associated with the message.
+
+**Returns:**
+
+  / *Type*: None /
+
+  Nothing. Handlers are scheduled for execution.
       """
       if not self._callback:
          return
@@ -257,8 +300,27 @@ Handle incoming messages by deserializing them and invoking the callback.
 
    async def _invoke_handlers(self, message: BaseMessage, headers: dict) -> bool:
       """
-      Await all handlers (used when ack_after_handler=True).
-      Returns True if ALL handlers complete successfully.
+Await all handlers (used when ack_after_handler=True).
+
+**Arguments:**
+
+* ``message``
+
+  / *Condition*: required / *Type*: BaseMessage /
+
+  The message to be processed by the handlers.
+
+* ``headers``
+
+  / *Condition*: required / *Type*: dict /
+
+  Additional headers associated with the message.
+
+**Returns:**
+
+  / *Type*: bool /
+
+  True if all handlers succeeded, False if any handler failed.
       """
       if not self._callback:
          return True
@@ -303,6 +365,9 @@ Handle incoming messages by deserializing them and invoking the callback.
    # --------------------- callback loop management ---------------------
 
    def _start_callback_loop(self) -> None:
+      """
+Start a dedicated event loop in a separate thread for handling callbacks.
+      """
       if self._cb_loop:
          return
 
@@ -330,6 +395,9 @@ Handle incoming messages by deserializing them and invoking the callback.
       self._cb_ready.wait(timeout=3.0)
 
    def _stop_callback_loop(self) -> None:
+      """
+Stop the dedicated event loop and thread used for handling callbacks.
+      """
       if self._cb_loop and self._cb_loop.is_running():
          self._cb_loop.call_soon_threadsafe(self._cb_loop.stop)
       if self._cb_thread:
