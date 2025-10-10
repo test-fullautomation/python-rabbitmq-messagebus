@@ -290,6 +290,12 @@ Return the current number of items in the cache.
     def __iter__(self):
         """
 Return an iterator over a snapshot of the current items in the cache.
+
+**Returns:**
+
+  / *Type*: Iterator[T] /
+
+  An iterator over the items currently in the cache, in FIFO order.
         """
         with self._cv:
             return iter(list(self._buf))
