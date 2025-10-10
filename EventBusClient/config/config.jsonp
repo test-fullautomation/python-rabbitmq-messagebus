@@ -5,5 +5,7 @@
   "serializer": "PickleSerializer",
   "exchange_handler": "TopicExchangeHandler",
   "auto_reconnect": true,
-  "qos_prefetch": 10
+  "qos_prefetch": 10,
+  "logger_name": "test",
+  "logfile": "test.log"
 }
