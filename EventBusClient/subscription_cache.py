@@ -264,6 +264,12 @@ Remove and return up to max_items from the cache in FIFO order.
     def peek_last(self) -> Optional[T]:
         """
 Peek at the last item in the cache, only if not empty.
+
+**Returns:**
+
+  / *Type*: Optional[T] /
+
+  The last item in the cache, or None if the cache is empty.
         """
         with self._cv:
             return self._buf[-1] if self._buf else None
