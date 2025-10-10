@@ -179,7 +179,11 @@ Enable the general cache with the specified routing keys and message class.
 
    def _wait_exec(self) -> ThreadPoolExecutor:
       """
+      Returns the ThreadPoolExecutor instance used for executing wait operations.
+      If the executor does not exist, it is created with a maximum of 4 worker threads.
 
+      Returns:
+          ThreadPoolExecutor: The thread pool executor for wait operations.
       """
       if self.__dict__.get("_wait_exec") is None:
          self._wait_exec = ThreadPoolExecutor(max_workers=4)
