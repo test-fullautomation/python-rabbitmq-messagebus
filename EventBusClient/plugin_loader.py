@@ -85,6 +85,9 @@ Validate the configuration against the schema.
             if key == "port":
                if not (1024 <= config[key] <= 65535):
                   raise ValueError("Port must be between 1024 and 65535")
+            if key == "qos_prefetch":
+               if config[key] < 0:
+                  raise ValueError("qos_prefetch must be a positive number")
             if key == "plugins_path":
                path = config[key]
                paths = path if isinstance(path, (list, tuple)) else [path]
