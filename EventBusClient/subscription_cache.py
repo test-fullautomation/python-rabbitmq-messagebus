@@ -277,6 +277,12 @@ Peek at the last item in the cache, only if not empty.
     def __len__(self) -> int:
         """
 Return the current number of items in the cache.
+
+**Returns:**
+
+  / *Type*: int /
+
+  The current number of items in the cache.
         """
         with self._cv:
             return len(self._buf)
