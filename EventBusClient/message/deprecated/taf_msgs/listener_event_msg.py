@@ -1,7 +1,7 @@
 """The listener event message module."""
 
 from numpy import float64
-from ta_framework.project.event_bus.std_msgs import Msg
+from EventBusClient.message.deprecated.std_msgs import Msg
 from .listener_event_indexer import EventIndex
 
 
