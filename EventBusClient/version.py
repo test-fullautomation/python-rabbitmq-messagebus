@@ -18,6 +18,6 @@
 #
 # Version and date of EventBusClient
 #
-VERSION      = "0.1.0"
-VERSION_DATE = "09.07.2025"
+VERSION      = "0.1.1"
+VERSION_DATE = "17.10.2025"
 
