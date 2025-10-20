@@ -46,6 +46,7 @@ from .startup_policy import StartupPolicy, NoWait, PolicyChain, build_policy_fro
 from .rendezvous import Rendezvous
 from EventBusClient import LOGGER, LOGGER_NAME
 from .wait_mode import WaitMode
+from EventBusClient.version import VERSION, VERSION_DATE
 
 # logger = QLogger().get_logger("event_bus_client")
 # logger = logging.getLogger(__name__)
@@ -143,6 +144,18 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
       self.general_message_cls = kwargs.get("general_message_cls", BaseMessage)
       self.general_cache = None
       self._wait_exec = None  # lazy ThreadPoolExecutor for async=True legacy waits
+      
+   def getVersion(self) -> str:
+      """
+Returns the version of EventBusClient as string.
+      """
+      return VERSION
+    
+   def getVersionDate(self) -> str:
+      """
+Returns the version date of EventBusClient as string.
+      """
+      return VERSION_DATE
 
    async def _ensure_general_listener(self) -> None:
       """
