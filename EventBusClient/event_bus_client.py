@@ -843,6 +843,27 @@ Check if the client is currently connected to the event bus.
       """
       return self._connected and self.connection.is_connected()
 
+   def build_routing(self, *path: str) -> str:
+      """
+Backward-compatible alias for build_routing_key.
+
+**Arguments:**
+
+* ``path``
+
+  / *Condition*: required / *Type*: str /
+
+  The components of the routing key. Each component will be joined with a dot (.) to form the final routing key.
+
+**Returns:**
+
+  / *Type*: str /
+
+  The constructed routing key as a string.
+      """
+      return self.build_routing_key(*path)
+
+
    def build_routing_key(self, *path: str) -> str:
       """
 Build a routing key from the given path components.
