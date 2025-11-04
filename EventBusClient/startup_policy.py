@@ -158,7 +158,25 @@ Legacy startup policy for panel control mode based on controller alias.
         """
 Initialize the PanelControlLegacyByAlias startup policy.
 
+**Arguments:**
 
+* ``panel_control``
+
+  / *Condition*: required / *Type*: bool /
+
+  Whether the system is in panel control mode.
+
+* ``wait_time``
+
+  / *Condition*: optional / *Type*: float / *Default*: SYSTEM_UP_WAIT_TIME /
+
+  The wait time in seconds before marking the system as up.
+
+* ``controller_alias``
+
+  / *Condition*: optional / *Type*: ControllerAlias / *Default*: "controller" /
+
+  The controller alias or list of aliases.
         """
         self.panel_control = panel_control
         self.wait_time = wait_time
