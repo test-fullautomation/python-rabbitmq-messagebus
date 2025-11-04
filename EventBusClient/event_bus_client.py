@@ -1130,6 +1130,13 @@ Blocking connect that spins a background loop if needed.
          LOGGER.error(f"Failed to connect synchronously: {e}")
          raise Exception("Failed to connect synchronously")
 
+   def send_sync_compat(self, message, routing_key: str, headers: dict | None = None,
+                        *, threadsafe: bool = False, timeout: float | None = 10.0) -> None:
+      """
+Backward-compatible blocking send wrapper.
+      """
+      return self.send_sync(routing_key, message, headers=headers, threadsafe=threadsafe, timeout=timeout)
+
    def send_sync(self, routing_key: str, message, headers: dict | None = None,
                  *, threadsafe: bool = False, timeout: float | None = 10.0) -> None:
       """
