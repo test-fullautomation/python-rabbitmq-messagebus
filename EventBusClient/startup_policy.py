@@ -42,6 +42,29 @@ ControllerAlias = Union[str, Iterable[str]]
 SYSTEM_UP_WAIT_TIME = 60
 
 def _is_controller_alias(alias: Optional[str], controller_alias: ControllerAlias) -> bool:
+    """
+Check if the given alias matches the controller alias(es).
+
+**Arguments:**
+
+* ``alias``
+
+  / *Condition*: required / *Type*: Optional[str] /
+
+  The alias to check.
+
+* ``controller_alias``
+
+  / *Condition*: required / *Type*: ControllerAlias /
+
+  The controller alias or list of aliases to match against.
+
+**Returns:**
+
+  / *Type*: bool /
+
+  True if the alias matches the controller alias(es), False otherwise.
+    """
     if alias is None:
         return False
     a = alias.strip().lower()
@@ -63,13 +86,53 @@ class NoWait:
 No waiting, start immediately.
     """
     async def wait_until_ready(self, bus: "EventBusClient") -> None:
+        """
+Wait until ready - no wait.
+
+**Arguments:**
+
+* ``bus``
+
+  / *Condition*: required / *Type*: EventBusClient /
+
+  The EventBusClient instance.
+
+**Returns:**
+
+  / *Type*: None /
+
+  None
+        """
         # Never block startup
         return
 
 class FixedDelay:
     def __init__(self, seconds: float) -> None:
+        """
+Initialize a FixedDelay startup policy.
+
+**Arguments:**
+
+* ``seconds``
+
+  / *Condition*: required / *Type*: float /
+
+  The fixed delay in seconds before proceeding.
+        """
         self.seconds = seconds
+
     async def wait_until_ready(self, bus: "EventBusClient") -> None:
+        """
+Wait for a fixed delay before proceeding.
+
+**Arguments:**
+
+* ``bus``
+
+  / *Condition*: required / *Type*: EventBusClient /
+
+  The EventBusClient instance.
+        """
         await asyncio.sleep(self.seconds)
 
 class HandshakeBarrier:
@@ -87,9 +150,34 @@ Example:
 
 
 class PanelControlLegacyByAlias:
-    """Legacy start() behavior but role is inferred from alias."""
+    """
+Legacy startup policy for panel control mode based on controller alias.
+    """
     def __init__(self, panel_control: bool, wait_time: float =SYSTEM_UP_WAIT_TIME,
                  controller_alias: ControllerAlias = "controller") -> None:
+        """
+Initialize the PanelControlLegacyByAlias startup policy.
+
+**Arguments:**
+
+* ``panel_control``
+
+  / *Condition*: required / *Type*: bool /
+
+  Whether the system is in panel control mode.
+
+* ``wait_time``
+
+  / *Condition*: optional / *Type*: float / *Default*: SYSTEM_UP_WAIT_TIME /
+
+  The wait time in seconds before marking the system as up.
+
+* ``controller_alias``
+
+  / *Condition*: optional / *Type*: ControllerAlias / *Default*: "controller" /
+
+  The controller alias or list of aliases.
+        """
         self.panel_control = panel_control
         self.wait_time = wait_time
         self.controller_alias = controller_alias
@@ -107,6 +195,23 @@ class PanelControlLegacyByAlias:
                 setattr(bus, "system_up", True)
 
 def _locate(path: str) -> Any | None:
+    """
+Locate and return an object by its dotted path.
+
+**Arguments:**
+
+* ``path``
+
+  / *Condition*: required / *Type*: str /
+
+  The dotted path to locate.
+
+**Returns:**
+
+  / *Type*: Any \| None /
+
+  The located object, or None if not found.
+    """
     # pydoc.locate handles many dotted-path cases
     obj = pydoc.locate(path)
     if obj is not None:
@@ -129,13 +234,50 @@ def resolve_message_cls(
     default: type | None = None,
 ) -> type:
     """
-    Turn a JSON 'class' string into an actual class object.
-    Accepts a dotted path ('pkg.mod.Class') or a short name via registry.
+Turn a JSON 'class' string into an actual class object.
+
+**Arguments:**
+
+* ``value``
+
+  / *Condition*: required / *Type*: str \| type \| None /
+
+  The class to resolve. Can be a dotted path, a short name, or a type.
+
+* ``base_cls``
+
+  / *Condition*: required / *Type*: type /
+
+  The base class that the resolved class must inherit from.
+
+* ``registry``
+
+  / *Condition*: optional / *Type*: dict[str, type] / *Default*: None /
+
+  Optional registry mapping short names to classes.
+
+* ``extra_modules``
+
+  / *Condition*: optional / *Type*: list[str] / *Default*: None /
+
+  List of module names to search for the class by short name.
+
+* ``default``
+
+  / *Condition*: optional / *Type*: type / *Default*: None /
+
+  Default class to use if value is None.
+
+**Returns:**
+
+  / *Type*: type /
+
+  The resolved class object inheriting from base_cls.
     """
     if isinstance(value, type):
-        if issubclass(value, base_cls):
-            return value
-        raise TypeError(f"{value!r} is not a subclass of {base_cls.__name__}")
+        if base_cls is not None and not issubclass(value, base_cls):
+            raise TypeError(f"{value!r} is not a subclass of {base_cls.__name__}")
+        return value
 
     if value is None:
         if default is None:
@@ -144,13 +286,13 @@ def resolve_message_cls(
 
     if registry and value in registry:
         cls = registry[value]
-        if issubclass(cls, base_cls):
-            return cls
-        raise TypeError(f"Registry entry '{value}' is not a subclass of {base_cls.__name__}")
+        if base_cls is not None and not issubclass(cls, base_cls):
+            raise TypeError(f"Registry entry '{value}' is not a subclass of {base_cls.__name__}")
+        return cls
 
     # Try dotted path
     obj = _locate(value)
-    if isinstance(obj, type) and issubclass(obj, base_cls):
+    if isinstance(obj, type) and (base_cls is None or issubclass(obj, base_cls)):
         return obj
 
     # Try short name inside extra modules
@@ -160,7 +302,7 @@ def resolve_message_cls(
                 m = import_module(mod)
                 if hasattr(m, value):
                     cls = getattr(m, value)
-                    if isinstance(cls, type) and issubclass(cls, base_cls):
+                    if isinstance(cls, type) and (base_cls is None or issubclass(cls, base_cls)):
                         return cls
             except Exception:  # pylint: disable=broad-except
                 pass
@@ -172,9 +314,9 @@ def resolve_message_cls(
 
 class GeneralCacheStartupPolicy:
     """
-    Example startup policy that decides whether to start a 'general cache'
-    at connect-time, and with which routing keys / message class.
-    Can be alias-aware.
+Example startup policy that decides whether to start a 'general cache'
+at connect-time, and with which routing keys / message class.
+Can be alias-aware.
     """
     def __init__(
         self,
@@ -183,11 +325,45 @@ class GeneralCacheStartupPolicy:
         message_cls: Union[str, type] = "BasicMessage",   # dotted path or short name
         only_for_alias: Optional[str] = None,             # e.g. "controller", or None = any
     ) -> None:
+        """
+Initialize the GeneralCacheStartupPolicy.
+
+**Arguments:**
+
+* ``routing_keys``
+
+  / *Condition*: optional / *Type*: str \| Sequence[str] / *Default*: ("general")
+
+  The routing keys to listen on for the general cache.
+
+* ``message_cls``
+
+  / *Condition*: optional / *Type*: str \| type / *Default*: "BasicMessage"
+
+  The message class to use for the general cache.
+
+* ``only_for_alias``
+
+  / *Condition*: optional / *Type*: str \| None / *Default*: None
+
+  If set, only enable the general cache if the client's alias matches this value.
+        """
         self._routing_keys = routing_keys
         self._message_cls = message_cls
         self._only_for_alias = only_for_alias
 
     async def wait_until_ready(self, client: "EventBusClient") -> None:
+        """
+Enable the general cache listener on the client if applicable.
+
+**Arguments:**
+
+* ``client``
+
+  / *Condition*: required / *Type*: EventBusClient /
+
+  The EventBusClient instance to apply the policy on.
+        """
         # If alias-constrained, skip when not matching
         if self._only_for_alias and getattr(client, "alias", None) != self._only_for_alias:
             return
@@ -195,7 +371,7 @@ class GeneralCacheStartupPolicy:
         # Resolve message class string → actual type
         msg_cls = resolve_message_cls(
             self._message_cls,
-            base_cls=BaseMessage,
+            base_cls=None,
             registry=None,
             extra_modules=[
                 "EventBusClient.message.basic_message",
@@ -214,17 +390,59 @@ class GeneralCacheStartupPolicy:
 class PolicyChain(StartupPolicy):
     """
 Apply multiple policies either sequentially or in parallel.
+
 - mode="sequential": run in order; if fail_fast=True, stop on first exception.
+
 - mode="parallel": run concurrently; if fail_fast=True, propagate first exception (gather(..., return_exceptions=False)).
     """
     def __init__(self, policies: list[StartupPolicy],
                  mode: str = "sequential",
                  fail_fast: bool = True) -> None:
+        """
+Initialize a PolicyChain to apply multiple startup policies.
+
+**Arguments:**
+
+* ``policies``
+
+  / *Condition*: required / *Type*: list[StartupPolicy] /
+
+  The list of startup policies to apply.
+
+* ``mode``
+
+  / *Condition*: optional / *Type*: str /
+
+  The execution mode: "sequential" or "parallel".
+
+* ``fail_fast``
+
+   / *Condition*: optional / *Type*: bool /
+
+   If True, stop on the first exception; otherwise, continue.
+        """
         self.policies = list(policies)
         self.mode = mode
         self.fail_fast = fail_fast
 
     async def wait_until_ready(self, bus: "EventBusClient") -> None:
+        """
+Apply all policies according to the configured mode.
+
+**Arguments:**
+
+* ``bus``
+
+  / *Condition*: required / *Type*: EventBusClient /
+
+  The EventBusClient instance to apply the policies on.
+
+**Returns:**
+
+  / *Type*: None /
+
+  None
+        """
         if not self.policies:
             return
 
@@ -252,14 +470,27 @@ Apply multiple policies either sequentially or in parallel.
 
 def build_policy_from_item(item: dict) -> StartupPolicy:
     """
-    item = {
-        "class": "pkg.PolicyClass",
-        "args": { ... },                 # optional
-        "wrap": [                        # optional, outermost first
-            {"class": "pkg.WithTimeout", "args": {"seconds": 10, "swallow": true}},
-            {"class": "pkg.WithLogging"}
-        ]
-    }
+Build a StartupPolicy from a configuration item.
+
+**Arguments:**
+
+* ``item``
+
+  / *Condition*: required / *Type*: dict /
+
+  The configuration item with keys:
+
+  - "class": str - dotted path to the policy class
+
+  - "args": dict - optional arguments for the policy class
+
+  - "wrap": list - optional list of wrappers, each with "class" and "args"
+
+**Returns:**
+
+  / *Type*: StartupPolicy /
+
+  The constructed StartupPolicy instance.
     """
     cls = _locate(item["class"])
     if cls is None:
@@ -276,19 +507,35 @@ def build_policy_from_item(item: dict) -> StartupPolicy:
 
 def build_policy_from_config(cfg: dict) -> Optional[StartupPolicy]:
     """
-    Supports both legacy and new formats.
+Build a StartupPolicy from a configuration dictionary.
 
-    Legacy:
-      "startup_policy": "pkg.PolicyClass"
-      "startup_policy_args": { ... }
+**Arguments:**
 
-    New multi:
-      "startup_policies_mode": "sequential" | "parallel"
-      "startup_policies_fail_fast": true|false
-      "startup_policies": [
-        {"class": "pkg.PolicyA", "args": {...}},
-        {"class": "pkg.PolicyB", "args": {...}, "wrap": [{"class":"pkg.WithTimeout", "args":{"seconds":5}}]}
-      ]
+* ``cfg``
+
+  / *Condition*: required / *Type*: dict /
+
+  The configuration dictionary. Supports either:
+
+  - Legacy single policy:
+
+      - "startup_policy": str - dotted path to the policy class
+
+      - "startup_policy_args": dict - optional arguments for the policy class
+
+  - New multi-policy:
+
+      - "startup_policies": list - list of policy items (see build_policy_from_item)
+
+      - "startup_policies_mode": str - optional mode ("sequential" or "parallel")
+
+      - "startup_policies_fail_fast": bool - optional fail-fast flag (default True)
+
+**Returns:**
+
+  / *Type*: Optional[StartupPolicy] /
+
+  The constructed StartupPolicy instance, or None if no policy is configured.
     """
     # New multi
     items = cfg.get("startup_policies")

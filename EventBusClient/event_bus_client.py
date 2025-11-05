@@ -843,6 +843,27 @@ Check if the client is currently connected to the event bus.
       """
       return self._connected and self.connection.is_connected()
 
+   def build_routing(self, *path: str) -> str:
+      """
+Backward-compatible alias for build_routing_key.
+
+**Arguments:**
+
+* ``path``
+
+  / *Condition*: required / *Type*: str /
+
+  The components of the routing key. Each component will be joined with a dot (.) to form the final routing key.
+
+**Returns:**
+
+  / *Type*: str /
+
+  The constructed routing key as a string.
+      """
+      return self.build_routing_key(*path)
+
+
    def build_routing_key(self, *path: str) -> str:
       """
 Build a routing key from the given path components.
@@ -1108,6 +1129,13 @@ Blocking connect that spins a background loop if needed.
       except Exception as e:
          LOGGER.error(f"Failed to connect synchronously: {e}")
          raise Exception("Failed to connect synchronously")
+
+   def send_sync_compat(self, message, routing_key: str, headers: dict | None = None,
+                        *, threadsafe: bool = False, timeout: float | None = 10.0) -> None:
+      """
+Backward-compatible blocking send wrapper.
+      """
+      return self.send_sync(routing_key, message, headers=headers, threadsafe=threadsafe, timeout=timeout)
 
    def send_sync(self, routing_key: str, message, headers: dict | None = None,
                  *, threadsafe: bool = False, timeout: float | None = 10.0) -> None:
