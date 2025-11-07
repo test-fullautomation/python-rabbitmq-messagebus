@@ -33,10 +33,10 @@ import pkgutil
 import importlib
 from typing import Dict, Type, Optional, Union
 from JsonPreprocessor.CJsonPreprocessor import CJsonPreprocessor
-from .serializer.base_serializer import Serializer
-from .exchange_handler.base import ExchangeHandler
-from .message.base_message import BaseMessage
-from .utils import Utils
+from EventBusClient.serializer.base_serializer import Serializer
+from EventBusClient.exchange_handler.base import ExchangeHandler
+from EventBusClient.message.base_message import BaseMessage
+from EventBusClient.utils import Utils
 from pydotdict import DotDict
 from EventBusClient import LOGGER
 

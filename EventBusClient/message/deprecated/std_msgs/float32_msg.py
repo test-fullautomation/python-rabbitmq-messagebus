@@ -1,7 +1,7 @@
 """The float32 message module."""
 
 from numpy import float32
-from .msg import Msg
+from EventBusClient.message.deprecated.std_msgs.msg import Msg
 
 
 class Float32Msg(Msg):

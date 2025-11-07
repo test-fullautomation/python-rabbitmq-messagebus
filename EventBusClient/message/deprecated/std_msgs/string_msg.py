@@ -1,6 +1,6 @@
 """The string message module."""
 
-from .msg import Msg
+from EventBusClient.message.deprecated.std_msgs.msg import Msg
 
 
 class StringMsg(Msg):

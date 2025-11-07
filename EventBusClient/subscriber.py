@@ -37,7 +37,7 @@ from EventBusClient.serializer.base_serializer import Serializer
 from EventBusClient.serializer.pickle_serializer import PickleSerializer
 from EventBusClient.message.base_message import BaseMessage
 from EventBusClient import LOGGER
-from .subscription_cache import SubscriptionCache
+from EventBusClient.subscription_cache import SubscriptionCache
 
 
 class AsyncSubscriber:

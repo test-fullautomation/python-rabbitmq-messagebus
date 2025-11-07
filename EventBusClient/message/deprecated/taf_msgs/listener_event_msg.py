@@ -2,7 +2,7 @@
 
 from numpy import float64
 from EventBusClient.message.deprecated.std_msgs import Msg
-from .listener_event_indexer import EventIndex
+from EventBusClient.message.deprecated.taf_msgs.listener_event_indexer import EventIndex
 
 
 class ListenerEventMsg(Msg):
