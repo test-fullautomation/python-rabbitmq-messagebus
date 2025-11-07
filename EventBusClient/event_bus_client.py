@@ -35,17 +35,17 @@ from concurrent.futures import TimeoutError as _FutTimeout, ThreadPoolExecutor
 from typing import Callable, Awaitable, Optional, Type, Union
 from JsonPreprocessor import CJsonPreprocessor
 from EventBusClient.subscription_cache import SubscriptionCache
-from .exchange_handler.base import ExchangeHandler
-from .message.base_message import BaseMessage
-from .message.basic_message import BasicMessage
-from .connection import ConnectionManager
-from .plugin_loader import PluginLoader, CONFIG_SCHEMA, ConfigValidator
-from .serializer.base_serializer import Serializer
-from .qlogger import QLogger
-from .startup_policy import StartupPolicy, NoWait, PolicyChain, build_policy_from_config
-from .rendezvous import Rendezvous
+from EventBusClient.exchange_handler.base import ExchangeHandler
+from EventBusClient.message.base_message import BaseMessage
+from EventBusClient.message.basic_message import BasicMessage
+from EventBusClient.connection import ConnectionManager
+from EventBusClient.plugin_loader import PluginLoader, CONFIG_SCHEMA, ConfigValidator
+from EventBusClient.serializer.base_serializer import Serializer
+from EventBusClient.qlogger import QLogger
+from EventBusClient.startup_policy import StartupPolicy, NoWait, PolicyChain, build_policy_from_config
+from EventBusClient.rendezvous import Rendezvous
 from EventBusClient import LOGGER, LOGGER_NAME
-from .wait_mode import WaitMode
+from EventBusClient.wait_mode import WaitMode
 from EventBusClient.version import VERSION, VERSION_DATE
 
 # logger = QLogger().get_logger("event_bus_client")

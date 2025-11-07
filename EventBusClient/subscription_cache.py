@@ -31,7 +31,7 @@ from __future__ import annotations
 import time, asyncio, threading
 from collections import deque
 from typing import Deque, Generic, Iterable, List, Optional, TypeVar, Callable, Any
-from .wait_mode import WaitMode
+from EventBusClient.wait_mode import WaitMode
 
 T = TypeVar("T")
 

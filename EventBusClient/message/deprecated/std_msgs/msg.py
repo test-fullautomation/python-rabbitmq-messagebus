@@ -2,7 +2,7 @@
 
 import pickle
 
-from .header import Header
+from EventBusClient.message.deprecated.std_msgs.header import Header
 
 
 class Msg():

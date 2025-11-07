@@ -1,7 +1,7 @@
 """The int32 message module."""
 
 from numpy import int32
-from .msg import Msg
+from EventBusClient.message.deprecated.std_msgs.msg import Msg
 
 
 class Int32Msg(Msg):

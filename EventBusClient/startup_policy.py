@@ -32,7 +32,7 @@ import asyncio
 from typing import Protocol, Optional, Dict, Iterable, Union, Sequence, Any, Type
 from importlib import import_module
 import pydoc
-from .message.base_message import BaseMessage
+# from .message.base_message import BaseMessage
 
 # pylint: disable=W0611
 if False:  # type checking helpers
