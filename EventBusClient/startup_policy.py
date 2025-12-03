@@ -72,6 +72,9 @@ Check if the given alias matches the controller alias(es).
         return a == controller_alias.strip().lower()
     return any(a == x.strip().lower() for x in controller_alias)
 
+def _maybe_has(obj, name: str) -> bool:
+    return hasattr(obj, name) and callable(getattr(obj, name))
+
 class StartupPolicy(Protocol):
     """
 A startup policy can delay or block the completion of EventBusClient.start()
@@ -312,7 +315,7 @@ Turn a JSON 'class' string into an actual class object.
         "Use a full dotted path or register the short name."
     )
 
-class GeneralCacheStartupPolicy:
+class GeneralCacheStartupPolicy(StartupPolicy):
     """
 Example startup policy that decides whether to start a 'general cache'
 at connect-time, and with which routing keys / message class.
@@ -386,6 +389,68 @@ Enable the general cache listener on the client if applicable.
             routing_keys=self._routing_keys,
             message_cls=msg_cls,
         )
+
+
+class ConfigureUnroutablePolicy(StartupPolicy):
+    """
+Configure unroutable behavior BEFORE exchange setup.
+mode: "drop" | "alternate-exchange" | "return"
+on_unroutable: "log" | "raise" | "cache" | "callback"
+    """
+    def __init__(self,
+                 mode: str = "drop",
+                 alternate_exchange: str | None = None,
+                 on_unroutable: str = "log") -> None:
+        """
+Initialize the ConfigureUnroutablePolicy.
+
+**Arguments:**
+
+* ``mode``
+
+  / *Condition*: optional / *Type*: str / *Default*: "drop" /
+
+  The unroutable message handling mode: "drop", "alternate-exchange", or "return".
+
+* ``alternate_exchange``
+
+  / *Condition*: optional / *Type*: str \| None / *Default*: None /
+
+  The name of the alternate exchange to use if mode is "alternate-exchange".
+
+* ``on_unroutable``
+
+  / *Condition*: optional / *Type*: str / *Default*: "log" /
+
+  The action to take on unroutable messages: "log", "raise", "cache", or "callback".
+        """
+        self.mode = mode
+        self.alternate_exchange = alternate_exchange
+        self.on_unroutable = on_unroutable
+
+    async def before_setup(self, bus: "EventBusClient") -> None:
+        """
+Configure unroutable message handling on the EventBusClient.
+
+**Arguments:**
+
+* ``bus``
+
+  / *Condition*: required / *Type*: EventBusClient /
+
+  The EventBusClient instance to configure.
+        """
+        bus.exchange_handler.configure_unroutable(
+            policy=self.mode,
+            alternate_exchange=self.alternate_exchange,
+            on_unroutable=self.on_unroutable,
+            unroutable_sink=getattr(bus, "_unroutable_cache", None),
+            on_unroutable_callback=getattr(bus, "on_unroutable_callback", None),
+        )
+
+    async def wait_until_ready(self, bus: "EventBusClient") -> None:
+        return
+
 
 class PolicyChain(StartupPolicy):
     """
@@ -467,6 +532,24 @@ Apply all policies according to the configured mode.
                     raise
                 if hasattr(bus, "logger"):
                     bus.logger.exception("[policy:sequential] policy %s failed (continuing)", p.__class__.__name__)
+
+    async def before_setup(self, bus: "EventBusClient") -> None:
+        if not self.policies: return
+        if self.mode == "parallel":
+            await asyncio.gather(*(p.before_setup(bus) for p in self.policies if _maybe_has(p, "before_setup")))
+            return
+        for p in self.policies:
+            if _maybe_has(p, "before_setup"):
+                await p.before_setup(bus)
+
+    async def after_setup(self, bus: "EventBusClient") -> None:
+        if not self.policies: return
+        if self.mode == "parallel":
+            await asyncio.gather(*(p.after_setup(bus) for p in self.policies if _maybe_has(p, "after_setup")))
+            return
+        for p in self.policies:
+            if _maybe_has(p, "after_setup"):
+                await p.after_setup(bus)
 
 def build_policy_from_item(item: dict) -> StartupPolicy:
     """

@@ -61,7 +61,7 @@ def producer_process(config_path: str):
     for i in range(5):
         msg = TestMessage(f"Message #{i} from producer")
         logging.info(f"Producer: Sending {msg.content}")
-        client.send_sync("test.topic", msg)
+        client.send_sync("ipc.test.topic.test_zone.test_alias", msg)
         time.sleep(1)
 
     logging.info("Producer: Shutting down")

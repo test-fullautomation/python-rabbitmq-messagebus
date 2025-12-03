@@ -31,6 +31,7 @@ import os
 import sys
 import pkgutil
 import importlib
+import warnings
 from typing import Dict, Type, Optional, Union
 from JsonPreprocessor.CJsonPreprocessor import CJsonPreprocessor
 from EventBusClient.serializer.base_serializer import Serializer
@@ -176,7 +177,8 @@ Load all Python modules from built-in folders and plugins.
             if not is_pkg and not name.endswith(".base"):
                importlib.import_module(name)
          except Exception as ex:
-            print(f"⚠️ Failed to load module '{name}': {ex}")
+            # print(f"⚠️ Failed to load module '{name}': {ex}")
+            warnings.warn(f"Failed to load module '{name}': {ex}")
 
    def _register_classes(self):
       """

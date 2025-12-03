@@ -31,6 +31,7 @@ from __future__ import annotations
 import logging
 import asyncio
 import threading
+from collections import deque
 from concurrent.futures import TimeoutError as _FutTimeout, ThreadPoolExecutor
 from typing import Callable, Awaitable, Optional, Type, Union
 from JsonPreprocessor import CJsonPreprocessor
@@ -47,6 +48,8 @@ from EventBusClient.rendezvous import Rendezvous
 from EventBusClient import LOGGER, LOGGER_NAME
 from EventBusClient.wait_mode import WaitMode
 from EventBusClient.version import VERSION, VERSION_DATE
+from pydotdict import DotDict
+
 
 # logger = QLogger().get_logger("event_bus_client")
 # logger = logging.getLogger(__name__)
@@ -140,10 +143,12 @@ EventBusClient: Initializes the event bus client with an exchange handler and se
       self.general_cache_policy: str = kwargs.get("general_cache_policy",
                                                            "off")  # "off" | "on_connect" | "on_demand"
       self.general_routing_keys = kwargs.get("general_routing_keys",
-                                                      ["general"])
+                                                      "general")
       self.general_message_cls = kwargs.get("general_message_cls", BaseMessage)
       self.general_cache = None
       self._wait_exec = None  # lazy ThreadPoolExecutor for async=True legacy waits
+
+      self._unroutable_cache = deque(maxlen=1000)
       
    def getVersion(self) -> str:
       """
@@ -430,7 +435,9 @@ Wait for multiple specific messages in the given subscription cache.
    def constructor_params_from_config(config_path: str,
                                       startup_policy: Optional[StartupPolicy] = None,
                                       zone_id: Optional[str] = None,
-                                      alias: Optional[str] = None) -> tuple:
+                                      alias: Optional[str] = None,
+                                      startup_policies: Optional[list[StartupPolicy]] = None
+                                      ) -> dict:
       """
 Returns a tuple of parameters for the EventBusClient constructor, loaded from config and provided arguments.
 
@@ -460,27 +467,17 @@ Returns a tuple of parameters for the EventBusClient constructor, loaded from co
 
   The alias for the client. If not provided, no alias will be used.
 
+* ``startup_policies``
+
+  / *Condition*: optional / *Type*: list[StartupPolicy] / *Default*: None /
+
+  A list of startup policies to use for the client. If provided, these will be combined into a PolicyChain.
+
 **Returns:**
 
-  / *Type*: tuple /
+  / *Type*: dict /
 
-  A tuple containing the following elements in order:
-
-    - exchange_handler: An instance of ExchangeHandler loaded from the configuration.
-
-    - serializer: An instance of Serializer loaded from the configuration.
-
-    - loop: None (the event loop will be set later).
-
-    - zone_id: The provided zone_id argument.
-
-    - alias: The provided alias argument.
-
-    - startup_policy: The provided startup_policy argument.
-
-    - prefetch_count: The prefetch count loaded from the configuration (default is 10 if not specified).
-
-    - auto_reconnect: The auto_reconnect setting loaded from the configuration (default is True if not specified).
+  A dictionary of parameters to be used for the EventBusClient constructor.
       """
       config = PluginLoader.load_config(config_path)
       plugin_loader = PluginLoader()
@@ -489,19 +486,39 @@ Returns a tuple of parameters for the EventBusClient constructor, loaded from co
       serializer = serializer_cls()
       handler = handler_cls(serializer=serializer)
       auto_reconnect = config.get("auto_reconnect", True)
-      return (
-         handler,
-         serializer,
-         None,  # loop
-         zone_id,
-         alias,
-         startup_policy,
-         config.get("qos_prefetch", 10),
-         auto_reconnect,
-         config.get("host", "localhost"),
-         config.get("port", 5672),
-         config
-      )
+
+      return {
+         "exchange_handler": handler,
+         "serializer": serializer,
+         "loop": None,
+         "zone_id": zone_id,
+         "alias": alias,
+         "startup_policy": startup_policy,
+         "prefetch_count": config.get("qos_prefetch", 10),
+         "auto_reconnect": auto_reconnect,
+         "host": config.get("host", "localhost"),
+         "port": config.get("port", 5672),
+         "logger_config": config,
+         "startup_policies": startup_policies,
+         **{k: v for k, v in config.items() if k not in {
+            "exchange_handler", "serializer", "loop", "zone_id", "alias", "startup_policy",
+            "prefetch_count", "auto_reconnect", "host", "port", "logger_config", "startup_policies"
+         }}
+      }
+
+      # return (
+      #    handler,
+      #    serializer,
+      #    None,  # loop
+      #    zone_id,
+      #    alias,
+      #    startup_policy,
+      #    config.get("qos_prefetch", 10),
+      #    auto_reconnect,
+      #    config.get("host", "localhost"),
+      #    config.get("port", 5672),
+      #    config
+      # )
 
    @classmethod
    async def from_config(cls,
@@ -510,7 +527,9 @@ Returns a tuple of parameters for the EventBusClient constructor, loaded from co
                          zone_id: Optional[str] = None,
                          alias: Optional[str] = None,
                          start_connection: bool = True,
-                         config_source: Optional[Union[str, dict]] = None) -> EventBusClient:
+                         config_source: Optional[Union[str, dict]] = None,
+                         startup_policies: Optional[list[StartupPolicy]] = None
+                         ) -> EventBusClient:
       """
 Create an EventBusClient instance from a configuration file.
 
@@ -552,6 +571,12 @@ Create an EventBusClient instance from a configuration file.
 
   If True, the client will automatically connect to the event bus server after creation. Defaults to True.
 
+* ``startup_policies``
+
+  / *Condition*: optional / *Type*: list[StartupPolicy] / *Default*: None /
+
+  A list of startup policies to use for the client. If provided, these will be combined into a PolicyChain.
+
 **Returns:**
 
   / *Type*: EventBusClient /
@@ -578,7 +603,7 @@ Create an EventBusClient instance from a configuration file.
          if isinstance(config_source, str):
             config = CJsonPreprocessor().jsonLoads(config_source)
          elif isinstance(config_source, dict):
-            config = config_source
+            config = DotDict(config_source)
          else:
             raise ValueError("config_source must be a str, dict, or JsonPreprocessor object")
 
@@ -613,7 +638,12 @@ Create an EventBusClient instance from a configuration file.
                    alias=alias,
                    host=config.get("host", "localhost"),
                    port=config.get("port", 5672),
-                   prefetch_count=config.get("qos_prefetch", 10))
+                   prefetch_count=config.get("qos_prefetch", 10),
+                   startup_policies=startup_policies,
+                   **{k: v for k, v in config.items() if k not in {
+                      "exchange_handler", "serializer", "startup_policy", "auto_reconnect",
+                      "zone_id", "alias", "host", "port", "qos_prefetch", "startup_policies"
+                   }})
 
       if not logger_handler:
          client._logger_handler = QLogger().set_handler(config)
@@ -671,7 +701,14 @@ Connect to the event bus server and set up the exchange handler.
          self.port = port if port is not None else self.port
          self.prefetch_count = prefetch_count if prefetch_count is not None else self.prefetch_count
          await self.connection.connect(self.host, self.port, self.prefetch_count, **kwargs)
+
+         if self._startup_policy and hasattr(self._startup_policy, "before_setup"):
+            await self._startup_policy.before_setup(self)
+
          await self.exchange_handler.setup(self.connection)
+         if self._startup_policy and hasattr(self._startup_policy, "after_setup"):
+            await self._startup_policy.after_setup(self)
+
          self._connected = True
          # await self._startup_policy.wait_until_ready(self)
          cfg = kwargs.get("config_dict")  # or wherever you stash the parsed JSON
@@ -748,11 +785,12 @@ Unsubscribe from messages with the specified routing key.
       if not self._connected:
          raise RuntimeError("EventBusClient is not connected")
       # await self.exchange_handler.unsubscribe(routing_key, callback)
+      cb = callback if isinstance(callback, list) else [callback] if callback else []
       if isinstance(routing_key, list):
          for rk in routing_key:
-            await self.exchange_handler.unsubscribe(rk, callback)
+            await self.exchange_handler.unsubscribe(rk, cb)
       else:
-         await self.exchange_handler.unsubscribe(routing_key, callback)
+         await self.exchange_handler.unsubscribe(routing_key, cb)
 
    async def on(self,
                 routing_key: str,
@@ -1219,7 +1257,7 @@ Blocking subscribe wrapper. Returns SubscriptionCache to use with get()/wait_for
          timeout=timeout
       )
 
-   def off_sync(self, routing_key: str, *, timeout: float | None = 10.0) -> None:
+   def off_sync(self, routing_key: str, callback: Optional[Callable[[BaseMessage], Awaitable[None]]] = None, *, timeout: float | None = 10.0) -> None:
       """
 Blocking unsubscribe wrapper.
 
@@ -1237,7 +1275,7 @@ Blocking unsubscribe wrapper.
 
    This method does not return any value. It unsubscribes from the specified routing key and returns immediately.
       """
-      return self._submit(self.off(routing_key), timeout=timeout)
+      return self._submit(self.off(routing_key, callback), timeout=timeout)
 
    def wait_until_ready_sync(self, requirements: dict[str, int], *, timeout: float = 5.0) -> bool:
       """
@@ -1305,6 +1343,20 @@ If you don’t have an async `close()`, this just stops the loop.
             # best effort
             pass
       self.stop_background_loop()
+
+   def pop_unroutables(self) -> list[dict]:
+      """
+Get and clear the list of unroutable messages.
+
+**Returns:**
+
+  / *Type*: list[dict] /
+
+  A list of unroutable message dictionaries that were cached.
+      """
+      items = list(self._unroutable_cache)
+      self._unroutable_cache.clear()
+      return items
 
 
 async def main():
