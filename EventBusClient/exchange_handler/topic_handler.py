@@ -42,6 +42,7 @@ class TopicExchangeHandler(ExchangeHandler):
    def __init__(self, name: str = None, serializer=None, loop: asyncio.AbstractEventLoop = None):
       super().__init__(name, serializer, loop)
 
+   @ExchangeHandler.with_alternate_exchange
    async def setup(self, connection_manager: ConnectionManager):
       """
 Set up the exchange handler by establishing a channel and declaring the exchange.
@@ -62,11 +63,14 @@ It initializes the channel and exchange, and prepares the publisher for sending 
          self.exchange_name,
          self._EXCHANGE_TYPE,
          durable=True,
-         auto_delete=False
+         auto_delete=False,
+         arguments=self.declare_args if self.declare_args else None
       )
       self._publisher = AsyncPublisher(self._channel, self._exchange, self._serializer)
+      self._connection = connection_manager
+      await super().setup(connection_manager)
 
-   async def publish(self, message: BaseMessage, routing_key: str, headers: dict = None, threadsafe: bool = False):
+   async def publish(self, message: BaseMessage, routing_key: str, headers: dict = None, threadsafe: bool = False, mandatory: bool = False):
       """
 Publish a message to the exchange with the specified routing key.
 
@@ -92,12 +96,12 @@ Publish a message to the exchange with the specified routing key.
       """
       if threadsafe:
          future = asyncio.run_coroutine_threadsafe(
-            self._publisher.publish(message, routing_key, headers),
+            self._publisher.publish(message, routing_key, headers, mandatory=mandatory),
             loop=self._loop
          )
          return await asyncio.wrap_future(future)  # Await result
       else:
-         await self._publisher.publish(message, routing_key, headers)
+         await self._publisher.publish(message, routing_key, headers, mandatory=mandatory)
          return None
 
    async def subscribe(

@@ -75,7 +75,8 @@ AsyncPublisher: Initializes the publisher with a channel, exchange, and optional
       self,
       message: BaseMessage,
       routing_key: str,
-      headers: Optional[dict] = None
+      headers: Optional[dict] = None,
+      mandatory: bool = False
    ):
       """
 Publish a message to the exchange with the specified routing key.
@@ -111,5 +112,6 @@ The message is sent with a delivery mode of NOT_PERSISTENT, meaning it will not 
             headers=headers or {},
             delivery_mode=aio_pika.DeliveryMode.NOT_PERSISTENT
          ),
-         routing_key=routing_key
+         routing_key=routing_key,
+         mandatory=mandatory
       )

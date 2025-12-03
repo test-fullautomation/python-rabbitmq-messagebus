@@ -30,6 +30,9 @@
 import asyncio
 # import  logging
 from abc import ABC, abstractmethod
+
+import aio_pika
+
 from EventBusClient.message.base_message import BaseMessage
 from EventBusClient.publisher import AsyncPublisher
 from EventBusClient.subscriber import AsyncSubscriber
@@ -80,6 +83,138 @@ ExchangeHandler: Initializes the exchange handler with a name, serializer, and e
       self._connection = None
       self._subscribers: list[AsyncSubscriber] = []
 
+      self._unroutable_policy = "drop"
+      self._alternate_exchange = None
+      self._on_unroutable = "log"
+      self._on_unroutable_cb = None
+      self._unroutable_sink = None
+      self._return_callback_set = False
+      self.declare_args = {}
+
+   def configure_unroutable(self, *,
+                            policy: str,
+                            alternate_exchange: Optional[str],
+                            on_unroutable: str,
+                            unroutable_sink: Optional[list[str]],
+                            on_unroutable_callback):
+      """
+Configure the unroutable message handling policy.
+
+**Arguments:**
+
+* ``policy``
+
+  / *Condition*: required / *Type*: str /
+
+  The unroutable message handling policy. Options are "drop", "log", "return", "alternate-exchange".
+
+* ``alternate_exchange``
+
+  / *Condition*: optional / *Type*: str /
+
+  The name of the alternate exchange to use if the policy is "alternate-exchange".
+
+* ``on_unroutable``
+
+  / *Condition*: required / *Type*: str /
+
+  The action to take for unroutable messages. Options are "log", "cache", "callback", "raise".
+
+* ``unroutable_sink``
+
+  / *Condition*: optional / *Type*: list /
+
+  The sink (list) to store unroutable messages if the action is "cache".
+
+* ``on_unroutable_callback``
+
+  / *Condition*: optional / *Type*: Callable /
+
+  The callback function to invoke for unroutable messages if the action is "callback".
+      """
+      self._unroutable_policy = policy
+      self._alternate_exchange = alternate_exchange
+      self._on_unroutable = on_unroutable
+      self._unroutable_sink = unroutable_sink
+      self._on_unroutable_cb = on_unroutable_callback
+
+   def _handle_unroutable(self, info: dict) -> None:
+      """
+Handle unroutable messages based on the configured action.
+
+**Arguments:**
+
+* ``info``
+
+  / *Condition*: required / *Type*: dict /
+
+  Information about the unroutable message.
+      """
+      mode = self._on_unroutable
+      if mode == "log":
+         LOGGER.warning("Unroutable message: %s", info)
+      elif mode == "cache" and self._unroutable_sink is not None:
+         try:
+            self._unroutable_sink.append(info)  # <-- use sink
+         except Exception:
+            LOGGER.exception("Failed to cache unroutable message")
+      elif mode == "callback" and self._on_unroutable_cb:
+         try:
+            self._on_unroutable_cb(info)
+         except Exception:
+            LOGGER.exception("on_unroutable_callback raised")
+      elif mode == "raise":
+         raise RuntimeError(f"Unroutable publish: {info!r}")
+      else:
+         LOGGER.warning("Unknown on_unroutable=%r; logging: %s", mode, info)
+
+   def _on_basic_return(self, message: aio_pika.IncomingMessage) -> None:
+      """
+Handle basic.return AMQP messages for unroutable messages.
+
+**Arguments:**
+
+* ``message``
+
+  / *Condition*: required / *Type*: aio_pika.IncomingMessage /
+
+  The incoming message that was returned as unroutable.
+      """
+      info = {
+         "routing_key": getattr(message, "routing_key", None),
+         "exchange": getattr(message, "exchange", None),
+         "headers": dict(getattr(message, "headers", {}) or {}),
+         "reply_code": getattr(message, "reply_code", None),
+         "reply_text": getattr(message, "reply_text", None),
+         "body": getattr(message, "body", b""),
+      }
+      try:
+         self._handle_unroutable(info)
+      except Exception:
+         LOGGER.exception("Unroutable handler raised")
+
+   def _install_return_handler(self) -> None:
+      """
+Install the AMQP return handler on the channel for handling unroutable messages.
+      """
+      if not self._channel or self._return_callback_set:
+         return
+
+      cb = self._on_basic_return
+
+      # aio-pika versions differ; try a few names:
+      for attr in ("add_on_return_callback", "add_return_callback", "set_return_callback", "set_on_return_callback"):
+         if hasattr(self._channel, attr):
+            try:
+               getattr(self._channel, attr)(cb)  # type: ignore[misc]
+               self._return_callback_set = True
+               LOGGER.info("Registered AMQP return callback via %s", attr)
+               return
+            except Exception:
+               pass
+
+      LOGGER.warning("Could not register AMQP return callback on channel; 'return' policy will only set mandatory=True")
+
    def reset_loop(self, loop: asyncio.AbstractEventLoop = None):
       """
 Reset the event loop used by the exchange handler.
@@ -109,6 +244,51 @@ Set up the exchange handler by establishing a channel and declaring the exchange
       """
       connection_manager.register_exchange_handler(self)
 
+   # noinspection PyMethodMayBeStatic
+   def with_alternate_exchange(func):
+      """
+Decorator to set up and finalize alternate exchange configuration around the decorated method.
+
+**Arguments:**
+
+* ``func``
+
+  / *Condition*: required / *Type*: Callable /
+
+  The method to be decorated.
+      """
+      async def wrapper(self, *args, **kwargs):
+         await self.setup_alternate_exchange()
+         result = await func(self, *args, **kwargs)
+         await self.finalize_setup()
+         return result
+      return wrapper
+
+   async def setup_alternate_exchange(self):
+      """
+Set up the alternate exchange configuration based on the unroutable policy.
+      """
+      # Alternate Exchange policy
+      if self._unroutable_policy == "alternate-exchange":
+         ae_name = self._alternate_exchange or f"{self.exchange_name}.ae"
+         self.declare_args["alternate-exchange"] = ae_name
+
+   async def finalize_setup(self):
+      """
+Finalize the setup of the exchange handler by configuring the alternate exchange and return handler.
+      """
+      # If AE policy, declare AE (fanout) + a durable unroutable queue and bind it
+      if self._unroutable_policy == "alternate-exchange":
+         ae_name = self._alternate_exchange or f"{self.exchange_name}.ae"
+         ae = await self._channel.declare_exchange(ae_name, aio_pika.ExchangeType.FANOUT, durable=True)
+         dq_name = f"{self.exchange_name}.unroutable"
+         dq = await self._channel.declare_queue(dq_name, durable=True)
+         await dq.bind(ae, routing_key="")  # fanout ignores routing_key
+
+      # If RETURN policy, register channel return handler (feature-detected)
+      if self._unroutable_policy == "return":
+         self._install_return_handler()
+
    async def teardown(self):
       """
 Tear down the exchange handler by closing the channel and cleaning up resources.
@@ -126,7 +306,7 @@ Tear down the exchange handler by closing the channel and cleaning up resources.
          self._connection.unregister_exchange_handler(self)
 
    @abstractmethod
-   async def publish(self, message: BaseMessage, routing_key: str, headers: dict = None, threadsafe: bool = False): ...
+   async def publish(self, message: BaseMessage, routing_key: str, headers: dict = None, threadsafe: bool = False, mandatory: bool = False): ...
 
    @abstractmethod
    async def subscribe(self, routing_key: str, message_cls: Type[BaseMessage], callback, cache_size: Optional[int]): ...

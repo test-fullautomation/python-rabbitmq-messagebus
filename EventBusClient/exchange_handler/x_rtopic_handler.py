@@ -70,6 +70,7 @@ XRTopicExchangeHandler: Initializes the exchange handler with a serializer and e
       """
       super().__init__(name, serializer, loop)
 
+   @ExchangeHandler.with_alternate_exchange
    async def setup(self, connection_manager: ConnectionManager):
       """
 Set up the exchange handler by establishing a channel and declaring the x-rtopic exchange.
@@ -87,25 +88,14 @@ Set up the exchange handler by establishing a channel and declaring the x-rtopic
          name=self.exchange_name,
          type=self.exchange_type,
          durable=False,
-         auto_delete=True
+         auto_delete=True,
+         arguments=self.declare_args if self.declare_args else None
       )
-
-      # Bind the x-rtopic exchange to the base exchange
-      # base_exchange_name = "taf.event_bus"
-      # base_exchange = await self._channel.declare_exchange(
-      #    name=base_exchange_name,
-      #    type="fanout",
-      #    durable=False,
-      #    auto_delete=True
-      # )
-      #
-      # await self._exchange.bind(base_exchange)
-
       self._publisher = AsyncPublisher(self._channel, self._exchange, self._serializer)
       self._connection = connection_manager
       await super().setup(connection_manager)
 
-   async def publish(self, message: BaseMessage, routing_key: str, headers: dict = None, threadsafe: bool = False):
+   async def publish(self, message: BaseMessage, routing_key: str, headers: dict = None, threadsafe: bool = False, mandatory: bool = False):
       """
 Publish a message to the exchange with the specified routing key.
 
@@ -152,14 +142,14 @@ This is useful in multi-threaded applications where the event bus client may be 
          if running is not self._loop:
             LOGGER.info(f"Publishing message to routing key: {routing_key} in a thread-safe manner")
             future = asyncio.run_coroutine_threadsafe(
-               self._publisher.publish(message, routing_key, headers),
+               self._publisher.publish(message, routing_key, headers, mandatory=mandatory),
                loop=self._loop
             )
             result = await asyncio.wrap_future(future)  # Await result safely
             LOGGER.info(f"Publish completed for routing key: {routing_key}")
             return result
 
-      await self._publisher.publish(message, routing_key, headers)
+      await self._publisher.publish(message, routing_key, headers, mandatory=mandatory)
       LOGGER.info(f"Publish directly completed for routing key: {routing_key}")
       return None
 
