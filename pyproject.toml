@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools==79.0.1", "wheel", "colorama==0.4.6", "pypandoc_binary==1.15", "PythonExtensionsCollection"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "EventBusClient"
+version = "0.1.1"
+description = "An IPC message-bus based on RabbitMQ message broker"
+readme = "README.md"
+requires-python = ">=3.13"
+license = "Apache-2.0"
+authors = [
+    {name = "Nguyen Huynh Tri Cuong", email = "Cuong.NguyenHuynhTri@vn.bosch.com"}
+]
+keywords = ["RabbitMQ", "Message Bus", "IPC"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "pydotdict",
+]
+
+[project.urls]
+Homepage = "https://github.com/test-fullautomation/python-rabbitmq-messagebus"
+Repository = "https://github.com/test-fullautomation/python-rabbitmq-messagebus"
+
+[tool.setuptools]
+packages = [
+    "EventBusClient",
+    "EventBusClient.config",
+    "EventBusClient.exchange_handler",
+    "EventBusClient.message",
+    "EventBusClient.message.deprecated",
+    "EventBusClient.message.deprecated.std_msgs",
+    "EventBusClient.message.deprecated.taf_msgs",
+    "EventBusClient.plugins",
+    "EventBusClient.serializer",
+    "EventBusClient.examples",
+]
+
+[tool.setuptools.package-data]
+EventBusClient = [
+    "*.bat",
+    "*.jsonp",
+    "*.template",
+    "*.pdf",
+]
