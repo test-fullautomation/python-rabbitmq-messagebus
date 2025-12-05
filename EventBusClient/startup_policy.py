@@ -400,7 +400,8 @@ on_unroutable: "log" | "raise" | "cache" | "callback"
     def __init__(self,
                  mode: str = "drop",
                  alternate_exchange: str | None = None,
-                 on_unroutable: str = "log") -> None:
+                 on_unroutable: str = "log",
+                 on_unroutable_callback: Optional[Any] = None) -> None:
         """
 Initialize the ConfigureUnroutablePolicy.
 
@@ -423,10 +424,17 @@ Initialize the ConfigureUnroutablePolicy.
   / *Condition*: optional / *Type*: str / *Default*: "log" /
 
   The action to take on unroutable messages: "log", "raise", "cache", or "callback".
+
+* ``on_unroutable_callback``
+
+  / *Condition*: optional / *Type*: Optional[Any] / *Default*: None /
+
+  Optional callback function to invoke on unroutable messages if on_unroutable is "callback".
         """
         self.mode = mode
         self.alternate_exchange = alternate_exchange
         self.on_unroutable = on_unroutable
+        self.on_unroutable_callback = on_unroutable_callback
 
     async def before_setup(self, bus: "EventBusClient") -> None:
         """
@@ -445,7 +453,7 @@ Configure unroutable message handling on the EventBusClient.
             alternate_exchange=self.alternate_exchange,
             on_unroutable=self.on_unroutable,
             unroutable_sink=getattr(bus, "_unroutable_cache", None),
-            on_unroutable_callback=getattr(bus, "on_unroutable_callback", None),
+            on_unroutable_callback=self.on_unroutable_callback,
         )
 
     async def wait_until_ready(self, bus: "EventBusClient") -> None:
