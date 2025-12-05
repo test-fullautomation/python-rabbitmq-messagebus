@@ -217,7 +217,7 @@ Install the AMQP return handler on the channel for handling unroutable messages.
                   LOGGER.info("Registered AMQP return callback via %s", attr)
                   return
             except Exception as ex:
-                  pass
+                  LOGGER.debug("Failed to register AMQP return callback via %s: %s", attr, ex, exc_info=True)
 
       LOGGER.warning("Could not register AMQP return callback on channel; 'return' policy will only set mandatory=True")
 
