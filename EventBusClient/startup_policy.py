@@ -211,7 +211,7 @@ Locate and return an object by its dotted path.
 
 **Returns:**
 
-  / *Type*: Any \| None /
+  / *Type*: Any /
 
   The located object, or None if not found.
     """
@@ -243,7 +243,7 @@ Turn a JSON 'class' string into an actual class object.
 
 * ``value``
 
-  / *Condition*: required / *Type*: str \| type \| None /
+  / *Condition*: required / *Type*: str or type or None /
 
   The class to resolve. Can be a dotted path, a short name, or a type.
 
@@ -335,19 +335,19 @@ Initialize the GeneralCacheStartupPolicy.
 
 * ``routing_keys``
 
-  / *Condition*: optional / *Type*: str \| Sequence[str] / *Default*: ("general")
+  / *Condition*: optional / *Type*: str or Sequence[str] / *Default*: ("general")
 
   The routing keys to listen on for the general cache.
 
 * ``message_cls``
 
-  / *Condition*: optional / *Type*: str \| type / *Default*: "BasicMessage"
+  / *Condition*: optional / *Type*: str or type / *Default*: "BasicMessage"
 
   The message class to use for the general cache.
 
 * ``only_for_alias``
 
-  / *Condition*: optional / *Type*: str \| None / *Default*: None
+  / *Condition*: optional / *Type*: str or None / *Default*: None
 
   If set, only enable the general cache if the client's alias matches this value.
         """
@@ -414,7 +414,7 @@ Initialize the ConfigureUnroutablePolicy.
 
 * ``alternate_exchange``
 
-  / *Condition*: optional / *Type*: str \| None / *Default*: None /
+  / *Condition*: optional / *Type*: str or None / *Default*: None /
 
   The name of the alternate exchange to use if mode is "alternate-exchange".
 
