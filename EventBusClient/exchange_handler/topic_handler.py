@@ -94,6 +94,7 @@ Publish a message to the exchange with the specified routing key.
 
   Additional headers to include with the message. This can be used for metadata or routing information.
       """
+      mandatory = self._unroutable_policy == "return"
       if threadsafe:
          future = asyncio.run_coroutine_threadsafe(
             self._publisher.publish(message, routing_key, headers, mandatory=mandatory),

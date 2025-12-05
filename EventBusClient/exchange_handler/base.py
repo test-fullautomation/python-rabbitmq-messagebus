@@ -168,7 +168,7 @@ Handle unroutable messages based on the configured action.
       else:
          LOGGER.warning("Unknown on_unroutable=%r; logging: %s", mode, info)
 
-   def _on_basic_return(self, message: aio_pika.IncomingMessage) -> None:
+   def _on_basic_return(self, channel: aio_pika.robust_channel.RobustChannel, message: aio_pika.IncomingMessage) -> None:
       """
 Handle basic.return AMQP messages for unroutable messages.
 
@@ -203,15 +203,21 @@ Install the AMQP return handler on the channel for handling unroutable messages.
       cb = self._on_basic_return
 
       # aio-pika versions differ; try a few names:
-      for attr in ("add_on_return_callback", "add_return_callback", "set_return_callback", "set_on_return_callback"):
+      for attr in ("return_callbacks", "add_on_return_callback", "add_return_callback", "set_return_callback", "set_on_return_callback"):
          if hasattr(self._channel, attr):
             try:
-               getattr(self._channel, attr)(cb)  # type: ignore[misc]
-               self._return_callback_set = True
-               LOGGER.info("Registered AMQP return callback via %s", attr)
-               return
-            except Exception:
-               pass
+               if attr == "return_callbacks":
+                    getattr(self._channel, attr).add(cb)  # type: ignore[misc]
+                    self._return_callback_set = True
+                    LOGGER.info("Registered AMQP return callback via %s.add", attr)
+                    return
+               else:
+                  getattr(self._channel, attr)(cb)  # type: ignore[misc]
+                  self._return_callback_set = True
+                  LOGGER.info("Registered AMQP return callback via %s", attr)
+                  return
+            except Exception as ex:
+                  pass
 
       LOGGER.warning("Could not register AMQP return callback on channel; 'return' policy will only set mandatory=True")
 

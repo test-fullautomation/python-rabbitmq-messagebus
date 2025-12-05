@@ -133,6 +133,7 @@ This is useful in multi-threaded applications where the event bus client may be 
          hasattr(message.header, "seq") and setattr(message.header, "seq", self.__seq)
          hasattr(message.header, "timestamp") and setattr(message.header, "timestamp", time.time())
 
+      mandatory = self._unroutable_policy == "return"
       if threadsafe:
          try:
             running = asyncio.get_running_loop()
