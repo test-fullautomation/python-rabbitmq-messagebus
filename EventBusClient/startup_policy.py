@@ -211,7 +211,7 @@ Locate and return an object by its dotted path.
 
 **Returns:**
 
-  / *Type*: Any \| None /
+  / *Type*: Any /
 
   The located object, or None if not found.
     """
@@ -243,7 +243,7 @@ Turn a JSON 'class' string into an actual class object.
 
 * ``value``
 
-  / *Condition*: required / *Type*: str \| type \| None /
+  / *Condition*: required / *Type*: str or type or None /
 
   The class to resolve. Can be a dotted path, a short name, or a type.
 
@@ -335,19 +335,19 @@ Initialize the GeneralCacheStartupPolicy.
 
 * ``routing_keys``
 
-  / *Condition*: optional / *Type*: str \| Sequence[str] / *Default*: ("general")
+  / *Condition*: optional / *Type*: str or Sequence[str] / *Default*: ("general")
 
   The routing keys to listen on for the general cache.
 
 * ``message_cls``
 
-  / *Condition*: optional / *Type*: str \| type / *Default*: "BasicMessage"
+  / *Condition*: optional / *Type*: str or type / *Default*: "BasicMessage"
 
   The message class to use for the general cache.
 
 * ``only_for_alias``
 
-  / *Condition*: optional / *Type*: str \| None / *Default*: None
+  / *Condition*: optional / *Type*: str or None / *Default*: None
 
   If set, only enable the general cache if the client's alias matches this value.
         """
@@ -400,7 +400,8 @@ on_unroutable: "log" | "raise" | "cache" | "callback"
     def __init__(self,
                  mode: str = "drop",
                  alternate_exchange: str | None = None,
-                 on_unroutable: str = "log") -> None:
+                 on_unroutable: str = "log",
+                 on_unroutable_callback: Optional[Any] = None) -> None:
         """
 Initialize the ConfigureUnroutablePolicy.
 
@@ -414,7 +415,7 @@ Initialize the ConfigureUnroutablePolicy.
 
 * ``alternate_exchange``
 
-  / *Condition*: optional / *Type*: str \| None / *Default*: None /
+  / *Condition*: optional / *Type*: str or None / *Default*: None /
 
   The name of the alternate exchange to use if mode is "alternate-exchange".
 
@@ -423,10 +424,17 @@ Initialize the ConfigureUnroutablePolicy.
   / *Condition*: optional / *Type*: str / *Default*: "log" /
 
   The action to take on unroutable messages: "log", "raise", "cache", or "callback".
+
+* ``on_unroutable_callback``
+
+  / *Condition*: optional / *Type*: Optional[Any] / *Default*: None /
+
+  Optional callback function to invoke on unroutable messages if on_unroutable is "callback".
         """
         self.mode = mode
         self.alternate_exchange = alternate_exchange
         self.on_unroutable = on_unroutable
+        self.on_unroutable_callback = on_unroutable_callback
 
     async def before_setup(self, bus: "EventBusClient") -> None:
         """
@@ -445,7 +453,7 @@ Configure unroutable message handling on the EventBusClient.
             alternate_exchange=self.alternate_exchange,
             on_unroutable=self.on_unroutable,
             unroutable_sink=getattr(bus, "_unroutable_cache", None),
-            on_unroutable_callback=getattr(bus, "on_unroutable_callback", None),
+            on_unroutable_callback=self.on_unroutable_callback,
         )
 
     async def wait_until_ready(self, bus: "EventBusClient") -> None:

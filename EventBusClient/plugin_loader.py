@@ -51,7 +51,10 @@ CONFIG_SCHEMA = {
     "qos_prefetch": int,
     "logfile": str,
     "loglevel": str,
-    "logger_name": str
+    "logger_name": str,
+    "general_cache_policy": str,
+    "general_routing_keys": str,
+    "general_message_cls": str
 }
 
 class ConfigValidator:
@@ -86,9 +89,15 @@ Validate the configuration against the schema.
             if key == "port":
                if not (1024 <= config[key] <= 65535):
                   raise ValueError("Port must be between 1024 and 65535")
+
             if key == "qos_prefetch":
                if config[key] < 0:
                   raise ValueError("qos_prefetch must be a positive number")
+
+            if key == "general_cache_policy":
+               if config[key] not in ("off", "on_connect", "on_demand"):
+                  raise ValueError("general_cache_policy must be one of: off, on_connect, on_demand")
+
             if key == "plugins_path":
                path = config[key]
                paths = path if isinstance(path, (list, tuple)) else [path]
@@ -300,11 +309,6 @@ Load configuration from a JSONP file and validate it against the schema.
          ConfigValidator(CONFIG_SCHEMA).validate(config_data)
 
       return config_data
-
-      #    return CJsonPreprocessor().jsonLoad(
-      #       os.path.join(config_dir, "config.jsonp")
-      #    )
-      # return None
 
 
 if __name__ == "__main__":

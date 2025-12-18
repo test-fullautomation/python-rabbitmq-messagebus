@@ -19,6 +19,24 @@
 
   // qos_prefetch: Number of messages to prefetch for Quality of Service.
   "qos_prefetch": 10
+
+  // general_cache_policy: Cache policy for general messages ("off" | "on_connect" | "on_demand").
+  "general_cache_policy": "off",
+
+  // general_routing_keys: Routing keys for general messages.
+  "general_routing_keys": "general",
+
+  // general_message_cls: Message class for general messages.
+  "general_message_cls": "BaseMessage"
+
+  // logger_name: Name of the logger instance.
+  "logger_name": "test",
+
+  // logfile: Path to the log file.
+  "logfile": "test.log"
+
+  // loglevel: Logging level for the logger instance.
+  "loglevel": "INFO",
 }
 
 /*
@@ -36,4 +54,15 @@ Description:
 - exchange_handler [mandatory]: Exchange handler type.
 - auto_reconnect [optional]: Enable auto-reconnect. Default: true.
 - qos_prefetch [optional]: Prefetch message count for QoS. Default: 10.
+- general_cache_policy [optional]: Cache policy for general messages.
+  Options:
+    \`off\` (no caching)
+    \`on_connect\` (cache populated on server connect)
+    \`on_demand\` (cache populated when requested).
+  Default: "off".
+- general_routing_keys [optional]: Routing keys for general messages. Default: "general".
+- general_message_cls [optional]: Message class for general messages. Default: "BaseMessage".
+- logger_name [optional]: Logger instance name. Default: "event_bus_client".
+- logfile [optional]: Log file path. Default: None.
+- loglevel [optional]: Logger level. Default: "INFO".
 */

@@ -1,3 +1,4 @@
+% \usepackage{listings}
 % Copyright 2020-2025 Robert Bosch GmbH
 
 % Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,7 +45,7 @@ The client uses a combination of built-in plugins and user-defined plugins to pr
 \section{Installation}\label{sec:installation}
 To install the \textbf{EventBusClient}, use pip to install the package from PyPI:
 \begin{pythonlog}
-pip install event-bus-client
+pip install eventbusclient
 \end{pythonlog}
 Ensure you have \textbf{RabbitMQ} server running and accessible at the specified host and port in the configuration file.
 \section{Dependencies}\label{sec:dependencies}
@@ -94,58 +95,193 @@ project/
 \section{Configuration}\label{sec:configuration}
 The \plog{config.jsonp} file controls all aspects of the \textbf{EventBusClient}, including plugin paths, \textbf{RabbitMQ} connection, and selected implementations.
 
-\begin{pythoncode}
-{
-  "plugins_path": "./plugins",
-  "host": "localhost",
-  "port": 5672,
-  "serializer": "PickleSerializer",
-  "exchange_handler": "XRTopicExchangeHandler",
-  "message_class": "ListenerEventMsg",
-  "threadsafe_publish": true,
-  "auto_reconnect": true,
-  "qos_prefetch": 10
-}
-\end{pythoncode}
+Configuration Template (\texttt{EventBusClient/config/config.jsonp.template})
 
+\noindent
+\textit{Note: This is JSON with comments (\texttt{.jsonp}). Remove comments (\texttt{//~, /*~*/}) if your parser does not support them.}
+
+\begin{lstlisting}
+{
+  // plugins_path: Path to the directory containing plugin modules.
+  "plugins_path": "./plugins",
+
+  // host: Hostname or IP address for the server connection.
+  "host": "localhost",
+
+  // port: Port number for the server connection.
+  "port": 5672,
+
+  // serializer: Serialization method for message data (e.g., PickleSerializer).
+  "serializer": "PickleSerializer",
+
+  // exchange_handler: Handler type for message exchange (e.g., TopicExchangeHandler).
+  "exchange_handler": "TopicExchangeHandler",
+
+  // auto_reconnect: Automatically reconnect if the connection is lost (true/false).
+  "auto_reconnect": true,
+
+  // qos_prefetch: Number of messages to prefetch for Quality of Service.
+  "qos_prefetch": 10,
+
+  // general_cache_policy: "off" | "on_connect" | "on_demand".
+  "general_cache_policy": "off",
+
+  // general_routing_keys: Routing keys for general messages.
+  "general_routing_keys": "general",
+
+  // general_message_cls: Message class for general messages.
+  "general_message_cls": "BaseMessage",
+
+  // logger_name: Name of the logger instance.
+  "logger_name": "test",
+
+  // logfile: Path to the log file.
+  "logfile": "test.log",
+
+  // loglevel: Logging level for the logger instance.
+  "loglevel": "INFO"
+}
+\end{lstlisting}
+
+\vspace{1em}
+
+\section*{How to Use}
+\begin{enumerate}
+  \item Copy the template above into your project as \texttt{config.jsonp}.
+  \item Adjust each value to match your environment and requirements.
+  \item Save the file and restart your application to apply changes.
+\end{enumerate}
+
+\section*{Field Descriptions}
+
+\renewcommand{\arraystretch}{1.2}
+\begin{longtable}{@{}p{4cm}p{2cm}p{2.2cm}p{3cm}p{6cm}@{}}
+\toprule
+\textbf{Field} & \textbf{Required} & \textbf{Type} & \textbf{Default} & \textbf{Description / Options} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Field} & \textbf{Required} & \textbf{Type} & \textbf{Default} & \textbf{Description / Options} \\
+\midrule
+\endhead
+\midrule
+\multicolumn{5}{r}{\small Continued on next page}
+\endfoot
+\bottomrule
+\endlastfoot
+
+\texttt{plugins\_path} & Optional & String & \texttt{./plugins} & Path to the plugins directory (relative or absolute). \\
+
+\texttt{host} & Optional & String & \texttt{"localhost"} & Server hostname or IP address for the broker connection. \\
+
+\texttt{port} & Optional & Integer & \texttt{5672} & Server port for the broker connection. \\
+
+\texttt{serializer} & \textbf{Mandatory} & String & (none) & Serialization strategy for message bodies (e.g., \texttt{PickleSerializer}). Must be available to both producer and consumer sides. \\
+
+\texttt{exchange\_handler} & \textbf{Mandatory} & String & (none) & Exchange handler implementation (e.g., \texttt{TopicExchangeHandler}). Determines exchange type and binding logic. \\
+
+\texttt{auto\_reconnect} & Optional & Boolean & \texttt{true} & Reconnect automatically if the connection is lost. \\
+
+\texttt{qos\_prefetch} & Optional & Integer & \texttt{10} & Prefetch count for consumer QoS (how many unacked messages a consumer can receive). \\
+
+\texttt{general\_cache\_policy} & Optional & String & \texttt{"off"} & Policy controlling the general message cache: \\
+& & & &
+\quad \texttt{"off"} -- disabled; \\
+& & & &
+\quad \texttt{"on\_connect"} -- start caching upon connection establishment; \\
+& & & &
+\quad \texttt{"on\_demand"} -- start caching only when first requested. \\
+
+\texttt{general\_routing\_keys} & Optional & String (or list) & \texttt{"general"} & Routing key or keys used for the general cache subscription (supports topic patterns). \\
+
+\texttt{general\_message\_cls} & Optional & String & \texttt{"BaseMessage"} & Message class to use for general-cache decoding. Provide a resolvable name or dotted path if needed. \\
+
+\texttt{logger\_name} & Optional & String & \texttt{"event\_bus"} & Name of the logger instance to use/create. \\
+
+\texttt{logfile} & Optional & String / Null & (none) & Path to a log file. If omitted or null, logs go to the default handlers (e.g., console). \\
+
+\texttt{loglevel} & Optional & String & \texttt{"INFO"} & Logging threshold (\texttt{"DEBUG"}, \texttt{"INFO"}, \texttt{"WARNING"}, \texttt{"ERROR"}, \texttt{"CRITICAL"}). \\
+\end{longtable}
 
 \section{Usage}\label{sec:usage}
 
 \subsection{Initialization}
 Create an \textbf{EventBusClient} instance from configuration:
 \begin{pythoncode}
-from event_bus.client import EventBusClient
+from EventBusClient.event_bus_client import EventBusClient
 
 client = await EventBusClient.from_config("./config/config.jsonp")
 \end{pythoncode}
 
 
 \subsection{Publishing Messages}
-Send a message using the configured serializer and exchange handler:
+Send a message using the configured serializer and exchange handler asynchronously:
 \begin{pythoncode}
 msg = ListenerEventMsg(event="start_cycle", timestamp=1234567890)
-await client.send("zone1.topic.start", msg)
+await client.send("zone1.topic.start", msg, header)
 \end{pythoncode}
 
 Enable thread-safe publish from a non-async thread:
 \begin{pythoncode}
-client.send("zone1.topic.alert", msg, threadsafe=True)
+client.send("zone1.topic.alert", msg, header, threadsafe=True)
+\end{pythoncode}
+
+Send a message synchronously using the corresponding method:
+\begin{pythoncode}
+client.send_sync("zone1.topic.sync", msg, header)
 \end{pythoncode}
 
 
 \subsection{Subscribing to Messages}
 Subscribe to a routing key and handle incoming messages:
 \begin{pythoncode}
-async def on_message(msg: ListenerEventMsg):
-    print(f"Received event: {msg.event} at {msg.timestamp}")
+async def on_message(msg: ListenerEventMsg, header):
+    print(f"Received message: {msg}, header: {header}")
 
 await client.on("zone1.#", ListenerEventMsg, on_message)
 \end{pythoncode}
 
 
+Subscribe to a routing key and handle incoming messages synchronously using \texttt{on\_sync}:
+\begin{pythoncode}
+def on_message_sync(msg: ListenerEventMsg, header):
+    print(f"Received message: {msg}, header: {header}")
+
+client.on_sync("zone1.#", ListenerEventMsg, on_message_sync)
+\end{pythoncode}
+
+
+\subsection{Setting Unroutable Message Policy}
+You can configure how the client handles unroutable messages by setting a startup policy. For example:
+
+\begin{pythoncode}
+from EventBusClient.event_bus_client import EventBusClient
+from EventBusClient.startup_policy import ConfigureUnroutablePolicy
+
+config_unrout = ConfigureUnroutablePolicy(
+    mode="return",                # "drop" (default), "alternate-exchange", or "return"
+    alternate_exchange=None,      # Name of alternate exchange if mode is "alternate-exchange"
+    on_unroutable="log"           # "log" (default), "raise", "cache", or "callback"
+)
+client = await EventBusClient.from_config(config_path, startup_policy=config_unrout)
+\end{pythoncode}
+
+\begin{itemize}
+  \item \texttt{mode}: \emph{(optional, str, default: "drop")} \\
+    Determines how unroutable messages are handled: \texttt{"drop"} (discard), \texttt{"alternate-exchange"} (send to alternate exchange), or \texttt{"return"} (return to sender).
+
+
+  \item \texttt{alternate\_exchange}: \emph{(optional, str or None, default: None)} \\
+    The name of the alternate exchange to use if mode is \texttt{"alternate-exchange"}.
+  \item \texttt{on\_unroutable}: \emph{(optional, str, default: "log")} \\
+    The action to take on unroutable messages: \texttt{"log"} (log the event), \texttt{"raise"} (raise an exception), \texttt{"cache"} (store for later), or \texttt{"callback"} (invoke a user callback).
+  \item  \texttt{on\_unroutable\_callback}: \emph{(optional, callable or None, default: None)} \\
+    A user-defined function to call when an unroutable message is received (only if \texttt{on\_unroutable} is set to \texttt{"callback"}).
+\end{itemize}
+
 \newpage
 \section{Example: Producer and Consumer}
-This example (from \plog{EventBusClient/test/test.py}) starts a producer and a consumer in separate processes:
+This example (from \plog{EventBusClient/examples/basic_async_producer_consumer_sample.py}) starts a producer and a consumer in separate processes:
 \begin{pythoncode}
 # Start consumer
 consumer = Process(target=run_process, args=(consumer_process, config_path))
@@ -158,6 +294,8 @@ producer.start()
 producer.join()
 consumer.join()
 \end{pythoncode}
+
+You can find the complete example in the \plog{EventBusClient/examples} directory. Run run\_sample.bat (Windows) to execute the example.
 
 \section{Example: Custom Plugin Structure}\label{sec:example:-custom-plugin-structure}
 To create a custom plugin, follow these steps:

@@ -591,7 +591,10 @@ Create an EventBusClient instance from a configuration file.
          "qos_prefetch": 10,
          "logfile": None,
          "loglevel": "INFO",
-         "logger_name": "event_bus_client"
+         "logger_name": "event_bus_client",
+         "general_cache_policy": "off",
+         "general_routing_keys": "general",
+         "general_message_cls": BasicMessage
       }
       # LOGGER.info(f"Loading EventBusClient configuration from {'path: ' + config_path if config_path else 'source'}")
       if (config_path is None and config_source is None) or (config_path is not None and config_source is not None):
