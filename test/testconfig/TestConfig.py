@@ -551,3 +551,79 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "ControlMessage unusual timestamp edge cases test passed: 9 edge cases handled correctly (Zero timestamp (Unix epoch), Negative timestamp, Very large timestamp, Precise float timestamp, Integer timestamp, Tiny positive timestamp, None timestamp, from_data with negative float timestamp, get_value preserves unusual timestamps)"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0037"
+dictUsecase['DESCRIPTION']       = "ConfigureUnroutablePolicy: mode=return, on_unroutable=raise"
+dictUsecase['EXPECTATION']       = "An unroutable message should raise (reported by the test as a PASS string)"
+dictUsecase['SECTION']           = "ConfigureUnroutablePolicy"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0037.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Unroutable exception raised"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0038"
+dictUsecase['DESCRIPTION']       = "ConfigureUnroutablePolicy: mode=return, on_unroutable=callback"
+dictUsecase['EXPECTATION']       = "An unroutable message should trigger the provided callback and not raise"
+dictUsecase['SECTION']           = "ConfigureUnroutablePolicy"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0038.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Callback invoked for unroutable message"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0039"
+dictUsecase['DESCRIPTION']       = "ConfigureUnroutablePolicy: mode=return, on_unroutable=cache"
+dictUsecase['EXPECTATION']       = "An unroutable message should be cached (store for later) and not raise"
+dictUsecase['SECTION']           = "ConfigureUnroutablePolicy"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0039.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Unroutable message cached"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0040"
+dictUsecase['DESCRIPTION']       = "ConfigureUnroutablePolicy: mode=return, on_unroutable=log"
+dictUsecase['EXPECTATION']       = "An unroutable message should not raise (should be logged)"
+dictUsecase['SECTION']           = "ConfigureUnroutablePolicy"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0040.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Unroutable message logged"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0041"
+dictUsecase['DESCRIPTION']       = "ConfigureUnroutablePolicy: mode=alternate-exchange"
+dictUsecase['EXPECTATION']       = "An unroutable message should be routed to the configured alternate exchange"
+dictUsecase['SECTION']           = "ConfigureUnroutablePolicy"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0041.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Message routed to alternate exchange"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
