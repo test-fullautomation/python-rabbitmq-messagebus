@@ -190,8 +190,11 @@ Handle basic.return AMQP messages for unroutable messages.
       }
       try:
          self._handle_unroutable(info)
-      except Exception:
-         LOGGER.exception("Unroutable handler raised")
+      except Exception as ex:
+         LOGGER.exception("Unroutable handler raised an exception. Details: %s", ex)
+         if self._on_unroutable == "raise":
+            raise ex
+
 
    def _install_return_handler(self) -> None:
       """

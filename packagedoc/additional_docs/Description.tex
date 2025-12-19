@@ -261,7 +261,8 @@ from EventBusClient.startup_policy import ConfigureUnroutablePolicy
 config_unrout = ConfigureUnroutablePolicy(
     mode="return",                # "drop" (default), "alternate-exchange", or "return"
     alternate_exchange=None,      # Name of alternate exchange if mode is "alternate-exchange"
-    on_unroutable="log"           # "log" (default), "raise", "cache", or "callback"
+    on_unroutable="log",           # "log" (default), "raise", "cache", or "callback"
+    on_unroutable_callback=None   # User-defined callback function if on_unroutable is "callback"
 )
 client = await EventBusClient.from_config(config_path, startup_policy=config_unrout)
 \end{pythoncode}
