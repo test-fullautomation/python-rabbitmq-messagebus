@@ -594,6 +594,7 @@ Create an EventBusClient instance from a configuration file.
          "logfile": None,
          "loglevel": "INFO",
          "logger_name": "event_bus_client",
+         "logger_mode": "a",
          "general_cache_policy": "off",
          "general_routing_keys": "general",
          "general_message_cls": BasicMessage
