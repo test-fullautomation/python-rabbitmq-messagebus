@@ -116,6 +116,10 @@ Validate the configuration against the schema.
                   raise ValueError(f"loglevel must be one of: {', '.join(valid_levels)}")
 
             if key == "logger_mode":
+               # logger_mode controls how the log file is opened:
+               # - "w": write mode; truncates (overwrites) the log file on each start.
+               # - "a": append mode; preserves existing logs and appends new entries.
+               # This choice has important implications for log retention in production.
                valid_modes = ["w", "a"]
                if config[key] not in valid_modes:
                   raise ValueError(f"logger_mode must be one of: {', '.join(valid_modes)}")
