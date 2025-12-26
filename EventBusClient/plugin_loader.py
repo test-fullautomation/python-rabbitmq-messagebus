@@ -47,6 +47,7 @@ CONFIG_SCHEMA = {
     "port": int,
     "serializer": str,
     "exchange_handler": str,
+    "exchange_name": str,
     "auto_reconnect": bool,
     "qos_prefetch": int,
     "logfile": str,

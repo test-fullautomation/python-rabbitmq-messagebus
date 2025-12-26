@@ -587,6 +587,7 @@ Create an EventBusClient instance from a configuration file.
          "plugins_path": "./plugins",
          "host": "localhost",
          "port": 5672,
+         "exchange_name": None,
          "auto_reconnect": True,
          "qos_prefetch": 10,
          "logfile": None,
@@ -628,10 +629,11 @@ Create an EventBusClient instance from a configuration file.
 
       # Dynamic load components
       handler_cls: Type[ExchangeHandler] = plugin_loader.get_exchange_handler(config.exchange_handler)
+      exchange_name = config.get("exchange_name", None)
       serializer_cls: Type[Serializer] = plugin_loader.get_serializer(config.serializer)
 
       serializer = serializer_cls()
-      handler = handler_cls(serializer=serializer)
+      handler = handler_cls(name=exchange_name, serializer=serializer)
       auto_reconnect = config.get("auto_reconnect", True)
       client = cls(exchange_handler=handler,
                    serializer=serializer,
