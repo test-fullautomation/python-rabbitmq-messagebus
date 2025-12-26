@@ -483,8 +483,9 @@ Returns a tuple of parameters for the EventBusClient constructor, loaded from co
       plugin_loader = PluginLoader()
       handler_cls: Type[ExchangeHandler] = plugin_loader.get_exchange_handler(config.exchange_handler)
       serializer_cls: Type[Serializer] = plugin_loader.get_serializer(config.serializer)
+      exchange_name = config.get("exchange_name", None)
       serializer = serializer_cls()
-      handler = handler_cls(serializer=serializer)
+      handler = handler_cls(name=exchange_name, serializer=serializer)
       auto_reconnect = config.get("auto_reconnect", True)
 
       return {
