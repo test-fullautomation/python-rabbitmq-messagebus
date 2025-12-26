@@ -170,7 +170,7 @@ Stop the subscriber by canceling the consumer, unbinding the queue from the exch
             self._stop_callback_loop()
 
          if self._queue and not self._queue.channel.is_closed:
-            if self._queue and self._consumer_tag:
+            if self._consumer_tag:
                # Cancel consumer first to stop message delivery
                await self._queue.cancel(self._consumer_tag)
                self._consumer_tag = None
