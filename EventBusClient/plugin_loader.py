@@ -47,11 +47,13 @@ CONFIG_SCHEMA = {
     "port": int,
     "serializer": str,
     "exchange_handler": str,
+    "exchange_name": str,
     "auto_reconnect": bool,
     "qos_prefetch": int,
     "logfile": str,
     "loglevel": str,
     "logger_name": str,
+    "logger_mode": str,
     "general_cache_policy": str,
     "general_routing_keys": str,
     "general_message_cls": str
@@ -107,6 +109,20 @@ Validate the configuration against the schema.
                   if not isinstance(p, str) or not os.path.exists(
                           os.path.join(os.path.dirname(os.path.abspath(__file__)), p) if not os.path.isabs(p) else p):
                      raise ValueError(f"plugins_path '{p}' is not a valid path")
+
+            if key == "loglevel":
+               valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+               if config[key] not in valid_levels:
+                  raise ValueError(f"loglevel must be one of: {', '.join(valid_levels)}")
+
+            if key == "logger_mode":
+               # logger_mode controls how the log file is opened:
+               # - "w": write mode; truncates (overwrites) the log file on each start.
+               # - "a": append mode; preserves existing logs and appends new entries.
+               # This choice has important implications for log retention in production.
+               valid_modes = ["w", "a"]
+               if config[key] not in valid_modes:
+                  raise ValueError(f"logger_mode must be one of: {', '.join(valid_modes)}")
 
       extra_keys = set(config.keys()) - set(self.schema.keys())
       if extra_keys:

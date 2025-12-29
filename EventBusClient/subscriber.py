@@ -165,32 +165,33 @@ Start the subscriber by declaring a queue, binding it to the exchange, and consu
 Stop the subscriber by canceling the consumer, unbinding the queue from the exchange, and deleting the queue.
       """
       try:
-         if self._queue and self._consumer_tag:
-            # Cancel consumer first to stop message delivery
-            await self._queue.cancel(self._consumer_tag)
-            self._consumer_tag = None
-
-         # For exclusive+auto_delete queues, unbinding and deletion are optional
-         # but we'll do it for clean shutdown
-         if self._queue:
-            try:
-               await self._queue.unbind(self._exchange, routing_key=self._routing_key)
-            except Exception:
-               pass  # Ignore unbind errors
-
-            try:
-               await self._queue.delete(if_unused=False, if_empty=False)
-            except Exception:
-               pass  # Ignore delete errors
-
-            self._queue = None
-
          # Stop isolated callback loop
          if self._callback_isolation == "threaded":
             self._stop_callback_loop()
 
+         if self._queue and not self._queue.channel.is_closed:
+            if self._consumer_tag:
+               # Cancel consumer first to stop message delivery
+               await self._queue.cancel(self._consumer_tag)
+               self._consumer_tag = None
+
+            # For exclusive+auto_delete queues, unbinding and deletion are optional
+            # but we'll do it for clean shutdown
+            if self._queue:
+               try:
+                  await self._queue.unbind(self._exchange, routing_key=self._routing_key)
+               except Exception:
+                  pass  # Ignore unbind errors
+
+               try:
+                  await self._queue.delete(if_unused=False, if_empty=False)
+               except Exception:
+                  pass  # Ignore delete errors
+
+               self._queue = None
+
       except Exception as e:
-         print(f"[AsyncSubscriber] Error during stop: {e}")
+         LOGGER.warning(f"[AsyncSubscriber] Error during stop: {e}")
       finally:
          # Ensure cleanup even if there are errors
          self._consumer_tag = None

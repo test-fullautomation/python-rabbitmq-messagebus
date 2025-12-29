@@ -78,7 +78,7 @@ class QFileHandler(logging.FileHandler):
    """
 Handler class for user defined file in config.
    """
-   def __init__(self, config, _logger_name, formatter):
+   def __init__(self, config, _logger_name, formatter, logger_mode='a'):
       """
 Constructor for QFileHandler class.
 
@@ -103,7 +103,7 @@ Constructor for QFileHandler class.
   Log's formatter.
       """
       path = self.get_log_path(config)
-      super(QFileHandler, self).__init__(path)
+      super(QFileHandler, self).__init__(path, mode=logger_mode)
       self.setFormatter(formatter)
 
    @staticmethod
@@ -160,7 +160,7 @@ class QDefaultFileHandler(logging.FileHandler):
    """
 Handler class for default log file path.
    """
-   def __init__(self, _config, logger_name, formatter):
+   def __init__(self, _config, logger_name, formatter, _logger_mode='a'):
       """
 Constructor for QDefaultFileHandler class.
 
@@ -244,7 +244,7 @@ class QConsoleHandler(logging.StreamHandler):
    """
 Handler class for console log.
    """
-   def __init__(self, _config, _logger_name, _formatter):
+   def __init__(self, _config, _logger_name, _formatter, _logger_mode='a'):
       """
 Constructor for QDefaultFileHandler class.
 
@@ -370,13 +370,13 @@ Set handler for logger.
             log_level = QLogger.NAME_2_LEVEL_DICT[log_level]
       except:
          log_level = logging.INFO
-
+      logger_mode = getattr(config, "logger_mode", 'a')
       supported_handler_classes_list = Utils.get_all_descendant_classes(logging.StreamHandler)
       for handler in supported_handler_classes_list:
          # noinspection PyBroadException
          try:
             if handler.get_config_supported(config):
-               handler_ins = handler(config, self.logger_name, self.formatter)
+               handler_ins = handler(config, self.logger_name, self.formatter, logger_mode)
                handler_ins.setLevel(log_level)
                self.logger.addHandler(handler_ins)
                return handler_ins
