@@ -370,7 +370,10 @@ Set handler for logger.
             log_level = QLogger.NAME_2_LEVEL_DICT[log_level]
       except:
          log_level = logging.INFO
-      logger_mode = getattr(config, "logger_mode", 'a')
+      try:
+         logger_mode = getattr(config, 'logger_mode', 'a')
+      except Exception:
+         logger_mode = 'a'
       supported_handler_classes_list = Utils.get_all_descendant_classes(logging.StreamHandler)
       for handler in supported_handler_classes_list:
          # noinspection PyBroadException
