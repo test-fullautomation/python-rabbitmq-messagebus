@@ -1,0 +1,78 @@
+@startuml sequence-unroutable
+!theme plain
+title EventBusClient - Unroutable Message Handling Sequence
+
+actor Application as app
+participant "EventBusClient" as ebc
+participant "ExchangeHandler" as eh
+participant "AsyncPublisher" as pub
+participant "RabbitMQ" as rmq
+participant "Return Callback" as rc
+
+== Publish with Mandatory Flag ==
+
+app -> ebc: send(routing_key, message)
+activate ebc
+
+ebc -> eh: publish(message, routing_key)
+activate eh
+
+note right of eh: unroutable_policy = "return"
+
+eh -> pub: publish(..., mandatory=True)
+activate pub
+
+pub -> rmq: AMQP basic.publish\n(mandatory=true)
+activate rmq
+
+rmq --> pub: message published
+deactivate pub
+
+eh --> ebc: published
+deactivate eh
+
+ebc --> app: sent
+deactivate ebc
+
+== Unroutable Message Return ==
+
+rmq --> rc: basic.return\n(NO_ROUTE)
+activate rc
+note right of rmq: No queue bound\nto routing key
+
+rc -> eh: _on_basic_return(info)
+activate eh
+
+eh -> eh: _handle_unroutable(info)
+
+alt on_unroutable = "log"
+    eh -> eh: logger.warning(...)
+else on_unroutable = "cache"
+    eh -> eh: _unroutable_cache.append(info)
+else on_unroutable = "callback"
+    eh -> app: on_unroutable_callback(info)
+else on_unroutable = "raise"
+    eh -> app: raise UnroutableMessageError
+end
+
+eh --> rc: handled
+deactivate eh
+
+rc --> rmq: ack
+deactivate rc
+deactivate rmq
+
+== Retrieve Cached Unroutables ==
+
+app -> ebc: pop_unroutables()
+activate ebc
+ebc --> app: list[unroutable_info]
+deactivate ebc
+
+note over app, rmq
+  Alternative: Configure alternate-exchange
+  to automatically route undeliverable messages
+  to a fallback exchange
+end note
+
+@enduml

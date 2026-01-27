@@ -1,0 +1,150 @@
+@startuml component
+!theme plain
+title EventBusClient - Component Diagram
+
+skinparam component {
+    BackgroundColor<<core>> #C8E6C9
+    BackgroundColor<<connection>> #BBDEFB
+    BackgroundColor<<messaging>> #FFE0B2
+    BackgroundColor<<serialization>> #E1BEE7
+    BackgroundColor<<external>> #FFCDD2
+    BackgroundColor<<plugin>> #FFF9C4
+    BackgroundColor<<policy>> #D1C4E9
+    BackgroundColor<<util>> #CFD8DC
+}
+
+package "EventBusClient Library" {
+
+    component "EventBusClient" <<core>> as EBC {
+        port "send()" as p_send
+        port "on()" as p_on
+        port "off()" as p_off
+        port "connect()" as p_connect
+        port "close()" as p_close
+        port "send_sync()" as p_send_sync
+        port "on_sync()" as p_on_sync
+        port "pop_unroutables()" as p_unroutable
+    }
+
+    component "ConnectionManager" <<connection>> as CM {
+        port "connect()" as cm_connect
+        port "close()" as cm_close
+        port "is_connected()" as cm_status
+        port "reset_loop()" as cm_reset
+    }
+
+    component "ExchangeHandler" <<messaging>> as EH {
+        port "setup()" as eh_setup
+        port "publish()" as eh_pub
+        port "subscribe()" as eh_sub
+        port "unsubscribe()" as eh_unsub
+        port "teardown()" as eh_tear
+        port "configure_unroutable()" as eh_unroutable
+    }
+
+    component "AsyncPublisher" <<messaging>> as PUB {
+        port "publish()" as pub_pub
+    }
+
+    component "AsyncSubscriber" <<messaging>> as SUB {
+        port "start()" as sub_start
+        port "stop()" as sub_stop
+        port "on_message()" as sub_msg
+    }
+
+    component "SubscriptionCache" <<messaging>> as CACHE {
+        port "append()" as cache_add
+        port "get()" as cache_get
+        port "wait_for_one()" as cache_wait1
+        port "wait_for_many()" as cache_waitn
+        port "drain()" as cache_drain
+    }
+
+    component "Serializer" <<serialization>> as SER {
+        port "serialize()" as ser_ser
+        port "deserialize()" as ser_deser
+    }
+
+    component "Rendezvous" <<core>> as RDV {
+        port "wait_for()" as rdv_wait
+        port "announce_ready()" as rdv_announce
+    }
+
+    component "PluginLoader" <<plugin>> as PL {
+        port "get_serializer()" as pl_ser
+        port "get_exchange_handler()" as pl_eh
+        port "get_message()" as pl_msg
+        port "load_config()" as pl_cfg
+    }
+
+    component "ConfigValidator" <<plugin>> as CV {
+        port "validate()" as cv_val
+    }
+
+    component "StartupPolicy" <<policy>> as SP {
+        port "wait_until_ready()" as sp_wait
+        port "before_setup()" as sp_before
+        port "after_setup()" as sp_after
+    }
+
+    component "QLogger" <<util>> as QL {
+        port "get_logger()" as ql_get
+        port "set_handler()" as ql_set
+    }
+
+    component "Utils" <<util>> as UT {
+        port "get_all_descendant_classes()" as ut_desc
+        port "is_valid_host()" as ut_host
+    }
+
+    component "Unroutable Cache" <<messaging>> as URC {
+        port "pop_unroutables()" as urc_pop
+    }
+}
+
+component "RabbitMQ" <<external>> as RMQ {
+    port "AMQP" as rmq_amqp
+}
+
+' Internal connections
+EBC --> CM : manages
+EBC --> EH : uses
+EBC --> RDV : coordinates
+EBC --> SP : uses
+EBC --> PL : uses
+EBC --> QL : logs
+EBC --> URC : caches
+EH --> PUB : creates
+EH --> SUB : creates
+SUB --> CACHE : fills
+PUB --> SER : uses
+SUB --> SER : uses
+PL --> CV : validates
+PL --> UT : uses
+
+' External connections
+CM --> rmq_amqp : AMQP 0.9.1
+
+note bottom of EBC
+  Main facade providing
+  both async and sync APIs
+end note
+
+note bottom of CACHE
+  Thread-safe buffer
+  for sync consumers
+end note
+
+note bottom of PL
+  Dynamically loads
+  serializers, handlers,
+  and message types
+end note
+
+note bottom of SP
+  Controls startup behavior:
+  delays, handshakes,
+  policy chains
+end note
+
+@enduml

@@ -1,0 +1,218 @@
+@startuml sequence-lifecycle
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 200
+
+title EventBusClient - Full Lifecycle Sequence Diagram
+
+' ==================== PARTICIPANTS ====================
+box "Applications" #LightBlue
+    participant "Producer\nApp" as Producer
+    participant "Consumer\nApp" as Consumer
+end box
+
+box "EventBusClient" #LightGreen
+    participant "EventBusClient" as EBC
+    participant "PluginLoader" as Loader
+    participant "ExchangeHandler" as Handler
+    participant "ConnectionManager" as ConnMgr
+    participant "AsyncSubscriber" as Subscriber
+    participant "AsyncPublisher" as Publisher
+end box
+
+participant "RabbitMQ\nServer" as RabbitMQ #Orange
+
+' ==================== PHASE 1: CONFIGURATION ====================
+== Phase 1: Configuration & Initialization ==
+
+Producer -> EBC : from_config(config_path)
+activate EBC
+
+EBC -> Loader : load_config(path)
+activate Loader
+Loader --> EBC : config (DotDict)
+deactivate Loader
+
+EBC -> Loader : get_exchange_handler(name)
+activate Loader
+Loader --> EBC : TopicExchangeHandler
+deactivate Loader
+
+EBC -> Loader : get_serializer(name)
+activate Loader
+Loader --> EBC : JsonSerializer
+deactivate Loader
+
+EBC -> Handler ** : create(exchange_name, serializer)
+EBC -> ConnMgr ** : create(auto_reconnect=True)
+
+EBC --> Producer : client instance
+deactivate EBC
+
+... Consumer does the same configuration ...
+
+Consumer -> EBC : from_config(config_path)
+activate EBC
+EBC --> Consumer : client instance
+deactivate EBC
+
+' ==================== PHASE 2: CONNECTION ====================
+== Phase 2: Connect to RabbitMQ ==
+
+Producer -> EBC : connect(host, port)
+activate EBC
+
+EBC -> ConnMgr : connect(host, port, prefetch)
+activate ConnMgr
+ConnMgr -> RabbitMQ : AMQP Connection
+RabbitMQ --> ConnMgr : connection established
+ConnMgr -> RabbitMQ : create channel
+RabbitMQ --> ConnMgr : channel ready
+ConnMgr --> EBC : connected
+deactivate ConnMgr
+
+EBC -> Handler : setup(connection)
+activate Handler
+Handler -> RabbitMQ : declare exchange
+RabbitMQ --> Handler : exchange ready
+Handler --> EBC : setup complete
+deactivate Handler
+
+EBC --> Producer : connected
+deactivate EBC
+
+Consumer -> EBC : connect(host, port)
+activate EBC
+EBC -> ConnMgr : connect(host, port, prefetch)
+activate ConnMgr
+ConnMgr -> RabbitMQ : AMQP Connection
+RabbitMQ --> ConnMgr : connected
+deactivate ConnMgr
+EBC -> Handler : setup(connection)
+activate Handler
+Handler --> EBC : ready
+deactivate Handler
+EBC --> Consumer : connected
+deactivate EBC
+
+' ==================== PHASE 3: SUBSCRIBE ====================
+== Phase 3: Subscribe to Topic ==
+
+Consumer -> EBC : on(routing_key, MessageCls, callback)
+activate EBC
+
+EBC -> Handler : subscribe(routing_key, msg_cls, callback)
+activate Handler
+
+Handler -> Subscriber ** : create(channel, exchange, routing_key, callback)
+
+Handler -> Subscriber : start(cache_size)
+activate Subscriber
+Subscriber -> RabbitMQ : declare queue (exclusive)
+RabbitMQ --> Subscriber : queue created
+Subscriber -> RabbitMQ : bind queue to exchange
+RabbitMQ --> Subscriber : bound
+Subscriber -> RabbitMQ : basic_consume
+RabbitMQ --> Subscriber : consumer_tag
+Subscriber --> Handler : SubscriptionCache
+deactivate Subscriber
+
+Handler --> EBC : cache
+deactivate Handler
+
+EBC --> Consumer : SubscriptionCache
+deactivate EBC
+
+' ==================== PHASE 4: PUBLISH ====================
+== Phase 4: Publish Message ==
+
+Producer -> EBC : send(routing_key, message)
+activate EBC
+
+EBC -> Handler : publish(message, routing_key)
+activate Handler
+
+Handler -> Publisher : publish(message, routing_key)
+activate Publisher
+Publisher -> Publisher : serialize(message)
+Publisher -> RabbitMQ : basic_publish
+RabbitMQ --> Publisher : ack
+Publisher --> Handler : sent
+deactivate Publisher
+
+Handler --> EBC : published
+deactivate Handler
+
+EBC --> Producer : done
+deactivate EBC
+
+' ==================== PHASE 5: MESSAGE DELIVERY ====================
+== Phase 5: Message Delivery ==
+
+RabbitMQ -> Subscriber : deliver message
+activate Subscriber
+
+Subscriber -> Subscriber : deserialize(body)
+Subscriber -> Subscriber : cache.append(msg)
+
+alt Async Callback
+    Subscriber -> Consumer : await callback(msg, headers)
+    activate Consumer
+    Consumer --> Subscriber : processed
+    deactivate Consumer
+else Sync Callback (threaded)
+    Subscriber -> Consumer : run_in_executor(callback)
+    activate Consumer
+    Consumer --> Subscriber : processed
+    deactivate Consumer
+end
+
+Subscriber -> RabbitMQ : ack
+deactivate Subscriber
+
+' ==================== PHASE 6: CLOSE ====================
+== Phase 6: Cleanup & Close ==
+
+Consumer -> EBC : off(routing_key)
+activate EBC
+EBC -> Handler : unsubscribe(routing_key)
+activate Handler
+Handler -> Subscriber : stop()
+activate Subscriber
+Subscriber -> RabbitMQ : cancel consumer
+Subscriber -> RabbitMQ : unbind queue
+Subscriber -> RabbitMQ : delete queue
+Subscriber --> Handler : stopped
+deactivate Subscriber
+Handler --> EBC : unsubscribed
+deactivate Handler
+EBC --> Consumer : done
+deactivate EBC
+
+Producer -> EBC : close()
+activate EBC
+EBC -> Handler : teardown()
+activate Handler
+Handler --> EBC : done
+deactivate Handler
+EBC -> ConnMgr : close()
+activate ConnMgr
+ConnMgr -> RabbitMQ : close channel
+ConnMgr -> RabbitMQ : close connection
+ConnMgr --> EBC : closed
+deactivate ConnMgr
+EBC --> Producer : closed
+deactivate EBC
+
+Consumer -> EBC : close()
+activate EBC
+EBC -> ConnMgr : close()
+activate ConnMgr
+ConnMgr -> RabbitMQ : close connection
+ConnMgr --> EBC : closed
+deactivate ConnMgr
+EBC --> Consumer : closed
+deactivate EBC
+
+@enduml

@@ -1,0 +1,132 @@
+@startuml overview
+!theme plain
+
+skinparam defaultFontSize 12
+skinparam componentStyle rectangle
+skinparam roundCorner 10
+skinparam shadowing false
+left to right direction
+
+title EventBusClient - API & Plugin Strategy Overview
+
+' ==================== USER ====================
+actor "User App" as User
+
+' ==================== APIs ====================
+package "Public APIs" #LightGreen {
+    [Async API] as AsyncAPI
+    [Sync API] as SyncAPI
+    [Factory API] as FactoryAPI
+    [Rendezvous API] as RendezvousAPI
+
+    note right of AsyncAPI
+      connect() / close()
+      send() / on() / off()
+    end note
+
+    note right of SyncAPI
+      connect_sync()
+      send_sync() / on_sync()
+    end note
+
+    note right of FactoryAPI
+      from_config()
+      from_config_sync()
+    end note
+
+    note right of RendezvousAPI
+      announce_ready()
+      wait_until_ready()
+    end note
+}
+
+' ==================== CORE ====================
+package "Core" #LightBlue {
+    [EventBusClient] as EBC
+    [ConnectionManager] as ConnMgr
+    [Rendezvous] as Rend
+}
+
+' ==================== PLUGIN SYSTEM ====================
+package "Plugin System" #Wheat {
+    [PluginLoader] as Loader
+
+    package "Extensible Interfaces" #White {
+        interface "ExchangeHandler" as IEx
+        interface "Serializer" as ISer
+        interface "BaseMessage" as IMsg
+        interface "StartupPolicy" as IPol
+    }
+}
+
+' ==================== BUILT-IN PLUGINS ====================
+package "Built-in Plugins" #LightCoral {
+    [TopicExchangeHandler] as TopicEx
+    [XRTopicExchangeHandler] as XRTopicEx
+    [FanoutExchangeHandler] as FanoutEx
+    [JsonSerializer] as JsonSer
+    [PickleSerializer] as PickleSer
+    [ProtobufSerializer] as ProtobufSer
+    [BasicMessage / ControlMessage] as BuiltinMsg
+    [NoWait / FixedDelay / PolicyChain] as Policies
+}
+
+' ==================== CUSTOM PLUGINS ====================
+package "Custom Plugins" #Lavender {
+    [Your ExchangeHandler] as CustEx
+    [Your Serializer] as CustSer
+    [Your Message] as CustMsg
+    [Your Policy] as CustPol
+}
+
+' ==================== EXTERNAL ====================
+database "RabbitMQ" as MQ #Orange
+file "config.jsonp" as Config
+
+' ==================== RELATIONSHIPS ====================
+
+User --> AsyncAPI
+User --> SyncAPI
+
+AsyncAPI --> EBC
+SyncAPI --> EBC
+FactoryAPI --> EBC
+RendezvousAPI --> Rend
+
+EBC --> ConnMgr
+EBC --> Rend
+EBC --> Loader
+
+Loader --> IEx
+Loader --> ISer
+Loader --> IMsg
+Loader --> IPol
+
+TopicEx ..|> IEx
+XRTopicEx ..|> IEx
+FanoutEx ..|> IEx
+JsonSer ..|> ISer
+PickleSer ..|> ISer
+ProtobufSer ..|> ISer
+BuiltinMsg ..|> IMsg
+Policies ..|> IPol
+
+CustEx ..|> IEx
+CustSer ..|> ISer
+CustMsg ..|> IMsg
+CustPol ..|> IPol
+
+ConnMgr --> MQ : AMQP
+Config --> FactoryAPI
+
+note bottom of Loader
+  Dynamically discovers and loads
+  plugins at runtime from config
+end note
+
+note bottom of MQ
+  AMQP 0.9.1 Protocol
+  Default port: 5672
+end note
+
+@enduml

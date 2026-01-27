@@ -33,10 +33,13 @@
   "logger_name": "test",
 
   // logfile: Path to the log file.
-  "logfile": "test.log"
+  "logfile": "test.log",
 
   // loglevel: Logging level for the logger instance.
   "loglevel": "INFO",
+
+  // logger_mode: Log file write mode ("w" for overwrite, "a" for append).
+  "logger_mode": "a"
 }
 
 /*
@@ -65,4 +68,9 @@ Description:
 - logger_name [optional]: Logger instance name. Default: "event_bus_client".
 - logfile [optional]: Log file path. Default: None.
 - loglevel [optional]: Logger level. Default: "INFO".
+- logger_mode [optional]: Log file write mode.
+  Options:
+    `w` (overwrite - truncates log file on each start)
+    `a` (append - preserves existing logs).
+  Default: "a".
 */
