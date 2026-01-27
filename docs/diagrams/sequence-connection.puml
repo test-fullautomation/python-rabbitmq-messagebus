@@ -1,0 +1,113 @@
+@startuml sequence-connection
+!theme plain
+title EventBusClient - Connection Lifecycle Sequence
+
+actor Application as app
+participant "EventBusClient" as ebc
+participant "ConnectionManager" as cm
+participant "ExchangeHandler" as eh
+participant "StartupPolicy" as policy
+participant "RabbitMQ" as rmq
+
+== Connect ==
+
+app -> ebc: await connect(host, port, prefetch_count)
+activate ebc
+
+ebc -> ebc: get running event loop
+ebc -> cm: reset_loop(loop)
+ebc -> eh: reset_loop(loop)
+
+ebc -> cm: await connect(host, port, prefetch_count)
+activate cm
+
+cm -> rmq: connect_robust(\n  host,\n  port,\n  login,\n  password)
+activate rmq
+rmq --> cm: connection
+deactivate rmq
+
+cm -> rmq: connection.channel()
+activate rmq
+rmq --> cm: channel
+deactivate rmq
+
+cm -> rmq: channel.set_qos(prefetch_count)
+activate rmq
+rmq --> cm: ok
+deactivate rmq
+
+cm --> ebc: ready
+deactivate cm
+
+alt has startup_policy.before_setup
+    ebc -> policy: await before_setup(client)
+    activate policy
+    policy --> ebc: ok
+    deactivate policy
+end
+
+ebc -> eh: await setup(connection_manager)
+activate eh
+eh -> rmq: declare_exchange(\n  name,\n  type,\n  durable)
+activate rmq
+rmq --> eh: exchange
+deactivate rmq
+eh --> ebc: ready
+deactivate eh
+
+alt has startup_policy.after_setup
+    ebc -> policy: await after_setup(client)
+    activate policy
+    policy --> ebc: ok
+    deactivate policy
+end
+
+ebc -> ebc: _connected = True
+
+alt has startup_policy.wait_until_ready
+    ebc -> policy: await wait_until_ready(client)
+    activate policy
+    policy --> ebc: ok
+    deactivate policy
+end
+
+ebc --> app: connected
+deactivate ebc
+
+== Close ==
+
+app -> ebc: await close()
+activate ebc
+
+ebc -> eh: await teardown()
+activate eh
+
+loop for each subscriber
+    eh -> eh: await subscriber.stop()
+end
+
+eh --> ebc: done
+deactivate eh
+
+ebc -> cm: await close()
+activate cm
+
+cm -> rmq: close channel
+activate rmq
+rmq --> cm: ok
+deactivate rmq
+
+cm -> rmq: close connection
+activate rmq
+rmq --> cm: ok
+deactivate rmq
+
+cm --> ebc: closed
+deactivate cm
+
+ebc -> ebc: _connected = False
+
+ebc --> app: closed
+deactivate ebc
+
+@enduml

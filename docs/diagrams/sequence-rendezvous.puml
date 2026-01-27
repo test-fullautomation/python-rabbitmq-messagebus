@@ -1,0 +1,84 @@
+@startuml sequence-rendezvous
+!theme plain
+title EventBusClient - Rendezvous Coordination Sequence
+
+box "Coordinator Process" #LightBlue
+    actor Coordinator as coord
+    participant "EventBusClient\n(Coordinator)" as ebc_coord
+end box
+
+box "Worker 1 Process" #LightGreen
+    actor "Worker 1" as w1
+    participant "EventBusClient\n(Worker 1)" as ebc_w1
+end box
+
+box "Worker 2 Process" #LightYellow
+    actor "Worker 2" as w2
+    participant "EventBusClient\n(Worker 2)" as ebc_w2
+end box
+
+participant "RabbitMQ" as rmq
+
+== Workers Announce Ready ==
+
+w1 -> ebc_w1: await announce_ready(["worker"])
+activate ebc_w1
+ebc_w1 -> rmq: publish(rendezvous.ready,\n  {roles: ["worker"]})
+ebc_w1 --> w1: ok
+deactivate ebc_w1
+
+w2 -> ebc_w2: await announce_ready(["worker"])
+activate ebc_w2
+ebc_w2 -> rmq: publish(rendezvous.ready,\n  {roles: ["worker"]})
+ebc_w2 --> w2: ok
+deactivate ebc_w2
+
+== Coordinator Waits for Workers ==
+
+coord -> ebc_coord: await wait_until_ready(\n  {"worker": 2},\n  timeout=60)
+activate ebc_coord
+
+ebc_coord -> rmq: subscribe(rendezvous.ready)
+activate rmq
+
+rmq --> ebc_coord: {roles: ["worker"]} from Worker 1
+ebc_coord -> ebc_coord: worker_count = 1
+
+rmq --> ebc_coord: {roles: ["worker"]} from Worker 2
+ebc_coord -> ebc_coord: worker_count = 2
+deactivate rmq
+
+note right of ebc_coord: Requirements met:\nworker >= 2
+
+ebc_coord --> coord: True (ready)
+deactivate ebc_coord
+
+== Coordinator Announces Ready ==
+
+coord -> ebc_coord: await announce_ready(["coordinator"])
+activate ebc_coord
+ebc_coord -> rmq: publish(rendezvous.ready,\n  {roles: ["coordinator"]})
+ebc_coord --> coord: ok
+deactivate ebc_coord
+
+== Workers Wait for Coordinator ==
+
+w1 -> ebc_w1: await wait_until_ready(\n  {"coordinator": 1},\n  timeout=60)
+activate ebc_w1
+
+w2 -> ebc_w2: await wait_until_ready(\n  {"coordinator": 1},\n  timeout=60)
+activate ebc_w2
+
+rmq --> ebc_w1: {roles: ["coordinator"]}
+ebc_w1 --> w1: True (ready)
+deactivate ebc_w1
+
+rmq --> ebc_w2: {roles: ["coordinator"]}
+ebc_w2 --> w2: True (ready)
+deactivate ebc_w2
+
+== All Synchronized - Begin Work ==
+
+note over coord, w2: All processes now synchronized\nand ready to begin work
+
+@enduml

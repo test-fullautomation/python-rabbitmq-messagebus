@@ -1,0 +1,369 @@
+@startuml class
+!theme plain
+title EventBusClient - Class Diagram
+
+skinparam class {
+    BackgroundColor<<abstract>> #E8EAF6
+    BackgroundColor<<concrete>> #E8F5E9
+    BackgroundColor<<enum>> #FFF9C4
+}
+
+' ==================== Core Classes ====================
+
+class EventBusClient <<concrete>> {
+    - exchange_handler: ExchangeHandler
+    - connection: ConnectionManager
+    - serializer: Serializer
+    - rendezvous: Rendezvous
+    - _startup_policy: StartupPolicy
+    - _connected: bool
+    - _unroutable_cache: deque
+    - general_cache: SubscriptionCache
+    - zone_id: str
+    - alias: str
+    - host: str
+    - port: int
+    --
+    + {static} from_config(config_path): EventBusClient
+    + {static} from_config_sync(config_path): EventBusClient
+    + connect(host, port, prefetch_count)
+    + connect_sync(host, port, prefetch_count)
+    + send(routing_key, message, headers)
+    + send_sync(routing_key, message, headers)
+    + on(routing_key, message_cls, callback): SubscriptionCache
+    + on_sync(routing_key, message_cls, callback): SubscriptionCache
+    + off(routing_key, callback)
+    + off_sync(routing_key, callback)
+    + close()
+    + close_sync()
+    + is_connected(): bool
+    + wait_until_ready(requirements, timeout): bool
+    + announce_ready(roles)
+    + enable_general_cache(routing_keys, message_cls)
+    + pop_unroutables(): list
+}
+
+class ConnectionManager <<concrete>> {
+    - _connection: AbstractRobustConnection
+    - _channel: AbstractChannel
+    - _loop: AbstractEventLoop
+    - auto_reconnect: bool
+    --
+    + connect(host, port, prefetch_count)
+    + close()
+    + is_connected(): bool
+    + reset_loop(loop)
+    + register_exchange_handler(handler)
+    + unregister_exchange_handler(handler)
+}
+
+class Rendezvous <<concrete>> {
+    - _client: EventBusClient
+    - _ready_roles: dict
+    --
+    + wait_for(requirements, timeout): bool
+    + announce_ready(roles)
+}
+
+' ==================== Exchange Handlers ====================
+
+abstract class ExchangeHandler <<abstract>> {
+    # exchange_name: str
+    # exchange_type: str
+    # _channel: AbstractChannel
+    # _exchange: AbstractExchange
+    # _publisher: AsyncPublisher
+    # _subscribers: list[AsyncSubscriber]
+    # _unroutable_policy: str
+    --
+    + {abstract} setup(connection_manager)
+    + {abstract} publish(message, routing_key, headers)
+    + {abstract} subscribe(routing_key, message_cls, callback): SubscriptionCache
+    + unsubscribe(routing_key, callback)
+    + teardown()
+    + configure_unroutable(policy, alternate_exchange, on_unroutable, sink, callback)
+    # _handle_unroutable(info)
+}
+
+class TopicExchangeHandler <<concrete>> {
+    + {static} _EXCHANGE_TYPE = "topic"
+    --
+    + setup(connection_manager)
+    + publish(message, routing_key, headers)
+    + subscribe(routing_key, message_cls, callback): SubscriptionCache
+}
+
+class DirectExchangeHandler <<concrete>> {
+    + {static} _EXCHANGE_TYPE = "direct"
+}
+
+class FanoutExchangeHandler <<concrete>> {
+    + {static} _EXCHANGE_TYPE = "fanout"
+}
+
+class XRTopicExchangeHandler <<concrete>> {
+    + {static} _EXCHANGE_TYPE = "x-rtopic"
+    - __seq: uint32
+    --
+    + setup(connection_manager)
+    + publish(message, routing_key, headers, threadsafe, mandatory)
+    + subscribe(routing_key, message_cls, callback, cache_size): SubscriptionCache
+}
+
+ExchangeHandler <|-- TopicExchangeHandler
+ExchangeHandler <|-- DirectExchangeHandler
+ExchangeHandler <|-- FanoutExchangeHandler
+ExchangeHandler <|-- XRTopicExchangeHandler
+
+' ==================== Publisher/Subscriber ====================
+
+class AsyncPublisher <<concrete>> {
+    - _channel: AbstractChannel
+    - _exchange: AbstractExchange
+    - _serializer: Serializer
+    --
+    + publish(message, routing_key, headers, mandatory)
+}
+
+class AsyncSubscriber <<concrete>> {
+    - _channel: AbstractChannel
+    - _exchange: AbstractExchange
+    - _routing_key: str
+    - _message_cls: Type[BaseMessage]
+    - _callback: list[Callable]
+    - _serializer: Serializer
+    - _queue: AbstractQueue
+    - _cache: SubscriptionCache
+    --
+    + start(cache_size): SubscriptionCache
+    + stop()
+    - _on_message(message)
+    - _schedule_handlers(message, headers)
+}
+
+class SubscriptionCache<T> <<concrete>> {
+    - _buf: Deque[T]
+    - _cv: Condition
+    - _maxlen: int
+    --
+    + append(item)
+    + get(timeout): T
+    + pop(timeout): T
+    + peek(timeout): T
+    + wait_for(predicate, timeout): T
+    + wait_for_one(target, timeout): bool
+    + wait_for_many(targets, mode, timeout): list[int]
+    + drain(max_items): list[T]
+    + __len__(): int
+}
+
+' ==================== Serialization ====================
+
+abstract class Serializer <<abstract>> {
+    --
+    + {abstract} serialize(obj): bytes
+    + {abstract} deserialize(data): object
+}
+
+class PickleSerializer <<concrete>> {
+    --
+    + serialize(obj): bytes
+    + deserialize(data): object
+}
+
+class JsonSerializer <<concrete>> {
+    --
+    + serialize(obj): bytes
+    + deserialize(data): object
+}
+
+class ProtobufSerializer <<concrete>> {
+    --
+    + serialize(obj): bytes
+    + deserialize(data): object
+}
+
+Serializer <|-- PickleSerializer
+Serializer <|-- JsonSerializer
+Serializer <|-- ProtobufSerializer
+
+' ==================== Messages ====================
+
+abstract class BaseMessage <<abstract>> {
+    --
+    + {abstract} from_data(data): BaseMessage
+    + {abstract} get_value(): Any
+}
+
+class BasicMessage <<concrete>> {
+    - content: Any
+    --
+    + from_data(data): BasicMessage
+    + get_value(): Any
+    + to_dict(): dict
+}
+
+class ControlMessage <<concrete>> {
+    + kind: str
+    + roles: list[str]
+    + instance_id: str
+    + ts: float
+    --
+    + from_data(data): ControlMessage
+    + get_value(): dict
+}
+
+class DictMessage <<concrete>> {
+    + data: dict
+    --
+    + from_data(data): DictMessage
+    + get_value(): dict
+}
+
+BaseMessage <|-- BasicMessage
+BaseMessage <|-- ControlMessage
+BaseMessage <|-- DictMessage
+
+' ==================== Startup Policies ====================
+
+interface StartupPolicy <<protocol>> {
+    --
+    + wait_until_ready(bus: EventBusClient)
+}
+
+class NoWait <<concrete>> {
+    --
+    + wait_until_ready(bus)
+}
+
+class FixedDelay <<concrete>> {
+    + seconds: float
+    --
+    + wait_until_ready(bus)
+}
+
+class HandshakeBarrier <<concrete>> {
+    + requirements: Dict[str, int]
+    + timeout: float
+    --
+    + wait_until_ready(bus)
+}
+
+class GeneralCacheStartupPolicy <<concrete>> {
+    - _routing_keys: Union[str, Sequence]
+    - _message_cls: Union[str, type]
+    - _only_for_alias: Optional[str]
+    --
+    + wait_until_ready(bus)
+}
+
+class ConfigureUnroutablePolicy <<concrete>> {
+    + mode: str
+    + alternate_exchange: str
+    + on_unroutable: str
+    + on_unroutable_callback: Optional[Any]
+    --
+    + before_setup(bus)
+    + wait_until_ready(bus)
+}
+
+class PolicyChain <<concrete>> {
+    + policies: list[StartupPolicy]
+    + mode: str
+    + fail_fast: bool
+    --
+    + wait_until_ready(bus)
+    + before_setup(bus)
+    + after_setup(bus)
+}
+
+class PanelControlLegacyByAlias <<concrete>> {
+    + panel_control: bool
+    + wait_time: float
+    + controller_alias: ControllerAlias
+    --
+    + wait_until_ready(bus)
+}
+
+NoWait ..|> StartupPolicy
+FixedDelay ..|> StartupPolicy
+HandshakeBarrier ..|> StartupPolicy
+GeneralCacheStartupPolicy ..|> StartupPolicy
+ConfigureUnroutablePolicy ..|> StartupPolicy
+PolicyChain ..|> StartupPolicy
+PanelControlLegacyByAlias ..|> StartupPolicy
+
+' ==================== Plugin/Loader ====================
+
+class PluginLoader <<concrete>> {
+    + base_path: list[str]
+    + serializer_dict: Dict[str, Type[Serializer]]
+    + exchange_handler_dict: Dict[str, Type[ExchangeHandler]]
+    + message_dict: Dict[str, Type[BaseMessage]]
+    --
+    + get_serializer(name): Type[Serializer]
+    + get_exchange_handler(name): Type[ExchangeHandler]
+    + get_message(name): Type[BaseMessage]
+    + {static} load_config(config_path): DotDict
+}
+
+class ConfigValidator <<concrete>> {
+    + schema: dict
+    --
+    + validate(config): bool
+}
+
+' ==================== Utilities ====================
+
+class QLogger <<singleton>> {
+    + logger: logging.Logger
+    + logger_name: str
+    + formatter: Formatter
+    --
+    + get_logger(logger_name): Logger
+    + set_handler(config): Handler
+    + get_handler(): Handler
+}
+
+class Utils <<concrete>> {
+    --
+    + {static} get_all_descendant_classes(cls): set
+    + {static} get_all_sub_classes(cls): set
+    + {static} is_valid_host(address, port): bool
+    + {static} caller_name(skip): str
+    + {static} load_library(path, is_stdcall): library
+}
+
+enum WaitMode <<enum>> {
+    ALL_IN_GIVEN_ORDER = 1
+    ALL_IN_RANDOM_ORDER = 2
+    ANY_OF_GIVEN_MSGS = 3
+}
+
+' ==================== Relationships ====================
+
+EventBusClient "1" *-- "1" ConnectionManager
+EventBusClient "1" *-- "1" ExchangeHandler
+EventBusClient "1" *-- "1" Rendezvous
+EventBusClient "1" o-- "0..1" Serializer
+EventBusClient "1" o-- "0..1" StartupPolicy
+EventBusClient ..> PluginLoader : uses
+EventBusClient ..> QLogger : uses
+
+ExchangeHandler "1" *-- "0..1" AsyncPublisher
+ExchangeHandler "1" *-- "0..*" AsyncSubscriber
+
+AsyncPublisher "1" --> "1" Serializer : uses
+AsyncSubscriber "1" --> "1" Serializer : uses
+AsyncSubscriber "1" *-- "1" SubscriptionCache
+
+SubscriptionCache ..> WaitMode : uses
+
+PluginLoader ..> ConfigValidator : uses
+PluginLoader ..> Utils : uses
+
+Rendezvous ..> ControlMessage : uses
+HandshakeBarrier ..> Rendezvous : uses
+PolicyChain o-- "1..*" StartupPolicy : policies
+
+@enduml

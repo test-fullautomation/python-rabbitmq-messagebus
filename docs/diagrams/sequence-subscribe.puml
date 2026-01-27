@@ -1,0 +1,89 @@
+@startuml sequence-subscribe
+!theme plain
+title EventBusClient - Subscribe & Receive Sequence
+
+actor Application as app
+participant "EventBusClient" as ebc
+participant "ExchangeHandler" as eh
+participant "AsyncSubscriber" as sub
+participant "SubscriptionCache" as cache
+participant "Serializer" as ser
+participant "RabbitMQ" as rmq
+
+== Subscribe ==
+
+app -> ebc: await on(routing_key, MessageClass, callback)
+activate ebc
+
+ebc -> ebc: check _connected
+
+ebc -> eh: await subscribe(routing_key, message_cls, callback, cache_size)
+activate eh
+
+eh -> sub **: create AsyncSubscriber(\n  channel,\n  exchange,\n  routing_key,\n  message_cls,\n  callback,\n  serializer)
+
+eh -> sub: await start(cache_size)
+activate sub
+
+sub -> cache **: create SubscriptionCache(maxlen)
+
+sub -> rmq: declare_queue(\n  name="",\n  exclusive=True,\n  auto_delete=True)
+activate rmq
+rmq --> sub: queue
+deactivate rmq
+
+sub -> rmq: queue.bind(exchange, routing_key)
+activate rmq
+rmq --> sub: ok
+deactivate rmq
+
+sub -> rmq: queue.consume(on_message)
+activate rmq
+rmq --> sub: consumer_tag
+deactivate rmq
+
+sub --> eh: cache
+deactivate sub
+
+eh --> ebc: cache
+deactivate eh
+
+ebc --> app: cache
+deactivate ebc
+
+== Receive Message ==
+
+rmq -> sub: on_message(amqp_message)
+activate sub
+
+sub -> ser: deserialize(body)
+activate ser
+ser --> sub: message object
+deactivate ser
+
+sub -> sub: validate isinstance(obj, message_cls)
+
+sub -> cache: append(message)
+activate cache
+cache -> cache: notify waiters
+cache --> sub: ok
+deactivate cache
+
+sub -> app: callback(message, headers)
+activate app
+note right: Callback runs in\nisolated thread
+app --> sub: return
+deactivate app
+
+sub --> rmq: ack
+deactivate sub
+
+== Sync Receive (using cache) ==
+
+app -> cache: get(timeout=5.0)
+activate cache
+cache -> cache: wait for message
+cache --> app: message
+deactivate cache
+
+@enduml

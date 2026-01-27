@@ -1,0 +1,123 @@
+@startuml architecture
+!theme plain
+title EventBusClient - Architecture Diagram
+
+skinparam package {
+    BackgroundColor<<external>> #FEFECE
+    BackgroundColor<<core>> #E8F5E9
+    BackgroundColor<<handler>> #E3F2FD
+    BackgroundColor<<util>> #FFF3E0
+    BackgroundColor<<policy>> #E1BEE7
+    BackgroundColor<<plugin>> #FFE0B2
+}
+
+skinparam component {
+    BackgroundColor #FFFFFF
+}
+
+package "External Dependencies" <<external>> {
+    component [aio_pika] as aio_pika
+    component [asyncio] as asyncio
+    component [RabbitMQ] as rabbitmq
+}
+
+package "Core" <<core>> {
+    component [EventBusClient] as client
+    component [ConnectionManager] as conn_mgr
+    component [Rendezvous] as rendezvous
+}
+
+package "Exchange Handlers" <<handler>> {
+    component [ExchangeHandler\n<<abstract>>] as exchange_handler
+    component [TopicExchangeHandler] as topic_handler
+    component [XRTopicExchangeHandler] as xrtopic_handler
+    component [FanoutExchangeHandler] as fanout_handler
+}
+
+package "Messaging" <<handler>> {
+    component [AsyncPublisher] as publisher
+    component [AsyncSubscriber] as subscriber
+    component [SubscriptionCache] as cache
+}
+
+package "Serialization" <<util>> {
+    component [Serializer\n<<abstract>>] as serializer
+    component [PickleSerializer] as pickle_ser
+    component [JsonSerializer] as json_ser
+    component [ProtobufSerializer] as protobuf_ser
+}
+
+package "Messages" <<util>> {
+    component [BaseMessage\n<<abstract>>] as base_msg
+    component [BasicMessage] as basic_msg
+    component [ControlMessage] as control_msg
+    component [DictMessage] as dict_msg
+}
+
+package "Startup Policies" <<policy>> {
+    component [StartupPolicy\n<<protocol>>] as startup_policy
+    component [NoWait] as no_wait
+    component [FixedDelay] as fixed_delay
+    component [HandshakeBarrier] as handshake
+    component [GeneralCacheStartupPolicy] as general_cache_policy
+    component [ConfigureUnroutablePolicy] as unroutable_policy
+    component [PolicyChain] as policy_chain
+    component [PanelControlLegacyByAlias] as panel_control
+}
+
+package "Plugin/Loader" <<plugin>> {
+    component [PluginLoader] as plugin_loader
+    component [ConfigValidator] as config_validator
+}
+
+package "Utilities" <<util>> {
+    component [QLogger\n<<singleton>>] as qlogger
+    component [Utils] as utils
+    component [WaitMode\n<<enum>>] as wait_mode
+}
+
+' Inheritance (using dotted lines for extends)
+exchange_handler <|.. topic_handler
+exchange_handler <|.. xrtopic_handler
+exchange_handler <|.. fanout_handler
+
+serializer <|.. pickle_ser
+serializer <|.. json_ser
+serializer <|.. protobuf_ser
+
+base_msg <|.. basic_msg
+base_msg <|.. control_msg
+base_msg <|.. dict_msg
+
+startup_policy <|.. no_wait
+startup_policy <|.. fixed_delay
+startup_policy <|.. handshake
+startup_policy <|.. general_cache_policy
+startup_policy <|.. unroutable_policy
+startup_policy <|.. policy_chain
+startup_policy <|.. panel_control
+
+' Relationships
+client --> conn_mgr : uses
+client --> exchange_handler : uses
+client --> rendezvous : uses
+client --> startup_policy : uses
+client ..> plugin_loader : uses
+client ..> qlogger : uses
+conn_mgr --> aio_pika : uses
+exchange_handler --> publisher : creates
+exchange_handler --> subscriber : creates
+subscriber --> cache : fills
+publisher --> serializer : uses
+subscriber --> serializer : uses
+publisher --> base_msg : publishes
+subscriber --> base_msg : receives
+aio_pika --> rabbitmq : connects
+plugin_loader --> config_validator : uses
+plugin_loader ..> utils : uses
+rendezvous --> control_msg : uses
+handshake --> rendezvous : uses
+cache ..> wait_mode : uses
+policy_chain o-- startup_policy
+
+@enduml

@@ -1,0 +1,58 @@
+@startuml sequence-publish
+!theme plain
+title EventBusClient - Publish Message Sequence
+
+actor Application as app
+participant "EventBusClient" as ebc
+participant "ExchangeHandler" as eh
+participant "AsyncPublisher" as pub
+participant "Serializer" as ser
+participant "RabbitMQ" as rmq
+
+== Async Publish ==
+
+app -> ebc: await send(routing_key, message, headers)
+activate ebc
+
+ebc -> ebc: check _connected
+alt not connected
+    ebc --> app: raise RuntimeError
+else connected
+    ebc -> eh: await publish(message, routing_key, headers)
+    activate eh
+
+    eh -> pub: await publish(message, routing_key, headers)
+    activate pub
+
+    pub -> ser: serialize(message)
+    activate ser
+    ser --> pub: bytes
+    deactivate ser
+
+    pub -> rmq: basic_publish(\n  exchange,\n  routing_key,\n  body,\n  headers)
+    activate rmq
+    rmq --> pub: ack
+    deactivate rmq
+
+    pub --> eh: success
+    deactivate pub
+
+    eh --> ebc: success
+    deactivate eh
+
+    ebc --> app: return
+end
+deactivate ebc
+
+== Sync Publish ==
+
+app -> ebc: send_sync(routing_key, message, headers)
+activate ebc
+
+ebc -> ebc: _submit(send(...))
+note right: Runs async send\nin background loop
+
+ebc --> app: return
+deactivate ebc
+
+@enduml
