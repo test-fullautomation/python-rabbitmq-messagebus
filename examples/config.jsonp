@@ -1,0 +1,22 @@
+{
+  // Configuration file for EventBusClient examples
+  // Copy and modify as needed for your environment
+
+  // host: RabbitMQ server hostname
+  "host": "localhost",
+
+  // port: RabbitMQ server port
+  "port": 5672,
+
+  // serializer: Message serialization method
+  "serializer": "PickleSerializer",
+
+  // exchange_handler: Exchange type handler
+  "exchange_handler": "TopicExchangeHandler",
+
+  // auto_reconnect: Automatically reconnect on connection loss
+  "auto_reconnect": true,
+
+  // qos_prefetch: Number of messages to prefetch
+  "qos_prefetch": 10
+}

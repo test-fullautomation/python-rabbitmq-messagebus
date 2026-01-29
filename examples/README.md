@@ -5,7 +5,7 @@ This directory contains example scripts demonstrating various features and patte
 ## Prerequisites
 
 1. RabbitMQ server running on `localhost:5672`
-2. Configuration file at `../config/config.jsonp`
+2. Configuration file at `./config.jsonp` (included in this folder)
 3. Python dependencies installed
 
 ## Examples Overview
@@ -21,6 +21,7 @@ This directory contains example scripts demonstrating various features and patte
 | [custom_message_sample.py](#custom-messages) | Creating custom message classes |
 | [error_handling_sample.py](#error-handling) | Error handling patterns |
 | [alternate_exchange_sample.py](#alternate-exchange) | Unroutable message handling |
+| [headers_exchange_sample.py](#headers-exchange) | Header-based message routing |
 
 ---
 
@@ -251,9 +252,66 @@ python alternate_exchange_sample.py client-cache # Use client's built-in cache
 
 ---
 
+## Headers Exchange
+
+**File:** `headers_exchange_sample.py`
+
+Demonstrates the `HeadersExchangeHandler` for routing messages based on header attributes instead of routing keys.
+
+```bash
+python headers_exchange_sample.py
+```
+
+**Key concepts:**
+
+| Match Mode | x-match | Description |
+|------------|---------|-------------|
+| `match_all=True` | `all` | ALL specified headers must match (AND logic) |
+| `match_all=False` | `any` | At least ONE header must match (OR logic) |
+
+**Example subscription:**
+
+```python
+from EventBusClient import EventBusClient
+from EventBusClient.exchange_handler.headers_handler import HeadersExchangeHandler
+from EventBusClient.serializer.json_serializer import JsonSerializer
+
+# Create client with HeadersExchangeHandler
+handler = HeadersExchangeHandler(name="documents_exchange", serializer=JsonSerializer())
+client = EventBusClient(exchange_handler=handler, host="localhost", port=5672)
+await client.connect()
+
+# Subscribe with x-match=all (AND logic)
+async def handle_docs(msg, headers):
+    print(f"Received: {msg} with headers {headers}")
+
+await client.on(
+    routing_key="",  # Ignored in headers exchange
+    message_cls=DocumentMessage,
+    callback=handle_docs,
+    binding_headers={"format": "pdf", "department": "engineering"},
+    match_all=True  # Both headers must match
+)
+
+# Publish with headers
+await client.send(
+    routing_key="",  # Ignored in headers exchange
+    message=DocumentMessage(title="Q4 Report"),
+    headers={"format": "pdf", "department": "engineering", "author": "john"}
+)
+```
+
+**Scenarios demonstrated:**
+
+1. **ALL match subscriber** - Only receives messages where ALL binding headers match
+2. **ANY match subscriber** - Receives messages where ANY binding header matches
+3. **Various publish scenarios** showing which subscribers receive which messages
+
+---
+
 ## Configuration
 
-Examples expect a config file at `../config/config.jsonp`:
+Examples use the `config.jsonp` file in this folder:
 
 ```json
 {

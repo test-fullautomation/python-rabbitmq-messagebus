@@ -303,7 +303,7 @@ async def demo_unsubscribe(config_path: str):
 
 
 def main():
-    config_path = "../config/config.jsonp"
+    config_path = "./config.jsonp"
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'

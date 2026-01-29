@@ -30,8 +30,9 @@ package "Core" <<core>> {
 package "Exchange Handlers" <<handler>> {
     component [ExchangeHandler\n<<abstract>>] as exchange_handler
     component [TopicExchangeHandler] as topic_handler
-    component [XRTopicExchangeHandler] as xrtopic_handler
     component [FanoutExchangeHandler] as fanout_handler
+    component [HeadersExchangeHandler] as headers_handler
+    component [XRTopicExchangeHandler] as xrtopic_handler
 }
 
 package "Messaging" <<handler>> {
@@ -78,8 +79,9 @@ package "Utilities" <<util>> {
 
 ' Inheritance (using dotted lines for extends)
 exchange_handler <|.. topic_handler
-exchange_handler <|.. xrtopic_handler
 exchange_handler <|.. fanout_handler
+exchange_handler <|.. headers_handler
+exchange_handler <|.. xrtopic_handler
 
 serializer <|.. pickle_ser
 serializer <|.. json_ser
