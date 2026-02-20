@@ -88,13 +88,13 @@ The **EventBusClient** can be installed in two different ways.
         This would e.g. be required in case of changes in the interface of the **EventBusClient**.
 
         The documentation is rendered by a separate application called **GenPackageDoc**, that is part
-        of the build dependencies and runtime dependencies of **JsonPreprocessor**.
+        of the build dependencies and runtime dependencies of **EventBusClient**.
 
         **GenPackageDoc** needs to be configured. Details about how to do this, can be found in the
         `README.rst <https://github.com/test-fullautomation/python-genpackagedoc/blob/develop/README.rst>`_
         (sections *Install dependencies* and *Configure dependencies*).
 
-   * Use the following command to build **JsonPreprocessor** (executed in repository main folder):
+   * Use the following command to build **EventBusClient** (executed in repository main folder):
 
      .. code::
 
