@@ -18,7 +18,7 @@
 #
 # TOML file used for component installation
 #
-# Version 0.1.0 / 20.02.2026
+# Version 0.1.0 / 09.03.2026
 #
 # --------------------------------------------------------------------------------------------------------------
 #
@@ -109,6 +109,7 @@ packages = [
     "EventBusClient.message.deprecated",
     "EventBusClient.message.deprecated.std_msgs",
     "EventBusClient.message.deprecated.taf_msgs",
+    "EventBusClient.plugins",
     "EventBusClient.serializer",
     "EventBusClient.examples"
 ]
