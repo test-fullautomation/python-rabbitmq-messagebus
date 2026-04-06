@@ -54,6 +54,7 @@ AsyncSubscriber: Subscribes to messages from an exchange using aio_pika.
       serializer: Serializer = None,
       cache_size_default: int = 200,
       callback_isolation: str = "threaded",  # "direct" | "threaded"
+      binding_arguments: Optional[MutableMapping[str, Any]] = None,
    ):
       """
 AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing key, message class, callback, and optional serializer.
@@ -109,6 +110,7 @@ AsyncSubscriber: Initializes the subscriber with a channel, exchange, routing ke
       self._cache_default = cache_size_default
 
       self._callback_isolation = callback_isolation
+      self._binding_arguments = binding_arguments
 
       # Dedicated callback loop/thread (used only if isolation="threaded")
       self._cb_loop: Optional[asyncio.AbstractEventLoop] = None
@@ -154,7 +156,11 @@ Start the subscriber by declaring a queue, binding it to the exchange, and consu
          auto_delete=True
       )
       self._cache = SubscriptionCache(maxlen=cache_size or self._cache_default)
-      await self._queue.bind(self._exchange, routing_key=self._routing_key)
+      await self._queue.bind(
+         self._exchange,
+         routing_key=self._routing_key,
+         arguments=self._binding_arguments
+      )
       if self._callback_isolation == "threaded":
          self._start_callback_loop()
       self._consumer_tag = await self._queue.consume(self._on_message)
@@ -179,7 +185,11 @@ Stop the subscriber by canceling the consumer, unbinding the queue from the exch
             # but we'll do it for clean shutdown
             if self._queue:
                try:
-                  await self._queue.unbind(self._exchange, routing_key=self._routing_key)
+                  await self._queue.unbind(
+                     self._exchange,
+                     routing_key=self._routing_key,
+                     arguments=self._binding_arguments
+                  )
                except Exception:
                   pass  # Ignore unbind errors
 

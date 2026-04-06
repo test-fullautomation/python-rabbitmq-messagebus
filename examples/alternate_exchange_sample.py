@@ -154,7 +154,7 @@ async def demo_log_policy(config_path: str):
 
 async def demo_cache_policy(config_path: str):
     """
-    CACHE policy: Store unroutable messages in a list for later inspection.
+CACHE policy: Store unroutable messages in a list for later inspection.
     """
     logging.info("\n=== Policy: CACHE ===")
     logging.info("Unroutable messages will be cached.")
@@ -203,7 +203,7 @@ async def demo_cache_policy(config_path: str):
 
 async def demo_callback_policy(config_path: str):
     """
-    CALLBACK policy: Call a custom function when message is unroutable.
+CALLBACK policy: Call a custom function when message is unroutable.
     """
     logging.info("\n=== Policy: CALLBACK ===")
     logging.info("Custom callback will be invoked for unroutable messages.")
@@ -256,7 +256,7 @@ async def demo_callback_policy(config_path: str):
 
 async def demo_alternate_exchange(config_path: str):
     """
-    ALTERNATE-EXCHANGE policy: Route unroutable messages to an alternate exchange.
+    ALTERNATE-EXCHANGE policy: Route unroutable messages to an alternate exchange.:
 
     This creates:
     1. Main exchange with alternate-exchange argument
@@ -314,8 +314,8 @@ async def demo_alternate_exchange(config_path: str):
 
 async def demo_raise_policy(config_path: str):
     """
-    RAISE policy: Raise an exception when message is unroutable.
-    Use with caution - can disrupt message flow.
+RAISE policy: Raise an exception when message is unroutable.
+Use with caution - can disrupt message flow.
     """
     logging.info("\n=== Policy: RAISE ===")
     logging.info("Exception will be raised for unroutable messages.")
@@ -358,7 +358,7 @@ async def demo_raise_policy(config_path: str):
 
 async def demo_client_unroutable_cache(config_path: str):
     """
-    Demonstrate using the EventBusClient's built-in unroutable cache.
+Demonstrate using the EventBusClient's built-in unroutable cache.
     """
     logging.info("\n=== Using Client's Unroutable Cache ===")
 
@@ -394,7 +394,7 @@ async def demo_client_unroutable_cache(config_path: str):
 # =============================================================================
 
 def main():
-    config_path = "../config/config.jsonp"
+    config_path = "./config.jsonp"
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'

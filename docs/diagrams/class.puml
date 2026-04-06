@@ -101,6 +101,15 @@ class FanoutExchangeHandler <<concrete>> {
     + {static} _EXCHANGE_TYPE = "fanout"
 }
 
+class HeadersExchangeHandler <<concrete>> {
+    + {static} _EXCHANGE_TYPE = "headers"
+    --
+    + setup(connection_manager)
+    + publish(message, routing_key, headers, threadsafe, mandatory)
+    + subscribe(routing_key, message_cls, callback, cache_size, binding_headers): SubscriptionCache
+    + subscribe_with_headers(binding_headers, message_cls, callback, cache_size, match_all): SubscriptionCache
+}
+
 class XRTopicExchangeHandler <<concrete>> {
     + {static} _EXCHANGE_TYPE = "x-rtopic"
     - __seq: uint32
@@ -113,6 +122,7 @@ class XRTopicExchangeHandler <<concrete>> {
 ExchangeHandler <|-- TopicExchangeHandler
 ExchangeHandler <|-- DirectExchangeHandler
 ExchangeHandler <|-- FanoutExchangeHandler
+ExchangeHandler <|-- HeadersExchangeHandler
 ExchangeHandler <|-- XRTopicExchangeHandler
 
 ' ==================== Publisher/Subscriber ====================

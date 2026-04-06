@@ -349,7 +349,7 @@ Async version of wait_for using a thread executor.
         loop = asyncio.get_running_loop()
         return await loop.run_in_executor(None, self.wait_for, predicate, timeout)
 
-    def wait_for_one(self, target: Any, *, timeout: float = 30.0) -> bool:
+    def wait_for_one(self, target: Any, *, timeout: float = 30.0, dropped_msgs: List[Any] = None) -> bool:
         """
 Wait for a single target message to appear in the cache.
 
@@ -367,6 +367,12 @@ Wait for a single target message to appear in the cache.
 
   Maximum time to wait in seconds.
 
+* ``dropped_msgs``
+
+  / *Condition*: optional / *Type*: List[Any] / *Default*: None /
+
+  The list of messages having been discarded. Defaults to None.
+
 **Returns:**
 
   / *Type*: bool /
@@ -382,12 +388,14 @@ Wait for a single target message to appear in the cache.
                         self._buf.popleft()
                     self._buf.popleft()
                     return True
+                if dropped_msgs is not None:
+                    dropped_msgs.append(msg)
                 remaining = end - time.time()
                 if remaining <= 0:
                     return False
                 self._cv.wait(remaining)
 
-    def wait_for_many(self, targets: List[Any], *, mode: WaitMode, timeout: float = 30.0) -> List[int]:
+    def wait_for_many(self, targets: List[Any], *, mode: WaitMode, timeout: float = 30.0, dropped_msgs: List[Any] = None) -> List[int]:
         """
 Wait for multiple target messages to appear in the cache.
 
@@ -417,6 +425,12 @@ Wait for multiple target messages to appear in the cache.
 
     Maximum time to wait in seconds.
 
+* ``dropped_msgs``
+
+    / *Condition*: optional / *Type*: List[Any] / *Default*: None /
+
+    The list of messages having been discarded. Defaults to None.
+
 **Returns:**
 
   / *Type*: List[int] /
@@ -438,6 +452,8 @@ Wait for multiple target messages to appear in the cache.
                             next_idx += 1
                             if next_idx >= len(targets):
                                 return seen
+                        elif dropped_msgs is not None:
+                            dropped_msgs.append(msg)
                     elif mode is WaitMode.ALL_IN_RANDOM_ORDER:
                         k = next((i for i, m in enumerate(targets) if (not checked[i]) and m == msg), -1)
                         if k >= 0:
@@ -445,10 +461,14 @@ Wait for multiple target messages to appear in the cache.
                             seen.append(k)
                             if all(checked):
                                 return seen
+                        elif dropped_msgs is not None:
+                            dropped_msgs.append(msg)
                     else:  # ANY_OF_GIVEN_MSGS
                         k = next((i for i, m in enumerate(targets) if m == msg), -1)
                         if k >= 0:
                             return [k]
+                        if dropped_msgs is not None:
+                            dropped_msgs.append(msg)
                 remaining = end - time.time()
                 if remaining <= 0:
                     # For ORDER mode, timeout means not all seen → empty result to match old API

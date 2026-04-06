@@ -55,5 +55,153 @@ Test EBC_0010 / TopicExchangeHandler / BADCASE
 Description: Topic pattern matching fails due to encoding/serialization issues
 Expectation: Exception should be raised when message serialization fails due to encoding issues
 ------------------------------------------------------------------------------------------------------------------------
-Generated: 11.08.2025 - 15:37:41
+Test EBC_0011 / XRTopicExchangeHandler / GOODCASE
+Description: Send message with single wildcard (*) in routing key to multiple subscribers
+Expectation: Message successfully sent and received by all subscribers using wildcard pattern
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0012 / XRTopicExchangeHandler / GOODCASE
+Description: Send message with multi-level wildcard (#) in routing key to multiple subscribers
+Expectation: Message successfully sent and received by all subscribers using multi-level wildcard pattern
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0013 / XRTopicExchangeHandler / GOODCASE
+Description: Test mixed wildcard patterns in single routing key
+Expectation: Message successfully sent and received by all subscribers using mixed wildcard patterns (* and #) in single routing key
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0014 / XRTopicExchangeHandler / GOODCASE
+Description: Test message order preservation in x-rtopic exchange
+Expectation: Messages arrive in the same order they are sent using x-rtopic exchange
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0015 / XRTopicExchangeHandler / GOODCASE
+Description: Test multiple publishers with different routing patterns
+Expectation: Multiple publishers using different routing patterns can send to appropriate subscribers using x-rtopic exchange
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0016 / XRTopicExchangeHandler / GOODCASE
+Description: Test case sensitivity in x-rtopic routing patterns
+Expectation: Case sensitivity should be respected in x-rtopic pattern matching
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0017 / XRTopicExchangeHandler / BADCASE
+Description: Test routing pattern with null or None values
+Expectation: Exception should be raised when using null/None values in routing patterns
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0018 / XRTopicExchangeHandler / BADCASE
+Description: Send message with routing key exceeding maximum length
+Expectation: Exception should be raised when using routing key exceeding maximum length
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0019 / XRTopicExchangeHandler / BADCASE
+Description: Test serialization failure with x-rtopic patterns
+Expectation: Exception should be raised when message serialization fails with x-rtopic patterns
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0020 / XRTopicExchangeHandler / EDGECASES
+Description: Test x-rtopic with minimal routing patterns
+Expectation: Minimal routing patterns should work correctly with x-rtopic exchange
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0021 / XRTopicExchangeHandler / EDGECASES
+Description: Test x-rtopic with deep hierarchical routing patterns
+Expectation: Deep hierarchical routing patterns should work correctly with x-rtopic exchange
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0022 / XRTopicExchangeHandler / EDGECASES
+Description: Test x-rtopic with overlapping routing patterns
+Expectation: Overlapping routing patterns should work correctly with x-rtopic exchange
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0023 / XRTopicExchangeHandler / EDGECASES
+Description: Test x-rtopic with empty segments in routing patterns
+Expectation: Empty segments in routing patterns should be handled correctly with x-rtopic exchange
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0024 / BasicMessage / GOODCASE
+Description: Test BasicMessage with topic exchange
+Expectation: BasicMessage successfully sent and received with correct content using topic exchange
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0025 / BasicMessage / GOODCASE
+Description: Test BasicMessage with x-rtopic reverse routing logic
+Expectation: Message delivered using reverse topic logic where subscriber uses literal key and publisher uses pattern
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0026 / BasicMessage / GOODCASE
+Description: Test BasicMessage equality comparison between two instances
+Expectation: BasicMessage equality comparison should correctly identify equal and non-equal instances
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0027 / BasicMessage / GOODCASE
+Description: Test BasicMessage creation from dictionary representation
+Expectation: BasicMessage should be correctly created from dictionary representation and maintain data integrity
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0028 / BasicMessage / GOODCASE
+Description: Test BasicMessage inequality with different content or headers
+Expectation: BasicMessage inequality comparison should correctly identify non-equal instances with different content or headers
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0029 / BasicMessage / GOODCASE
+Description: Test BasicMessage with empty content and no headers
+Expectation: Message created successfully with auto-generated UUID header
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0030 / BasicMessage / EDGECASES
+Description: Test BasicMessage string representations using str() and repr() methods
+Expectation: BasicMessage should provide correct string representations through str() and repr() methods
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0031 / ControlMessage / GOODCASE
+Description: Test ControlMessage creation from data dictionary
+Expectation: ControlMessage created with all fields correctly set from data dictionary
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0032 / ControlMessage / BADCASE
+Description: Test ControlMessage with invalid roles data type
+Expectation: Exception should be raised when ControlMessage is created with invalid roles data type (non-list)
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0033 / ControlMessage / BADCASE
+Description: Test ControlMessage with invalid kind data type
+Expectation: Exception should be raised when ControlMessage is created with invalid kind data type (non-string)
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0034 / ControlMessage / BADCASE
+Description: Test ControlMessage with invalid instance_id data type
+Expectation: Exception should be raised when ControlMessage is created with invalid instance_id data type (non-string)
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0035 / ControlMessage / BADCASE
+Description: Test ControlMessage with invalid ts (timestamp)
+Expectation: Exception should be raised when ControlMessage is created with invalid ts data type (non-numeric)
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0036 / ControlMessage / EDGECASES
+Description: EDGECASE: Test ControlMessage with unusual timestamp values
+Expectation: ControlMessage should correctly handle edge case timestamp values including zero, negative, very large, and precise float values
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0037 / ConfigureUnroutablePolicy / GOODCASE
+Description: ConfigureUnroutablePolicy: mode=return, on_unroutable=raise
+Expectation: An unroutable message should raise (reported by the test as a PASS string)
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0038 / ConfigureUnroutablePolicy / GOODCASE
+Description: ConfigureUnroutablePolicy: mode=return, on_unroutable=callback
+Expectation: An unroutable message should trigger the provided callback and not raise
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0039 / ConfigureUnroutablePolicy / GOODCASE
+Description: ConfigureUnroutablePolicy: mode=return, on_unroutable=cache
+Expectation: An unroutable message should be cached (store for later) and not raise
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0040 / ConfigureUnroutablePolicy / GOODCASE
+Description: ConfigureUnroutablePolicy: mode=return, on_unroutable=log
+Expectation: An unroutable message should not raise (should be logged)
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0041 / ConfigureUnroutablePolicy / GOODCASE
+Description: ConfigureUnroutablePolicy: mode=alternate-exchange
+Expectation: An unroutable message should be routed to the configured alternate exchange
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0042 / HeadersExchangeHandler / GOODCASE
+Description: Headers exchange with match_all=True (AND logic)
+Expectation: Message successfully sent and received when ALL headers match
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0043 / HeadersExchangeHandler / GOODCASE
+Description: Headers exchange with match_all=False (OR logic)
+Expectation: Message successfully sent and received when ANY header matches
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0044 / HeadersExchangeHandler / GOODCASE
+Description: Headers exchange with multiple subscribers using different binding criteria
+Expectation: Multiple subscribers receive messages based on their individual header bindings
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0045 / HeadersExchangeHandler / GOODCASE
+Description: Headers exchange message ordering
+Expectation: Messages are received in the same order they were sent
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0046 / HeadersExchangeHandler / GOODCASE
+Description: Headers exchange with non-matching headers
+Expectation: Message with non-matching headers should not be delivered to subscriber
+------------------------------------------------------------------------------------------------------------------------
+Test EBC_0047 / HeadersExchangeHandler / GOODCASE
+Description: Headers exchange partial match with AND logic should not deliver
+Expectation: Message with partial header match should not be delivered when using AND logic
+------------------------------------------------------------------------------------------------------------------------
+Generated: 29.01.2026 - 15:13:45
 

@@ -627,3 +627,87 @@ dictUsecase['EXPECTEDEXCEPTION'] = None
 dictUsecase['EXPECTEDRETURN']    = "Message routed to alternate exchange"
 listofdictUsecases.append(dictUsecase)
 del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0042"
+dictUsecase['DESCRIPTION']       = "Headers exchange with match_all=True (AND logic)"
+dictUsecase['EXPECTATION']       = "Message successfully sent and received when ALL headers match"
+dictUsecase['SECTION']           = "HeadersExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0042.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Message received with AND logic: Hello, Headers Exchange!"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0043"
+dictUsecase['DESCRIPTION']       = "Headers exchange with match_all=False (OR logic)"
+dictUsecase['EXPECTATION']       = "Message successfully sent and received when ANY header matches"
+dictUsecase['SECTION']           = "HeadersExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0043.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Message received with OR logic: Hello, OR Logic!"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0044"
+dictUsecase['DESCRIPTION']       = "Headers exchange with multiple subscribers using different binding criteria"
+dictUsecase['EXPECTATION']       = "Multiple subscribers receive messages based on their individual header bindings"
+dictUsecase['SECTION']           = "HeadersExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0044.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Multiple subscribers test passed: Subscriber1=1 msgs, Subscriber2=2 msgs"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0045"
+dictUsecase['DESCRIPTION']       = "Headers exchange message ordering"
+dictUsecase['EXPECTATION']       = "Messages are received in the same order they were sent"
+dictUsecase['SECTION']           = "HeadersExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0045.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Messages received in correct order: [1, 2, 3, 4, 5]"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0046"
+dictUsecase['DESCRIPTION']       = "Headers exchange with non-matching headers"
+dictUsecase['EXPECTATION']       = "Message with non-matching headers should not be delivered to subscriber"
+dictUsecase['SECTION']           = "HeadersExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0046.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Non-matching message correctly not delivered"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
+# --------------------------------------------------------------------------------------------------------------
+dictUsecase = {}
+dictUsecase['TESTID']            = "EBC_0047"
+dictUsecase['DESCRIPTION']       = "Headers exchange partial match with AND logic should not deliver"
+dictUsecase['EXPECTATION']       = "Message with partial header match should not be delivered when using AND logic"
+dictUsecase['SECTION']           = "HeadersExchangeHandler"
+dictUsecase['SUBSECTION']        = "GOODCASE"
+dictUsecase['HINT']              = None
+dictUsecase['COMMENT']           = None
+dictUsecase['TESTFILE']          = r"EBC_0047.py"
+dictUsecase['EXPECTEDEXCEPTION'] = None
+dictUsecase['EXPECTEDRETURN']    = "Partial match correctly not delivered with AND logic"
+listofdictUsecases.append(dictUsecase)
+del dictUsecase
