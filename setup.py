@@ -149,12 +149,11 @@ if ( ('install' in listCmdArgs) or ('build' in listCmdArgs) or ('sdist' in listC
     if nReturn != SUCCESS:
         sys.exit(nReturn)
 
-    print(COLBY + "Extended setup step 2/5: Converting the repository README")
+    # NOTE: Skipping convert_repo_readme() - the automatic conversion does not produce
+    # the expected view and takes too much time to debug. README.md and README.rst
+    # are maintained manually to ensure proper formatting.
+    print(COLBY + "Extended setup step 2/5: Skipping README conversion (maintained manually)")
     print()
-
-    nReturn = oExtendedSetup.convert_repo_readme()
-    if nReturn != SUCCESS:
-        sys.exit(nReturn)
 
     print(COLBY + "Extended setup step 3/5: Deleting previous setup outputs (build, dist, <package name>.egg-info within repository)")
     print()
@@ -203,8 +202,7 @@ setuptools.setup(
                 str(oRepositoryConfig.Get('PACKAGENAME')) + ".message.deprecated.std_msgs",
                 str(oRepositoryConfig.Get('PACKAGENAME')) + ".message.deprecated.taf_msgs",
                 str(oRepositoryConfig.Get('PACKAGENAME')) + ".serializer",
-                str(oRepositoryConfig.Get('PACKAGENAME')) + ".plugins",
-                str(oRepositoryConfig.Get('PACKAGENAME')) + ".examples"],
+                str(oRepositoryConfig.Get('PACKAGENAME')) + ".plugins"],
     include_package_data=True,
     classifiers = [
         str(oRepositoryConfig.Get('PROGRAMMINGLANGUAGE')),

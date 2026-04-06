@@ -43,7 +43,7 @@ EventBusClient Test Cases<br>
 
 <td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
 <font size="2" face="Arial" color="#4169E1">
-DUMMY_TEST
+TopicExchangeHandler
 </font></td>
 
 <td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
@@ -53,8 +53,8 @@ GOODCASE
 
 <td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
 <font size="2" face="Arial" color="#595959"><i>
-<b>Dummy test to verify the set setup in pass case. Will be replace later</b><br>
-Expected: Got version = 0.1.0
+<b>Send message from one publisher to one specific subscriber and confirm receipt</b><br>
+Expected: Message successfully sent and received with correct content
 
 
 </i></font></td>
@@ -76,7 +76,172 @@ Expected: Got version = 0.1.0
 
 <td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
 <font size="2" face="Arial" color="#4169E1">
-DUMMY_TEST
+TopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Ensure messages arrive in same order they are sent</b><br>
+Expected: Messages received in the same order they were sent
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+3
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0003.py">EBC_0003</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+TopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test one publisher delivering messages to multiple subscribers using the same routing key</b><br>
+Expected: All subscribers receive the same message with correct content
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+4
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0004.py">EBC_0004</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+TopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Validate multiple publishers can send to a single subscriber without conflict</b><br>
+Expected: Subscriber receives all messages from all publishers correctly
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+5
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0005.py">EBC_0005</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+TopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Send message with wildcard routing key patterns (* and #)</b><br>
+Expected: Messages delivered correctly to subscribers using wildcard routing patterns
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+6
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0006.py">EBC_0006</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+TopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Verify routing key case sensitivity</b><br>
+Expected: Messages with different case routing keys should be treated as separate routes
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+7
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0007.py">EBC_0007</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+TopicExchangeHandler
 </font></td>
 
 <td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
@@ -86,8 +251,1328 @@ BADCASE
 
 <td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
 <font size="2" face="Arial" color="#595959"><i>
-<b>Dummy test to verify the set setup in fail case. Will be replace later</b><br>
-Expected: Mismatch result cause the test to be failed
+<b>Send message with malformed routing key pattern</b><br>
+Expected: Exception should be raised when using invalid routing key format
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+8
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0008.py">EBC_0008</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+TopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+BADCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Use invalid wildcard in routing key</b><br>
+Expected: Exception should be raised when using invalid wildcard in routing keys
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+9
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0009.py">EBC_0009</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+TopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+BADCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Send message with routing key exceeding maximum length</b><br>
+Expected: Exception should be raised when using routing key exceeding maximum length
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+10
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0010.py">EBC_0010</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+TopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+BADCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Topic pattern matching fails due to encoding/serialization issues</b><br>
+Expected: Exception should be raised when message serialization fails due to encoding issues
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+11
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0011.py">EBC_0011</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Send message with single wildcard (*) in routing key to multiple subscribers</b><br>
+Expected: Message successfully sent and received by all subscribers using wildcard pattern
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+12
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0012.py">EBC_0012</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Send message with multi-level wildcard (#) in routing key to multiple subscribers</b><br>
+Expected: Message successfully sent and received by all subscribers using multi-level wildcard pattern
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+13
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0013.py">EBC_0013</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test mixed wildcard patterns in single routing key</b><br>
+Expected: Message successfully sent and received by all subscribers using mixed wildcard patterns (* and #) in single routing key
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+14
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0014.py">EBC_0014</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test message order preservation in x-rtopic exchange</b><br>
+Expected: Messages arrive in the same order they are sent using x-rtopic exchange
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+15
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0015.py">EBC_0015</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test multiple publishers with different routing patterns</b><br>
+Expected: Multiple publishers using different routing patterns can send to appropriate subscribers using x-rtopic exchange
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+16
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0016.py">EBC_0016</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test case sensitivity in x-rtopic routing patterns</b><br>
+Expected: Case sensitivity should be respected in x-rtopic pattern matching
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+17
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0017.py">EBC_0017</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+BADCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test routing pattern with null or None values</b><br>
+Expected: Exception should be raised when using null/None values in routing patterns
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+18
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0018.py">EBC_0018</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+BADCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Send message with routing key exceeding maximum length</b><br>
+Expected: Exception should be raised when using routing key exceeding maximum length
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+19
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0019.py">EBC_0019</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+BADCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test serialization failure with x-rtopic patterns</b><br>
+Expected: Exception should be raised when message serialization fails with x-rtopic patterns
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+20
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0020.py">EBC_0020</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+EDGECASES
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test x-rtopic with minimal routing patterns</b><br>
+Expected: Minimal routing patterns should work correctly with x-rtopic exchange
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+21
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0021.py">EBC_0021</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+EDGECASES
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test x-rtopic with deep hierarchical routing patterns</b><br>
+Expected: Deep hierarchical routing patterns should work correctly with x-rtopic exchange
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+22
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0022.py">EBC_0022</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+EDGECASES
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test x-rtopic with overlapping routing patterns</b><br>
+Expected: Overlapping routing patterns should work correctly with x-rtopic exchange
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+23
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0023.py">EBC_0023</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+XRTopicExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+EDGECASES
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test x-rtopic with empty segments in routing patterns</b><br>
+Expected: Empty segments in routing patterns should be handled correctly with x-rtopic exchange
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+24
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0024.py">EBC_0024</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+BasicMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test BasicMessage with topic exchange</b><br>
+Expected: BasicMessage successfully sent and received with correct content using topic exchange
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+25
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0025.py">EBC_0025</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+BasicMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test BasicMessage with x-rtopic reverse routing logic</b><br>
+Expected: Message delivered using reverse topic logic where subscriber uses literal key and publisher uses pattern
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+26
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0026.py">EBC_0026</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+BasicMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test BasicMessage equality comparison between two instances</b><br>
+Expected: BasicMessage equality comparison should correctly identify equal and non-equal instances
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+27
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0027.py">EBC_0027</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+BasicMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test BasicMessage creation from dictionary representation</b><br>
+Expected: BasicMessage should be correctly created from dictionary representation and maintain data integrity
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+28
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0028.py">EBC_0028</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+BasicMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test BasicMessage inequality with different content or headers</b><br>
+Expected: BasicMessage inequality comparison should correctly identify non-equal instances with different content or headers
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+29
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0029.py">EBC_0029</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+BasicMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test BasicMessage with empty content and no headers</b><br>
+Expected: Message created successfully with auto-generated UUID header
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+30
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0030.py">EBC_0030</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+BasicMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+EDGECASES
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test BasicMessage string representations using str() and repr() methods</b><br>
+Expected: BasicMessage should provide correct string representations through str() and repr() methods
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+31
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0031.py">EBC_0031</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+ControlMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test ControlMessage creation from data dictionary</b><br>
+Expected: ControlMessage created with all fields correctly set from data dictionary
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+32
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0032.py">EBC_0032</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+ControlMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+BADCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test ControlMessage with invalid roles data type</b><br>
+Expected: Exception should be raised when ControlMessage is created with invalid roles data type (non-list)
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+33
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0033.py">EBC_0033</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+ControlMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+BADCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test ControlMessage with invalid kind data type</b><br>
+Expected: Exception should be raised when ControlMessage is created with invalid kind data type (non-string)
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+34
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0034.py">EBC_0034</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+ControlMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+BADCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test ControlMessage with invalid instance_id data type</b><br>
+Expected: Exception should be raised when ControlMessage is created with invalid instance_id data type (non-string)
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+35
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0035.py">EBC_0035</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+ControlMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+BADCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Test ControlMessage with invalid ts (timestamp)</b><br>
+Expected: Exception should be raised when ControlMessage is created with invalid ts data type (non-numeric)
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+36
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0036.py">EBC_0036</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+ControlMessage
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#FF0000">
+EDGECASES
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>EDGECASE: Test ControlMessage with unusual timestamp values</b><br>
+Expected: ControlMessage should correctly handle edge case timestamp values including zero, negative, very large, and precise float values
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+37
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0037.py">EBC_0037</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+ConfigureUnroutablePolicy
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>ConfigureUnroutablePolicy: mode=return, on_unroutable=raise</b><br>
+Expected: An unroutable message should raise (reported by the test as a PASS string)
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+38
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0038.py">EBC_0038</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+ConfigureUnroutablePolicy
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>ConfigureUnroutablePolicy: mode=return, on_unroutable=callback</b><br>
+Expected: An unroutable message should trigger the provided callback and not raise
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+39
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0039.py">EBC_0039</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+ConfigureUnroutablePolicy
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>ConfigureUnroutablePolicy: mode=return, on_unroutable=cache</b><br>
+Expected: An unroutable message should be cached (store for later) and not raise
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+40
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0040.py">EBC_0040</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+ConfigureUnroutablePolicy
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>ConfigureUnroutablePolicy: mode=return, on_unroutable=log</b><br>
+Expected: An unroutable message should not raise (should be logged)
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+41
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0041.py">EBC_0041</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+ConfigureUnroutablePolicy
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>ConfigureUnroutablePolicy: mode=alternate-exchange</b><br>
+Expected: An unroutable message should be routed to the configured alternate exchange
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+42
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0042.py">EBC_0042</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+HeadersExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Headers exchange with match_all=True (AND logic)</b><br>
+Expected: Message successfully sent and received when ALL headers match
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+43
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0043.py">EBC_0043</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+HeadersExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Headers exchange with match_all=False (OR logic)</b><br>
+Expected: Message successfully sent and received when ANY header matches
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+44
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0044.py">EBC_0044</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+HeadersExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Headers exchange with multiple subscribers using different binding criteria</b><br>
+Expected: Multiple subscribers receive messages based on their individual header bindings
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+45
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0045.py">EBC_0045</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+HeadersExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Headers exchange message ordering</b><br>
+Expected: Messages are received in the same order they were sent
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+46
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0046.py">EBC_0046</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+HeadersExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Headers exchange with non-matching headers</b><br>
+Expected: Message with non-matching headers should not be delivered to subscriber
+
+
+</i></font></td>
+
+
+</tr>
+<tr valign="middle" align="left">
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="right">
+<font size="2" face="Arial" color="#FF0000">
+<b>
+47
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#595959">
+<b>
+<a target="_blank" href="https://github.com/test-fullautomation/python-rabbitmq-messagebus/blob/develop/test/testfiles/EBC_0047.py">EBC_0047</a>
+</b></font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#4169E1">
+HeadersExchangeHandler
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="middle">
+<font size="2" face="Arial" color="#008000">
+GOODCASE
+</font></td>
+
+<td colspan="1" valign="center" bgcolor="#F5F5F5" align="left">
+<font size="2" face="Arial" color="#595959"><i>
+<b>Headers exchange partial match with AND logic should not deliver</b><br>
+Expected: Message with partial header match should not be delivered when using AND logic
 
 
 </i></font></td>
@@ -98,7 +1583,7 @@ Expected: Mismatch result cause the test to be failed
 </tbody></table></div>
 <div>&nbsp;</div>
 <hr width="100%" color="#FF8C00" align="center">
-<div align="center"><font size="2" color="#27408B">Generated: 24.07.2025 - 14:23:18</font></div>
+<div align="center"><font size="2" color="#27408B">Generated: 29.01.2026 - 15:13:45</font></div>
 <div>&nbsp;</div>
 </body></html>
 

@@ -62,8 +62,9 @@ package "Plugin System" #Wheat {
 ' ==================== BUILT-IN PLUGINS ====================
 package "Built-in Plugins" #LightCoral {
     [TopicExchangeHandler] as TopicEx
-    [XRTopicExchangeHandler] as XRTopicEx
     [FanoutExchangeHandler] as FanoutEx
+    [HeadersExchangeHandler] as HeadersEx
+    [XRTopicExchangeHandler] as XRTopicEx
     [JsonSerializer] as JsonSer
     [PickleSerializer] as PickleSer
     [ProtobufSerializer] as ProtobufSer
@@ -103,8 +104,9 @@ Loader --> IMsg
 Loader --> IPol
 
 TopicEx ..|> IEx
-XRTopicEx ..|> IEx
 FanoutEx ..|> IEx
+HeadersEx ..|> IEx
+XRTopicEx ..|> IEx
 JsonSer ..|> ISer
 PickleSer ..|> ISer
 ProtobufSer ..|> ISer

@@ -321,7 +321,7 @@ Wait for multiple specific messages on the general topic.
 
    def wait_on_cache_for_one(
            self, cache: SubscriptionCache, msg, *, timeout: float = 30.0, interval: float = 0.1,
-           asynchronous: bool = False
+           asynchronous: bool = False, dropped_msgs = None
    ):
       """
 Wait for a specific message in the given subscription cache.
@@ -358,6 +358,12 @@ Wait for a specific message in the given subscription cache.
 
   If True, the wait will be performed asynchronously using a ThreadPoolExecutor. Defaults to False.
 
+* ``dropped_msgs``
+
+  / *Condition*: optional / *Type*: List[Any] / *Default*: None /
+
+  The list of messages having been discarded. Defaults to None.
+
 **Returns:**
 
   / *Type*: bool /
@@ -365,12 +371,12 @@ Wait for a specific message in the given subscription cache.
   True if the message was received within the timeout period, False otherwise.
       """
       if not asynchronous:
-         return cache.wait_for_one(msg, timeout=timeout)
-      return self._wait_exec().submit(cache.wait_for_one, msg, timeout)
+         return cache.wait_for_one(msg, timeout=timeout, dropped_msgs=dropped_msgs)
+      return self._wait_exec().submit(lambda: cache.wait_for_one(msg, timeout=timeout, dropped_msgs=dropped_msgs))
 
    def wait_on_cache_for_many(
            self, cache: SubscriptionCache, msgs, *, mode: int = WaitMode.ALL_IN_GIVEN_ORDER.value,
-           timeout: float = 30.0, interval: float = 0.1, asynchronous: bool = False
+           timeout: float = 30.0, interval: float = 0.1, asynchronous: bool = False, dropped_msgs = None
    ):
       """
 Wait for multiple specific messages in the given subscription cache.
@@ -421,6 +427,12 @@ Wait for multiple specific messages in the given subscription cache.
 
   If True, the wait will be performed asynchronously using a ThreadPoolExecutor. Defaults to False.
 
+* ``dropped_msgs``
+
+  / *Condition*: optional / *Type*: List[Any] / *Default*: None /
+
+  The list of messages having been discarded. Defaults to None.
+
 **Returns:**
 
   / *Type*: List[int] /
@@ -428,8 +440,8 @@ Wait for multiple specific messages in the given subscription cache.
   A list of indices of the messages that were received, based on the specified mode.
       """
       if not asynchronous:
-         return cache.wait_for_many(msgs, mode=WaitMode(mode), timeout=timeout)
-      return self._wait_exec().submit(cache.wait_for_many, msgs, WaitMode(mode), timeout)
+         return cache.wait_for_many(msgs, mode=WaitMode(mode), timeout=timeout, dropped_msgs=dropped_msgs)
+      return self._wait_exec().submit(lambda: cache.wait_for_many(msgs, mode=WaitMode(mode), timeout=timeout, dropped_msgs=dropped_msgs))
 
    @staticmethod
    def constructor_params_from_config(config_path: str,
@@ -803,7 +815,9 @@ Unsubscribe from messages with the specified routing key.
                 routing_key: str,
                 message_cls: Type[BaseMessage],
                 callback: Optional[Union[Callable[[BaseMessage, dict], Awaitable[None]], list[Callable[[BaseMessage, dict], Awaitable[None]]]]] = None,
-                cache_size: Optional[int] = None):
+                cache_size: Optional[int] = None,
+                binding_headers: Optional[dict] = None,
+                match_all: bool = True):
       """
 Subscribe to messages with the specified routing key and message class.
 
@@ -814,6 +828,7 @@ Subscribe to messages with the specified routing key and message class.
   / *Condition*: required / *Type*: str /
 
   The routing key to subscribe to. Messages with this routing key will be routed to the callback.
+  For HeadersExchangeHandler, this can be empty string as routing is based on headers.
 
 * ``message_cls``
 
@@ -823,14 +838,81 @@ Subscribe to messages with the specified routing key and message class.
 
 * ``callback``
 
-  / *Condition*: required / *Type*: Callable[[BaseMessage], Awaitable[None]] /
+  / *Condition*: optional / *Type*: Callable[[BaseMessage, dict], Awaitable[None]] /
 
   The callback function to be called when a message is received. It should accept a single argument of type BaseMessage or its subclasses and return an awaitable (e.g., a coroutine).
+
+* ``cache_size``
+
+  / *Condition*: optional / *Type*: int /
+
+  Maximum size of the subscription cache.
+
+* ``binding_headers``
+
+  / *Condition*: optional / *Type*: dict / *Default*: None /
+
+  Headers to match for this subscription (only used with HeadersExchangeHandler).
+  Example: {"format": "pdf", "type": "report"}
+
+* ``match_all``
+
+  / *Condition*: optional / *Type*: bool / *Default*: True /
+
+  Only used when binding_headers is provided.
+  If True, all specified headers must match (x-match=all, AND logic).
+  If False, at least one header must match (x-match=any, OR logic).
+
+**Returns:**
+
+  / *Type*: SubscriptionCache /
+
+  A cache object for accessing received messages.
+
+**Example (Topic Exchange):**
+
+.. code-block:: python
+
+   cache = await client.on("sensor.temperature", TempMessage, handler)
+
+**Example (Headers Exchange):**
+
+.. code-block:: python
+
+   cache = await client.on(
+       routing_key="",  # ignored for headers exchange
+       message_cls=ReportMessage,
+       callback=handler,
+       binding_headers={"format": "pdf", "department": "engineering"},
+       match_all=True  # AND logic
+   )
       """
       if not self._connected:
          raise RuntimeError("EventBusClient is not connected")
-      return await self.exchange_handler.subscribe(routing_key, message_cls, callback, cache_size)
 
+      # If binding_headers provided, use header-based subscription
+      if binding_headers is not None:
+         if hasattr(self.exchange_handler, 'subscribe_with_headers'):
+            return await self.exchange_handler.subscribe_with_headers(
+               binding_headers=binding_headers,
+               message_cls=message_cls,
+               callback=callback,
+               cache_size=cache_size,
+               match_all=match_all
+            )
+         else:
+            # Fallback: construct binding_headers with x-match and call subscribe
+            headers_with_match = {"x-match": "all" if match_all else "any"}
+            headers_with_match.update(binding_headers)
+            return await self.exchange_handler.subscribe(
+               routing_key=routing_key,
+               message_cls=message_cls,
+               callback=callback,
+               cache_size=cache_size,
+               binding_headers=headers_with_match
+            )
+
+      return await self.exchange_handler.subscribe(routing_key, message_cls, callback, cache_size)
 
    async def wait_until_ready(self, requirements: dict[str, int], timeout: float = 5.0) -> bool:
       """
@@ -1223,7 +1305,10 @@ Blocking send wrapper.
       return self._submit(self.send(routing_key, message, headers=headers, threadsafe=threadsafe), timeout=timeout)
 
    def on_sync(self, routing_key: str, message_cls, callback=None, *,
-               cache_size: int = 200, timeout: float | None = 10.0):
+               cache_size: int = 200,
+               binding_headers: dict = None,
+               match_all: bool = True,
+               timeout: float | None = 10.0):
       """
 Blocking subscribe wrapper. Returns SubscriptionCache to use with get()/wait_for()/drain().
 
@@ -1234,6 +1319,7 @@ Blocking subscribe wrapper. Returns SubscriptionCache to use with get()/wait_for
   / *Condition*: required / *Type*: str /
 
   The routing key to subscribe to. Messages with this routing key will be routed to the callback.
+  For HeadersExchangeHandler, this can be empty string as routing is based on headers.
 
 * ``message_cls``
 
@@ -1253,14 +1339,48 @@ Blocking subscribe wrapper. Returns SubscriptionCache to use with get()/wait_for
 
   The size of the cache for storing received messages. This is useful for buffering messages before they are processed by the callback.
 
+* ``binding_headers``
+
+  / *Condition*: optional / *Type*: dict / *Default*: None /
+
+  Headers to match for this subscription (only used with HeadersExchangeHandler).
+  Example: {"format": "pdf", "type": "report"}
+
+* ``match_all``
+
+  / *Condition*: optional / *Type*: bool / *Default*: True /
+
+  Only used when binding_headers is provided.
+  If True, all specified headers must match (AND logic).
+  If False, at least one header must match (OR logic).
+
 **Returns:**
+
   / *Type*: SubscriptionCache /
 
   A SubscriptionCache object that allows you to manage the subscription and access received messages.
+
+**Example (Topic Exchange):**
+
+.. code-block:: python
+
+   cache = client.on_sync("sensor.temperature", TempMessage, handler)
+
+**Example (Headers Exchange):**
+
+.. code-block:: python
+
+   cache = client.on_sync(
+       routing_key="",
+       message_cls=ReportMessage,
+       binding_headers={"format": "pdf", "department": "engineering"},
+       match_all=True
+   )
       """
       LOGGER.info(f"Subscribing to routing key '{routing_key}' with message class '{message_cls.__name__}'")
       return self._submit(
-         self.on(routing_key, message_cls, callback, cache_size=cache_size),
+         self.on(routing_key, message_cls, callback, cache_size=cache_size,
+                 binding_headers=binding_headers, match_all=match_all),
          timeout=timeout
       )
 

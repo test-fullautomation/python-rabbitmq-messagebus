@@ -10,3 +10,40 @@ EBC_0007|TopicExchangeHandler|BADCASE|Send message with malformed routing key pa
 EBC_0008|TopicExchangeHandler|BADCASE|Use invalid wildcard in routing key
 EBC_0009|TopicExchangeHandler|BADCASE|Send message with routing key exceeding maximum length
 EBC_0010|TopicExchangeHandler|BADCASE|Topic pattern matching fails due to encoding/serialization issues
+EBC_0011|XRTopicExchangeHandler|GOODCASE|Send message with single wildcard (*) in routing key to multiple subscribers
+EBC_0012|XRTopicExchangeHandler|GOODCASE|Send message with multi-level wildcard (#) in routing key to multiple subscribers
+EBC_0013|XRTopicExchangeHandler|GOODCASE|Test mixed wildcard patterns in single routing key
+EBC_0014|XRTopicExchangeHandler|GOODCASE|Test message order preservation in x-rtopic exchange
+EBC_0015|XRTopicExchangeHandler|GOODCASE|Test multiple publishers with different routing patterns
+EBC_0016|XRTopicExchangeHandler|GOODCASE|Test case sensitivity in x-rtopic routing patterns
+EBC_0017|XRTopicExchangeHandler|BADCASE|Test routing pattern with null or None values
+EBC_0018|XRTopicExchangeHandler|BADCASE|Send message with routing key exceeding maximum length
+EBC_0019|XRTopicExchangeHandler|BADCASE|Test serialization failure with x-rtopic patterns
+EBC_0020|XRTopicExchangeHandler|EDGECASES|Test x-rtopic with minimal routing patterns
+EBC_0021|XRTopicExchangeHandler|EDGECASES|Test x-rtopic with deep hierarchical routing patterns
+EBC_0022|XRTopicExchangeHandler|EDGECASES|Test x-rtopic with overlapping routing patterns
+EBC_0023|XRTopicExchangeHandler|EDGECASES|Test x-rtopic with empty segments in routing patterns
+EBC_0024|BasicMessage|GOODCASE|Test BasicMessage with topic exchange
+EBC_0025|BasicMessage|GOODCASE|Test BasicMessage with x-rtopic reverse routing logic
+EBC_0026|BasicMessage|GOODCASE|Test BasicMessage equality comparison between two instances
+EBC_0027|BasicMessage|GOODCASE|Test BasicMessage creation from dictionary representation
+EBC_0028|BasicMessage|GOODCASE|Test BasicMessage inequality with different content or headers
+EBC_0029|BasicMessage|GOODCASE|Test BasicMessage with empty content and no headers
+EBC_0030|BasicMessage|EDGECASES|Test BasicMessage string representations using str() and repr() methods
+EBC_0031|ControlMessage|GOODCASE|Test ControlMessage creation from data dictionary
+EBC_0032|ControlMessage|BADCASE|Test ControlMessage with invalid roles data type
+EBC_0033|ControlMessage|BADCASE|Test ControlMessage with invalid kind data type
+EBC_0034|ControlMessage|BADCASE|Test ControlMessage with invalid instance_id data type
+EBC_0035|ControlMessage|BADCASE|Test ControlMessage with invalid ts (timestamp)
+EBC_0036|ControlMessage|EDGECASES|EDGECASE: Test ControlMessage with unusual timestamp values
+EBC_0037|ConfigureUnroutablePolicy|GOODCASE|ConfigureUnroutablePolicy: mode=return, on_unroutable=raise
+EBC_0038|ConfigureUnroutablePolicy|GOODCASE|ConfigureUnroutablePolicy: mode=return, on_unroutable=callback
+EBC_0039|ConfigureUnroutablePolicy|GOODCASE|ConfigureUnroutablePolicy: mode=return, on_unroutable=cache
+EBC_0040|ConfigureUnroutablePolicy|GOODCASE|ConfigureUnroutablePolicy: mode=return, on_unroutable=log
+EBC_0041|ConfigureUnroutablePolicy|GOODCASE|ConfigureUnroutablePolicy: mode=alternate-exchange
+EBC_0042|HeadersExchangeHandler|GOODCASE|Headers exchange with match_all=True (AND logic)
+EBC_0043|HeadersExchangeHandler|GOODCASE|Headers exchange with match_all=False (OR logic)
+EBC_0044|HeadersExchangeHandler|GOODCASE|Headers exchange with multiple subscribers using different binding criteria
+EBC_0045|HeadersExchangeHandler|GOODCASE|Headers exchange message ordering
+EBC_0046|HeadersExchangeHandler|GOODCASE|Headers exchange with non-matching headers
+EBC_0047|HeadersExchangeHandler|GOODCASE|Headers exchange partial match with AND logic should not deliver

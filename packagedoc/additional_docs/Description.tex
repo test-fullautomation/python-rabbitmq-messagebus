@@ -27,6 +27,8 @@ This client is designed for modularity and ease of use across multiple projects.
   \item \textbf{Thread-safe publishing}: Supports safe publishing from multiple threads with minimal locking overhead.
   \item \textbf{Automatic reconnect}: Automatically reconnects to \textbf{RabbitMQ} after connection loss (if enabled in configuration).
   \item \textbf{Pluggable architecture}: Supports both built-in and project-specific extensions.
+  \item \textbf{Multiple exchange types}: Supports Topic, Fanout, Headers, and X-RTopic exchange handlers.
+  \item \textbf{Header-based routing}: Route messages based on header attributes with AND/OR logic using HeadersExchangeHandler.
   \item \textbf{Supports JSON, Protobuf, Pickle serializers}.
 \end{itemize}
 
@@ -73,19 +75,24 @@ project/
 |   |-- qlogger.py
 |   |-- message/
 |   |   |-- base_message.py
+|   |   |-- basic_message.py
+|   |   |-- control_message.py
 |   |-- exchange_handler/
 |   |   |-- base.py
-|   |   |-- xr_topic_handler.py
+|   |   |-- topic_handler.py
+|   |   |-- fanout_handler.py
+|   |   |-- headers_handler.py
+|   |   |-- x_rtopic_handler.py
 |   |-- serializer/
 |   |   |-- base_serializer.py
 |   |   |-- json_serializer.py
 |   |   |-- protobuf_serializer.py
 |   |   |-- pickle_serializer.py
 |   |-- plugins/
-|   |   |-- mcpi/
-|   |   |   |-- serialize/
+|   |   |-- custom_plugin/
+|   |   |   |-- serializer/
 |   |   |   |-- message/
-|   |   |   |-- exchange/
+|   |   |   |-- exchange_handler/
 |   |-- config/
 |   |   |-- config.jsonp
 |-- app.py
@@ -139,7 +146,10 @@ Configuration Template (\texttt{EventBusClient/config/config.jsonp.template})
   "logfile": "test.log",
 
   // loglevel: Logging level for the logger instance.
-  "loglevel": "INFO"
+  "loglevel": "INFO",
+
+  // logger_mode: Log file mode ("w" for overwrite, "a" for append).
+  "logger_mode": "a"
 }
 \end{lstlisting}
 
@@ -201,6 +211,8 @@ Configuration Template (\texttt{EventBusClient/config/config.jsonp.template})
 \texttt{logfile} & Optional & String / Null & (none) & Path to a log file. If omitted or null, logs go to the default handlers (e.g., console). \\
 
 \texttt{loglevel} & Optional & String & \texttt{"INFO"} & Logging threshold (\texttt{"DEBUG"}, \texttt{"INFO"}, \texttt{"WARNING"}, \texttt{"ERROR"}, \texttt{"CRITICAL"}). \\
+
+\texttt{logger\_mode} & Optional & String & \texttt{"a"} & Log file mode: \texttt{"w"} (overwrite on each start) or \texttt{"a"} (append to existing). \\
 \end{longtable}
 
 \section{Usage}\label{sec:usage}
@@ -250,6 +262,42 @@ def on_message_sync(msg: ListenerEventMsg, header):
 client.on_sync("zone1.#", ListenerEventMsg, on_message_sync)
 \end{pythoncode}
 
+\subsection{Header-Based Subscriptions (HeadersExchangeHandler)}
+When using \textbf{HeadersExchangeHandler}, you can route messages based on header attributes instead of routing keys:
+
+\begin{pythoncode}
+# Subscribe with AND logic (all headers must match)
+await client.on(
+    routing_key="",  # Ignored in headers exchange
+    message_cls=DocumentMessage,
+    callback=on_document,
+    binding_headers={"format": "pdf", "department": "engineering"},
+    match_all=True  # x-match=all (AND logic)
+)
+
+# Subscribe with OR logic (any header must match)
+await client.on(
+    routing_key="",
+    message_cls=DocumentMessage,
+    callback=on_important,
+    binding_headers={"format": "pdf", "priority": "high"},
+    match_all=False  # x-match=any (OR logic)
+)
+
+# Publish with headers
+await client.send(
+    routing_key="",  # Ignored in headers exchange
+    message=DocumentMessage(title="Q4 Report"),
+    headers={"format": "pdf", "department": "engineering", "author": "john"}
+)
+\end{pythoncode}
+
+\begin{itemize}
+  \item \texttt{binding\_headers}: Dictionary of headers to match for subscription.
+  \item \texttt{match\_all=True}: All specified headers must match (AND logic, x-match=all).
+  \item \texttt{match\_all=False}: At least one header must match (OR logic, x-match=any).
+\end{itemize}
+
 
 \subsection{Setting Unroutable Message Policy}
 You can configure how the client handles unroutable messages by setting a startup policy. For example:
@@ -282,7 +330,7 @@ client = await EventBusClient.from_config(config_path, startup_policy=config_unr
 
 \newpage
 \section{Example: Producer and Consumer}
-This example (from \plog{EventBusClient/examples/basic_async_producer_consumer_sample.py}) starts a producer and a consumer in separate processes:
+This example (from \plog{examples/basic_async_producer_consumer_sample.py}) starts a producer and a consumer in separate processes:
 \begin{pythoncode}
 # Start consumer
 consumer = Process(target=run_process, args=(consumer_process, config_path))
@@ -296,7 +344,44 @@ producer.join()
 consumer.join()
 \end{pythoncode}
 
-You can find the complete example in the \plog{EventBusClient/examples} directory. Run run\_sample.bat (Windows) to execute the example.
+You can find the complete example in the \plog{examples} directory. Run run\_sample.bat (Windows) to execute the example.
+
+\section{Example: Headers Exchange}
+This example demonstrates header-based message routing using \textbf{HeadersExchangeHandler}:
+\begin{pythoncode}
+from EventBusClient.event_bus_client import EventBusClient
+from EventBusClient.exchange_handler.headers_handler import HeadersExchangeHandler
+from EventBusClient.serializer.json_serializer import JsonSerializer
+
+# Create client with HeadersExchangeHandler
+handler = HeadersExchangeHandler(
+    name="documents_exchange",
+    serializer=JsonSerializer()
+)
+client = EventBusClient(exchange_handler=handler, host="localhost", port=5672)
+await client.connect()
+
+# Subscribe to PDF documents from engineering (AND logic)
+async def handle_docs(msg, headers):
+    print(f"Received: {msg} with headers {headers}")
+
+await client.on(
+    routing_key="",
+    message_cls=DocumentMessage,
+    callback=handle_docs,
+    binding_headers={"format": "pdf", "department": "engineering"},
+    match_all=True
+)
+
+# Publish with matching headers
+await client.send(
+    routing_key="",
+    message=DocumentMessage(title="Q4 Report"),
+    headers={"format": "pdf", "department": "engineering"}
+)
+\end{pythoncode}
+
+See \plog{examples/headers\_exchange\_sample.py} for the complete example.
 
 \section{Example: Custom Plugin Structure}\label{sec:example:-custom-plugin-structure}
 To create a custom plugin, follow these steps:
@@ -317,9 +402,23 @@ plugins/
 \end{itemize}
 \section{Example: Built-in Plugins}
 The \textbf{EventBusClient} comes with several built-in plugins that can be used directly or extended:
+
+\subsection*{Exchange Handlers}
 \begin{itemize}
-  \item \textbf{XRTopicExchangeHandler}: Handles topic exchanges with \textbf{RabbitMQ}.
-  \item \textbf{ListenerEventMsg}: A default message class for listener events.
+  \item \textbf{TopicExchangeHandler}: Routes messages using routing key patterns with wildcards (* and \#).
+  \item \textbf{FanoutExchangeHandler}: Broadcasts messages to all bound queues (ignores routing key).
+  \item \textbf{HeadersExchangeHandler}: Routes messages based on header attributes with AND/OR logic.
+  \item \textbf{XRTopicExchangeHandler}: Reverse topic exchange (subscribers use literal keys, publishers use patterns).
+\end{itemize}
+
+\subsection*{Message Classes}
+\begin{itemize}
+  \item \textbf{BasicMessage}: Simple message with content and headers.
+  \item \textbf{ControlMessage}: Message for coordination and rendezvous patterns.
+\end{itemize}
+
+\subsection*{Serializers}
+\begin{itemize}
   \item \textbf{PickleSerializer}: Serializes messages using Python's Pickle module.
   \item \textbf{JSONSerializer}: Serializes messages to JSON format.
   \item \textbf{ProtobufSerializer}: Serializes messages using Protocol Buffers.

@@ -237,7 +237,7 @@ async def worker_sync(config_path: str, worker_name: str):
 
 
 def main():
-    config_path = "../config/config.jsonp"
+    config_path = "./config.jsonp"
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'

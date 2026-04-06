@@ -217,10 +217,19 @@ await client.connect(host, port, prefetch_count=10)
 await client.close()
 is_connected = client.is_connected()
 
-# Publish/Subscribe
+# Publish/Subscribe (routing key based)
 await client.send(routing_key, message, headers=None)
 cache = await client.on(routing_key, message_cls, callback)
 await client.off(routing_key, callback)
+
+# Publish/Subscribe (headers based - for HeadersExchangeHandler)
+cache = await client.on(
+    routing_key="",  # Ignored in headers exchange
+    message_cls=ReportMessage,
+    callback=handler,
+    binding_headers={"format": "pdf", "type": "report"},
+    match_all=True  # AND logic (x-match=all)
+)
 
 # Coordination (Rendezvous)
 await client.announce_ready(roles=["worker"])
@@ -329,8 +338,8 @@ Create a configuration file (`config.jsonp`) based on the template at `EventBusC
 |--------|------|----------|---------|-------------|
 | `host` | str | No | "localhost" | RabbitMQ server hostname |
 | `port` | int | No | 5672 | RabbitMQ server port |
-| `serializer` | str | **Yes** | - | Serializer class name |
-| `exchange_handler` | str | **Yes** | - | Exchange handler class name |
+| `serializer` | str | **Yes** | - | Serializer class name (see [Serializers](#serializers)) |
+| `exchange_handler` | str | **Yes** | - | Exchange handler class name (see [Exchange Handlers](#exchange-handlers)) |
 | `exchange_name` | str | No | auto | Custom exchange name |
 | `auto_reconnect` | bool | No | true | Enable auto-reconnection |
 | `qos_prefetch` | int | No | 10 | Prefetch count for QoS |
@@ -342,6 +351,72 @@ Create a configuration file (`config.jsonp`) based on the template at `EventBusC
 | `logfile` | str | No | None | Log file path |
 | `loglevel` | str | No | "INFO" | Log level |
 | `logger_mode` | str | No | "a" | Log file mode |
+
+### Exchange Handlers
+
+The `exchange_handler` configuration determines the RabbitMQ exchange type used for message routing:
+
+| Handler Class | Exchange Type | Routing Behavior | Use Case |
+|--------------|---------------|------------------|----------|
+| `TopicExchangeHandler` | `topic` | Pattern matching with `*` (one word) and `#` (zero or more words) | Most common - selective routing (e.g., `sensor.*.temperature`, `order.#`) |
+| `FanoutExchangeHandler` | `fanout` | Broadcasts to all bound queues, ignores routing key | Notifications, system-wide events |
+| `HeadersExchangeHandler` | `headers` | Routes based on message header attributes, not routing key | Complex routing based on multiple attributes |
+| `XRTopicExchangeHandler` | `x-rtopic` | Reverse topic matching (requires broker plugin) | Publisher specifies pattern, subscriber specifies exact key |
+
+**Example routing patterns (Topic Exchange):**
+
+```
+Routing Key: "sensor.living_room.temperature"
+
+Subscription Pattern    | Matches?
+------------------------|----------
+sensor.*.temperature    | Yes (matches one word)
+sensor.#                | Yes (matches zero or more words)
+sensor.living_room.*    | Yes
+*.*.temperature         | Yes
+sensor.bedroom.temperature | No (different room)
+```
+
+**When to use which handler:**
+
+- **TopicExchangeHandler** (recommended default) - When you need flexible routing with patterns
+- **FanoutExchangeHandler** - When all subscribers should receive all messages
+- **HeadersExchangeHandler** - When routing depends on multiple message attributes (AND/OR logic)
+- **XRTopicExchangeHandler** - Advanced use cases requiring reverse matching (requires [rabbitmq-rtopic-exchange plugin](https://github.com/rabbitmq/rabbitmq-rtopic-exchange))
+
+**Headers Exchange Example:**
+
+```python
+# Subscribe to messages where format=pdf AND type=report
+cache = await handler.subscribe_with_headers(
+    binding_headers={"format": "pdf", "type": "report"},
+    message_cls=ReportMessage,
+    callback=process_report,
+    match_all=True  # x-match=all (AND logic)
+)
+
+# Publish with matching headers
+await handler.publish(
+    message=report,
+    routing_key="",  # Ignored for headers exchange
+    headers={"format": "pdf", "type": "report", "author": "john"}
+)
+```
+
+### Serializers
+
+The `serializer` configuration determines how messages are encoded/decoded:
+
+| Serializer Class | Format | Pros | Cons | Use Case |
+|-----------------|--------|------|------|----------|
+| `PickleSerializer` | Python Pickle | Fast, supports any Python object | Python-only, security concerns | Internal Python-to-Python communication |
+| `JsonSerializer` | JSON | Human-readable, cross-language | Limited types, larger size | Interoperability, debugging |
+| `ProtobufSerializer` | Protocol Buffers | Compact, fast, schema-enforced | Requires .proto files | High-performance, strict contracts |
+
+**Recommendation:**
+- Use `PickleSerializer` for pure Python systems (fastest, most flexible)
+- Use `JsonSerializer` for debugging or multi-language systems
+- Use `ProtobufSerializer` for high-performance production systems
 
 ### JSONP Features
 
@@ -404,21 +479,22 @@ EventBusClient follows a **pluggable strategy pattern** with four extensible int
 
 ## Examples
 
-The `EventBusClient/examples/` folder contains comprehensive examples:
+The `examples/` folder contains comprehensive examples:
 
 | Example | Description |
 |---------|-------------|
-| [basic_sample.py](EventBusClient/examples/basic_sample.py) | Basic publish/subscribe |
-| [sync_sample.py](EventBusClient/examples/sync_sample.py) | Synchronous API usage |
-| [wait_mode_sample.py](EventBusClient/examples/wait_mode_sample.py) | WaitMode options |
-| [rendezvous_sample.py](EventBusClient/examples/rendezvous_sample.py) | Multi-process coordination |
-| [request_reply_sample.py](EventBusClient/examples/request_reply_sample.py) | RPC pattern |
-| [multiple_subscriptions_sample.py](EventBusClient/examples/multiple_subscriptions_sample.py) | Multiple topics |
-| [custom_message_sample.py](EventBusClient/examples/custom_message_sample.py) | Custom message types |
-| [error_handling_sample.py](EventBusClient/examples/error_handling_sample.py) | Error handling patterns |
-| [alternate_exchange_sample.py](EventBusClient/examples/alternate_exchange_sample.py) | Unroutable handling |
+| [basic_sample.py](examples/basic_sample.py) | Basic publish/subscribe |
+| [sync_sample.py](examples/sync_sample.py) | Synchronous API usage |
+| [wait_mode_sample.py](examples/wait_mode_sample.py) | WaitMode options |
+| [rendezvous_sample.py](examples/rendezvous_sample.py) | Multi-process coordination |
+| [request_reply_sample.py](examples/request_reply_sample.py) | RPC pattern |
+| [multiple_subscriptions_sample.py](examples/multiple_subscriptions_sample.py) | Multiple topics |
+| [custom_message_sample.py](examples/custom_message_sample.py) | Custom message types |
+| [error_handling_sample.py](examples/error_handling_sample.py) | Error handling patterns |
+| [alternate_exchange_sample.py](examples/alternate_exchange_sample.py) | Unroutable handling |
+| [headers_exchange_sample.py](examples/headers_exchange_sample.py) | Header-based message routing |
 
-See [EventBusClient/examples/README.md](EventBusClient/examples/README.md) for detailed documentation.
+See [examples/README.md](examples/README.md) for detailed documentation.
 
 ## Documentation
 

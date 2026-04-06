@@ -13,15 +13,13 @@
 #  limitations under the License.
 # *******************************************************************************
 #
-# File: basic_async_producer_consumer_sample.py
+# File: basic_sync_producer_consumer_sample.py
 #
 # Initially created by Nguyen Huynh Tri Cuong (MS/EMC51) / August 2025.
 #
 # Description:
 #
-#   Basic example of an asynchronous producer and consumer using EventBusClient.
-#   This script demonstrates how to set up a producer that sends messages
-#   and a consumer that receives them using multiprocessing.
+#   This script demonstrates a basic synchronous producer-consumer pattern using the EventBusClient library.
 #
 # History:
 #
@@ -29,11 +27,11 @@
 # - Initialize
 #
 # *******************************************************************************
-import asyncio
 import logging
 import sys
 import time
 from multiprocessing import Process
+
 from EventBusClient.event_bus_client import EventBusClient
 from EventBusClient.message.base_message import BaseMessage
 
@@ -45,84 +43,75 @@ class TestMessage(BaseMessage):
 
     @classmethod
     def from_data(cls, data):
-        pass
+        # Depending on your serializer, this may not be needed
+        return cls(content=data.get("content"))
 
     def get_value(self):
         return self
 
 
-# Producer process function
-async def producer_process(config_path):
+# Producer process (SYNC)
+def producer_process(config_path: str):
     logging.info("Producer: Starting up")
-    try:
-        client = await EventBusClient.from_config(config_path)
-    except Exception as e:
-        logging.error(f"Producer: Failed to initialize EventBusClient - {e}")
-        return
+    # Create client from config (initialize configuration). Connect in sync mode.
+    client = EventBusClient.from_config_sync(config_path)
+    client.connect_sync()  # host/port/exchange are loaded from config if desired
 
-    # Send 5 messages
+    # Send 5 messages (blocking)
     for i in range(5):
         msg = TestMessage(f"Message #{i} from producer")
         logging.info(f"Producer: Sending {msg.content}")
-        await client.send("test.topic", msg, headers={"index": i})
-        await asyncio.sleep(1)
+        client.send_sync("ipc.test.topic.test_zone.test_alias", msg)
+        time.sleep(1)
 
     logging.info("Producer: Shutting down")
-    await client.close()
+    client.close_sync()
 
 
-# Consumer process function
-async def consumer_process(config_path):
+# Consumer process (SYNC)
+def consumer_process(config_path: str):
     logging.info("Consumer: Starting up")
+    client = EventBusClient.from_config_sync(config_path)
     try:
-        client = await EventBusClient.from_config(config_path)
+        client.connect_sync(timeout=40)
     except Exception as e:
-        logging.error(f"Consumer: Failed to initialize EventBusClient - {e}")
+        logging.error(f"Consumer: Failed to connect - {e}")
         return
 
-    async def message_handler(message, header):
-        logging.info(f"Consumer: Received {message.content}. Headers: {header}")
-
-    # Subscribe to the test topic
-    await client.on("test.topic", TestMessage, message_handler)
+    # Subscribe (blocking) -> receive cache for synchronous reading
+    cache = client.on_sync("ipc.test.topic.test_zone.test_alias", TestMessage, cache_size=200)
     logging.info("Consumer: Subscribed to test.topic")
 
-    # Keep running to receive messages
+    received = 0
     try:
-        # Run for 10 seconds to receive all messages
-        await asyncio.sleep(1000)
-    except asyncio.CancelledError:
-        logging.info("Consumer: CancelledError caught, shutting down")
-    except Exception as e:
-        logging.error(f"Consumer: Exception occurred - {e}")
-        await client.close()
-        raise e
+        end_time = time.time() + 15
+        while received < 5 and time.time() < end_time:
+            try:
+                msg = cache.get(timeout=3.0)
+                logging.info(f"Consumer: Received {msg.content}")
+                received += 1
+            except TimeoutError:
+                logging.info("Consumer: waiting...")
     finally:
         logging.info("Consumer: Shutting down")
-        await client.close()
-
-
-def run_process(target_func, config_path):
-    """Helper function to run an async function in a process"""
-    asyncio.run(target_func(config_path))
-
+        client.close_sync()
 
 def main():
-    config_path = "../config/config.jsonp"
+    config_path = "./config.jsonp"
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(process)d - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(process)d - %(levelname)s - %(message)s"
     )
 
     # Start the consumer process
-    consumer = Process(target=run_process, args=(consumer_process, config_path))
+    consumer = Process(target=consumer_process, args=(config_path,))
     consumer.start()
 
     # Give consumer time to connect and set up subscription
     time.sleep(2)
 
     # Start the producer process
-    producer = Process(target=run_process, args=(producer_process, config_path))
+    producer = Process(target=producer_process, args=(config_path,))
     producer.start()
 
     # Wait for both processes to finish
@@ -133,12 +122,13 @@ def main():
 if __name__ == "__main__":
     # Allow running as producer or consumer individually
     if len(sys.argv) > 1:
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(process)d - %(levelname)s - %(message)s")
         if sys.argv[1] == "producer":
-            logging.basicConfig(level=logging.INFO)
-            asyncio.run(producer_process("../config/config.jsonp"))
+            producer_process("./config.jsonp")
         elif sys.argv[1] == "consumer":
-            logging.basicConfig(level=logging.INFO)
-            asyncio.run(consumer_process("../config/config.jsonp"))
+            consumer_process("./config.jsonp")
+        else:
+            print("Usage: script.py [producer|consumer]")
     else:
-        print("USAGE: python basic_async_producer_consumer_sample.py [producer|consumer]", file=sys.stderr)
-        sys.exit(1)
+        # Run both processes
+        main()
