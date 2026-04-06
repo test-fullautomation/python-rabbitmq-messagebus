@@ -321,7 +321,7 @@ Wait for multiple specific messages on the general topic.
 
    def wait_on_cache_for_one(
            self, cache: SubscriptionCache, msg, *, timeout: float = 30.0, interval: float = 0.1,
-           asynchronous: bool = False
+           asynchronous: bool = False, dropped_msgs = None
    ):
       """
 Wait for a specific message in the given subscription cache.
@@ -358,6 +358,12 @@ Wait for a specific message in the given subscription cache.
 
   If True, the wait will be performed asynchronously using a ThreadPoolExecutor. Defaults to False.
 
+* ``dropped_msgs``
+
+  / *Condition*: optional / *Type*: List[Any] / *Default*: None /
+
+  The list of messages having been discarded. Defaults to None.
+
 **Returns:**
 
   / *Type*: bool /
@@ -365,12 +371,12 @@ Wait for a specific message in the given subscription cache.
   True if the message was received within the timeout period, False otherwise.
       """
       if not asynchronous:
-         return cache.wait_for_one(msg, timeout=timeout)
-      return self._wait_exec().submit(cache.wait_for_one, msg, timeout)
+         return cache.wait_for_one(msg, timeout=timeout, dropped_msgs=dropped_msgs)
+      return self._wait_exec().submit(lambda: cache.wait_for_one(msg, timeout=timeout, dropped_msgs=dropped_msgs))
 
    def wait_on_cache_for_many(
            self, cache: SubscriptionCache, msgs, *, mode: int = WaitMode.ALL_IN_GIVEN_ORDER.value,
-           timeout: float = 30.0, interval: float = 0.1, asynchronous: bool = False
+           timeout: float = 30.0, interval: float = 0.1, asynchronous: bool = False, dropped_msgs = None
    ):
       """
 Wait for multiple specific messages in the given subscription cache.
@@ -421,6 +427,12 @@ Wait for multiple specific messages in the given subscription cache.
 
   If True, the wait will be performed asynchronously using a ThreadPoolExecutor. Defaults to False.
 
+* ``dropped_msgs``
+
+  / *Condition*: optional / *Type*: List[Any] / *Default*: None /
+
+  The list of messages having been discarded. Defaults to None.
+
 **Returns:**
 
   / *Type*: List[int] /
@@ -428,8 +440,8 @@ Wait for multiple specific messages in the given subscription cache.
   A list of indices of the messages that were received, based on the specified mode.
       """
       if not asynchronous:
-         return cache.wait_for_many(msgs, mode=WaitMode(mode), timeout=timeout)
-      return self._wait_exec().submit(cache.wait_for_many, msgs, WaitMode(mode), timeout)
+         return cache.wait_for_many(msgs, mode=WaitMode(mode), timeout=timeout, dropped_msgs=dropped_msgs)
+      return self._wait_exec().submit(lambda: cache.wait_for_many(msgs, mode=WaitMode(mode), timeout=timeout, dropped_msgs=dropped_msgs))
 
    @staticmethod
    def constructor_params_from_config(config_path: str,
