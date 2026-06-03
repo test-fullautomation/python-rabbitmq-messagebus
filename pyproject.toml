@@ -110,8 +110,7 @@ packages = [
     "EventBusClient.message.deprecated.std_msgs",
     "EventBusClient.message.deprecated.taf_msgs",
     "EventBusClient.plugins",
-    "EventBusClient.serializer",
-    "EventBusClient.examples"
+    "EventBusClient.serializer"
 ]
 
 # [tool.setuptools.package-data]
@@ -120,7 +119,7 @@ packages = [
 # Status: Optional
 #
 [tool.setuptools.package-data]
-"EventBusClient" = ["**/*.bat", "**/*.jsonp", "**/*.template", "**/*.pdf"]
+"EventBusClient" = ["**/*.bat", "**/*.jsonp", "**/*.template", "**/*.pdf", "**/*.txt"]
 
 # --------------------------------------------------------------------------------------------------------------
 # [tool.setuptools.dynamic]
