@@ -385,11 +385,11 @@ Wait for a single target message to appear in the cache.
                 idx = next((i for i, m in enumerate(self._buf) if m == target), -1)
                 if idx >= 0:
                     for _ in range(idx):
-                        self._buf.popleft()
+                        msg = self._buf.popleft()
+                        if dropped_msgs is not None:
+                            dropped_msgs.append(msg)
                     self._buf.popleft()
                     return True
-                if dropped_msgs is not None:
-                    dropped_msgs.append(msg)
                 remaining = end - time.time()
                 if remaining <= 0:
                     return False
