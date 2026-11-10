@@ -18,7 +18,7 @@
 #
 # TOML file used for component installation
 #
-# Version 0.1.0 / 09.03.2026
+# Version 0.2.0 / 10.11.2026
 #
 # --------------------------------------------------------------------------------------------------------------
 #
@@ -33,7 +33,7 @@
 #
 [build-system]
 # 'requires' specifies the dependencies necessary for the build process (meaning the conversion of source code into an installable distribution)
-requires      = ["setuptools>=80.9.0", "wheel", "build", "docutils>=0.22.4", "pydotdict", "PythonExtensionsCollection", "GenPackageDoc"] # need to be strengthened later to: "GenPackageDoc>=0.43.0"
+requires      = ["setuptools>=80.9.0", "wheel", "build", "docutils>=0.22.4", "pydotdict", "PythonExtensionsCollection"]
 # TODO: verify build dependencies: colorama, pydotdict, regex, aio-pika>=8.2.0, pika>=1.2.0, protobuf>=4.23.0
 
 build-backend = "build_backend"
@@ -61,8 +61,7 @@ classifiers = [
 # 'dependencies' defines the dependencies required to run the application or library (runtime dependencies)
 dependencies = [
     "docutils>=0.22.4",
-    "PythonExtensionsCollection",
-    "GenPackageDoc"
+    "PythonExtensionsCollection"
 ]
 # TODO: verify runtime dependencies: colorama, pydotdict, regex, aio-pika>=8.2.0, pika>=1.2.0, protobuf>=4.23.0
 dynamic = ["version"]
