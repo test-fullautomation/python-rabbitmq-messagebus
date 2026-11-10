@@ -23,9 +23,7 @@ dotdict==0.1 \
 genpackagedoc==0.44.0 \
     --hash=sha256:36e2cd79521eee9e3a03a08a877e28bedd2ae3afe7ad7f1444cab68cc98aac50 \
     --hash=sha256:a8ab2324e506d9cc6a12d06192c17f7e896c942eb90a1f49d518b066b06db39b
-    # via
-    #   EventBusClient (pyproject.toml)
-    #   pythonextensionscollection
+    # via pythonextensionscollection
 packaging==26.3 \
     --hash=sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79 \
     --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c
